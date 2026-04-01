@@ -2,7 +2,9 @@
 // Application Configuration
 
 define('APP_NAME', 'Library Management System');
-define('APP_URL', 'http://localhost/mucho');
+define('APP_URL', 'http://localhost/Library_management_system');
+/** Single front controller at project root (not public/index.php in the URL). */
+define('APP_ROUTE', APP_URL . '/index.php');
 define('APP_ENV', 'development');
 
 // Database Configuration
