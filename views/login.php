@@ -30,7 +30,7 @@
                     </div>
 
                     <div class="text-right">
-                        <a href="<?php echo APP_URL; ?>/public/index.php?page=forgot-password" class="link link-primary text-sm font-semibold">
+                        <a href="<?php echo APP_ROUTE; ?>?page=forgot-password" class="link link-primary text-sm font-semibold">
                             Forgot password?
                         </a>
                     </div>
@@ -44,7 +44,7 @@
 
                 <p class="text-center text-sm">
                     Don't have an account?
-                    <a href="<?php echo APP_URL; ?>/public/index.php?page=register" class="link link-primary font-semibold">Create one</a>
+                    <a href="<?php echo APP_ROUTE; ?>?page=register" class="link link-primary font-semibold">Create one</a>
                 </p>
             </div>
         </div>
@@ -63,7 +63,7 @@ async function resendOTPFromLogin(email) {
         });
         const result = await response.json();
         const messageDiv = document.getElementById('loginMessage');
-        const verifyLink = '<?php echo APP_URL; ?>/public/index.php?page=register&verify_email=' + encodeURIComponent(email);
+        const verifyLink = '<?php echo APP_ROUTE; ?>?page=register&verify_email=' + encodeURIComponent(email);
 
         if (result.success) {
             messageDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>' + result.message + ' <a href="' + verifyLink + '" class="link link-primary font-semibold">Enter OTP now</a></div>';
@@ -91,7 +91,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         if (result.success) {
             messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
             setTimeout(() => {
-                window.location.href = '<?php echo APP_URL; ?>/public/index.php?page=dashboard';
+                window.location.href = '<?php echo APP_ROUTE; ?>?page=dashboard';
             }, 1500);
         } else {
             if (result.unverified_email && result.email) {

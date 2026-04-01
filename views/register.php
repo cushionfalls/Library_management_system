@@ -62,7 +62,7 @@
 
                 <p class="text-center text-sm">
                     Already have an account?
-                    <a href="<?php echo APP_URL; ?>/public/index.php?page=login" class="link link-primary font-semibold">Sign in</a>
+                    <a href="<?php echo APP_ROUTE; ?>?page=login" class="link link-primary font-semibold">Sign in</a>
                 </p>
             </div>
         </div>
@@ -183,7 +183,7 @@ document.getElementById('otpForm').addEventListener('submit', async function(e) 
         if (result.success) {
             messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
             setTimeout(() => {
-                window.location.href = '<?php echo APP_URL; ?>/public/index.php?page=login';
+                window.location.href = '<?php echo APP_ROUTE; ?>?page=login';
             }, 2000);
         } else {
             messageDiv.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle mr-2"></i>' + (result.error || 'Verification failed') + '</div>';

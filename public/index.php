@@ -11,7 +11,7 @@ $current_page = $_GET['page'] ?? 'home';
 
 if (in_array($current_page, $protected_pages)) {
     if (!$session->isLoggedIn()) {
-        header('Location: ' . APP_URL . '/public/index.php?page=login');
+        header('Location: ' . APP_ROUTE . '?page=login');
         exit;
     }
 }
@@ -20,14 +20,14 @@ if (in_array($current_page, $protected_pages)) {
 $admin_pages = ['admin', 'manage-books', 'manage-authors', 'manage-users', 'transactions', 'overdue-books'];
 if (in_array($current_page, $admin_pages)) {
     if (!$session->isAdmin() && !$session->isLibrarian()) {
-        header('Location: ' . APP_URL . '/public/index.php?page=home');
+        header('Location: ' . APP_ROUTE . '?page=home');
         exit;
     }
 }
 
 // Check session timeout
 if (!$session->checkTimeout() && in_array($current_page, $protected_pages)) {
-    header('Location: ' . APP_URL . '/public/index.php?page=login');
+    header('Location: ' . APP_ROUTE . '?page=login');
     exit;
 }
 
@@ -142,7 +142,7 @@ $navActive = [
     <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <div class="flex items-center gap-4 lg:gap-10 flex-1 min-w-0">
-                <a href="<?php echo APP_URL; ?>/public/index.php" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
+                <a href="<?php echo APP_ROUTE; ?>" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[#4F1BF1] text-2xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
                     <span class="text-lg font-bold tracking-tight font-['Manrope'] hidden sm:inline"><?php echo htmlspecialchars(APP_NAME); ?></span>
                 </a>
@@ -169,13 +169,13 @@ $navActive = [
                             : 'text-[#474557] font-semibold hover:text-[#4F1BF1] transition-colors';
                         return '<a class="' . $cls . '" href="' . htmlspecialchars($href) . '">' . htmlspecialchars($label) . '</a>';
                     };
-                    echo $lum(APP_URL . '/public/index.php?page=dashboard', 'Dashboard', $navActive['dashboard']);
-                    echo $lum(APP_URL . '/public/index.php?page=books', 'Browse', $navActive['books']);
-                    echo $lum(APP_URL . '/public/index.php?page=my-books', 'My Books', $navActive['my-books']);
-                    echo $lum(APP_URL . '/public/index.php?page=wallet', 'Wallet', $navActive['wallet']);
-                    echo $lum(APP_URL . '/public/index.php?page=fines', 'Fines', $navActive['fines']);
+                    echo $lum(APP_ROUTE . '?page=dashboard', 'Dashboard', $navActive['dashboard']);
+                    echo $lum(APP_ROUTE . '?page=books', 'Browse', $navActive['books']);
+                    echo $lum(APP_ROUTE . '?page=my-books', 'My Books', $navActive['my-books']);
+                    echo $lum(APP_ROUTE . '?page=wallet', 'Wallet', $navActive['wallet']);
+                    echo $lum(APP_ROUTE . '?page=fines', 'Fines', $navActive['fines']);
                     if ($session->isAdmin() || $session->isLibrarian()) {
-                        echo $lum(APP_URL . '/public/index.php?page=admin', 'Admin', $navActive['admin']);
+                        echo $lum(APP_ROUTE . '?page=admin', 'Admin', $navActive['admin']);
                     }
                     ?>
                 </nav>
@@ -184,13 +184,13 @@ $navActive = [
                     <div class="dropdown lg:hidden">
                         <label tabindex="0" class="btn btn-ghost btn-sm font-['Manrope'] font-semibold text-[#474557] border border-[#c9c4da]/40">Menu</label>
                         <ul tabindex="0" class="dropdown-content z-[60] menu p-2 shadow-lg bg-white/95 backdrop-blur-md border border-[#c9c4da]/20 rounded-xl w-52">
-                            <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=dashboard">Dashboard</a></li>
-                            <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=books">Browse</a></li>
-                            <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=my-books">My Books</a></li>
-                            <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=wallet">Wallet</a></li>
-                            <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=fines">Fines</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=dashboard">Dashboard</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=books">Browse</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=my-books">My Books</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=wallet">Wallet</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=fines">Fines</a></li>
                             <?php if ($session->isAdmin() || $session->isLibrarian()): ?>
-                                <li><a class="font-['Manrope']" href="<?php echo APP_URL; ?>/public/index.php?page=admin">Admin</a></li>
+                                <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin">Admin</a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
@@ -208,16 +208,16 @@ $navActive = [
                         </label>
                         <ul tabindex="0" class="dropdown-content z-[60] menu p-2 shadow-lg bg-white/95 backdrop-blur-md border border-[#c9c4da]/20 rounded-xl w-56">
                             <li class="menu-title text-xs opacity-75"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></li>
-                            <li class="lg:hidden"><a href="<?php echo APP_URL; ?>/public/index.php?page=dashboard">Dashboard</a></li>
-                            <li><a href="<?php echo APP_URL; ?>/public/index.php?page=profile">Profile</a></li>
+                            <li class="lg:hidden"><a href="<?php echo APP_ROUTE; ?>?page=dashboard">Dashboard</a></li>
+                            <li><a href="<?php echo APP_ROUTE; ?>?page=profile">Profile</a></li>
                             <li><a href="#" onclick="openLogoutModal(); return false;">Logout</a></li>
                         </ul>
                     </div>
                 </div>
             <?php else: ?>
                 <div class="flex items-center justify-end gap-2 shrink-0">
-                    <a href="<?php echo APP_URL; ?>/public/index.php?page=login" class="px-4 py-2 rounded-lg text-sm font-semibold font-['Manrope'] text-[#474557] hover:text-[#4F1BF1] transition-colors">Login</a>
-                    <a href="<?php echo APP_URL; ?>/public/index.php?page=register" class="px-4 py-2 rounded-xl text-sm font-bold font-['Manrope'] text-white bg-[#4F1BF1] hover:brightness-110 transition-all shadow-md">Register</a>
+                    <a href="<?php echo APP_ROUTE; ?>?page=login" class="px-4 py-2 rounded-lg text-sm font-semibold font-['Manrope'] text-[#474557] hover:text-[#4F1BF1] transition-colors">Login</a>
+                    <a href="<?php echo APP_ROUTE; ?>?page=register" class="px-4 py-2 rounded-xl text-sm font-bold font-['Manrope'] text-white bg-[#4F1BF1] hover:brightness-110 transition-all shadow-md">Register</a>
                 </div>
             <?php endif; ?>
         </div>
@@ -256,8 +256,8 @@ $navActive = [
                 <div>
                     <h3 class="font-bold text-lg mb-3 text-on-surface">Quick Links</h3>
                     <ul class="text-sm space-y-2 text-on-surface-variant">
-                        <li><a href="<?php echo APP_URL; ?>/public/index.php?page=books" class="hover:text-primary transition-colors">Browse Books</a></li>
-                        <li><a href="<?php echo APP_URL; ?>/public/index.php?page=home" class="hover:text-primary transition-colors">Home</a></li>
+                        <li><a href="<?php echo APP_ROUTE; ?>?page=books" class="hover:text-primary transition-colors">Browse Books</a></li>
+                        <li><a href="<?php echo APP_ROUTE; ?>?page=home" class="hover:text-primary transition-colors">Home</a></li>
                     </ul>
                 </div>
                 <div>
