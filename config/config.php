@@ -17,8 +17,8 @@ define('DB_PORT', 3306);
 // Google Email Configuration (using App Password)
 define('MAIL_HOST', 'smtp.gmail.com');
 define('MAIL_PORT', 587);
-define('MAIL_USERNAME', 'paper.otp.support@gmail.com'); // Change this to your Gmail
-define('MAIL_PASSWORD', 'oqzr prmh poog ykqe');     // Change this to your App Password
+define('MAIL_USERNAME', 'librarymanagementslibs@gmail.com'); 
+define('MAIL_PASSWORD', 'jnef oloi tlcl dxrx');     
 define('MAIL_FROM', MAIL_USERNAME);
 define('MAIL_FROM_NAME', 'Library Management System');
 
