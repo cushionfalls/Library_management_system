@@ -30,25 +30,8 @@ This system allows users to add new books, track the lending of books, manage me
    ```bash
    cd Library_management_system
    ```
-3. Install the required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Apply migrations:
-   ```bash
-   python manage.py migrate
-   ```
-5. Create a superuser (for admin access):
-   ```bash
-   python manage.py createsuperuser
-   ```
-6. Run the application:
-   ```bash
-   python manage.py runserver
-   ```
 
 ## Usage
-- Access the application by navigating to `http://127.0.0.1:8000/` in your web browser.
 - Use the admin credentials to log in as an administrator.
 - Navigate through the features to manage the library effectively.
 
