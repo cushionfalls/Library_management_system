@@ -1,55 +1,94 @@
-<div class="space-y-16 lg:space-y-24 pb-8">
-    <section class="relative overflow-hidden rounded-3xl border border-[#c9c4da]/40 bg-gradient-to-br from-[#f7f1ff] via-[#fdf8ff] to-white px-6 py-16 sm:px-12 sm:py-20 lg:px-16 lg:py-24 shadow-sm">
-        <div class="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#4F1BF1]/10 blur-3xl" aria-hidden="true"></div>
-        <div class="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#4F1BF1]/5 blur-2xl" aria-hidden="true"></div>
-        <div class="relative max-w-3xl">
-            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#c9c4da]/50 bg-white/70 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#4F1BF1] font-['Manrope']">
-                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
-                Your library, simplified
-            </p>
-            <h1 class="text-4xl font-extrabold tracking-tight text-[#1c1a25] sm:text-5xl lg:text-6xl font-['Manrope'] leading-[1.1]">
-                Discover books, manage loans, and stay on top of fines in one place.
-            </h1>
-            <p class="mt-6 text-lg text-[#474557] leading-relaxed max-w-2xl font-medium">
-                <?php echo htmlspecialchars(APP_NAME); ?> helps readers browse the catalog, track borrowed titles, and keep their wallet and fines organized—with a calm, modern experience.
-            </p>
-            <div class="mt-10 flex flex-wrap items-center gap-4">
-                <a href="<?php echo APP_ROUTE; ?>?page=books" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4F1BF1] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4F1BF1]/25 hover:brightness-110 transition-all font-['Manrope']">
-                    <span class="material-symbols-outlined text-[20px]">travel_explore</span>
-                    Browse catalog
-                </a>
-                <a href="<?php echo APP_ROUTE; ?>?page=register" class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#c9c4da]/60 bg-white px-6 py-3.5 text-sm font-bold text-[#1c1a25] hover:border-[#4F1BF1] hover:text-[#4F1BF1] transition-all font-['Manrope']">
-                    Create account
-                </a>
-            </div>
-        </div>
-    </section>
+<!-- Hero Section -->
+<div class="hero min-h-[80vh] bg-surface border-b border-outline-variant/30 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none opacity-40">
+        <div class="absolute inset-0 bg-[radial-gradient(#cac1ff_0.5px,transparent_0.5px)] [background-size:24px_24px]"></div>
+    </div>
+    <div class="hero-content text-center max-w-4xl">
+        <div class="space-y-8 relative z-10">
+            <h1 class="font-headline text-6xl font-extrabold leading-tight tracking-tight text-on-surface"><?php echo APP_NAME; ?></h1>
+            <p class="text-xl text-on-surface-variant max-w-2xl mx-auto">Your digital library management solution. Rent, buy, or borrow books online and offline with ease.</p>
 
-    <section class="grid gap-8 md:grid-cols-3">
-        <?php
-        $features = [
-            ['icon' => 'menu_book', 'title' => 'Rich catalog', 'text' => 'Search and explore titles with a fast, focused browsing experience.'],
-            ['icon' => 'bookmark_added', 'title' => 'Loans & history', 'text' => 'See what you have checked out and manage your reading in one dashboard.'],
-            ['icon' => 'account_balance_wallet', 'title' => 'Wallet & fines', 'text' => 'Transparent balances and fine tracking so nothing catches you off guard.'],
-        ];
-        foreach ($features as $f) :
-        ?>
-            <div class="rounded-2xl border border-[#c9c4da]/35 bg-white/80 p-8 shadow-sm backdrop-blur-sm">
-                <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#4F1BF1]/10 text-[#4F1BF1]">
-                    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;"><?php echo htmlspecialchars($f['icon']); ?></span>
+            <?php if (!isset($_SESSION['user_id'])): ?>
+                <div class="flex gap-6 justify-center flex-wrap">
+                    <a href="<?php echo APP_URL; ?>/public/index.php?page=register" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl bg-primary text-on-primary shadow-md hover:bg-primary-container transition-all active:scale-[0.99]">
+                        <i class="fas fa-rocket mr-3"></i> Get Started
+                    </a>
+                    <a href="<?php echo APP_URL; ?>/public/index.php?page=login" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl border border-outline-variant/60 text-on-surface hover:bg-surface-container-high transition-all active:scale-[0.99]">
+                        <i class="fas fa-sign-in-alt mr-3"></i> Sign In
+                    </a>
                 </div>
-                <h2 class="text-lg font-bold text-[#1c1a25] font-['Manrope']"><?php echo htmlspecialchars($f['title']); ?></h2>
-                <p class="mt-2 text-sm text-[#474557] leading-relaxed"><?php echo htmlspecialchars($f['text']); ?></p>
-            </div>
-        <?php endforeach; ?>
-    </section>
-
-    <section class="rounded-3xl border border-[#c9c4da]/40 bg-[#1c1a25] px-8 py-14 text-center sm:px-12">
-        <h2 class="text-2xl font-extrabold text-white sm:text-3xl font-['Manrope']">Ready to get started?</h2>
-        <p class="mx-auto mt-3 max-w-xl text-sm text-white/75">Sign in to access your dashboard, or register to join the library.</p>
-        <div class="mt-8 flex flex-wrap justify-center gap-4">
-            <a href="<?php echo APP_ROUTE; ?>?page=login" class="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#1c1a25] hover:bg-[#f7f1ff] transition-colors font-['Manrope']">Sign in</a>
-            <a href="<?php echo APP_ROUTE; ?>?page=register" class="inline-flex items-center justify-center rounded-xl border-2 border-white/30 px-6 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors font-['Manrope']">Register</a>
+            <?php else: ?>
+                <a href="<?php echo APP_URL; ?>/public/index.php?page=books" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl bg-primary text-on-primary shadow-md hover:bg-primary-container transition-all active:scale-[0.99]">
+                    <i class="fas fa-book mr-3"></i> Browse Books
+                </a>
+            <?php endif; ?>
         </div>
-    </section>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-16 bg-surface-container-low/40">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="font-headline text-4xl font-bold mb-4 text-on-surface">Why Choose Our Library?</h2>
+            <p class="text-lg text-on-surface-variant max-w-2xl mx-auto">Experience the future of book management with our comprehensive platform designed for modern readers.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-surface-container-lowest border border-outline-variant/20 shadow-sm rounded-2xl">
+                <div class="card-body text-center">
+                    <div class="text-5xl mb-6 text-primary">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3 class="card-title text-2xl mb-4 text-on-surface">Vast Collection</h3>
+                    <p class="text-on-surface-variant text-lg">Browse thousands of books across multiple genres and find your next favorite read.</p>
+                </div>
+            </div>
+
+            <div class="bg-surface-container-lowest border border-outline-variant/20 shadow-sm rounded-2xl">
+                <div class="card-body text-center">
+                    <div class="text-5xl mb-6 text-secondary">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h3 class="card-title text-2xl mb-4 text-on-surface">Flexible Pricing</h3>
+                    <p class="text-on-surface-variant text-lg">Rent or buy books at affordable prices. Choose what works best for your budget and needs.</p>
+                </div>
+            </div>
+
+            <div class="bg-surface-container-lowest border border-outline-variant/20 shadow-sm rounded-2xl">
+                <div class="card-body text-center">
+                    <div class="text-5xl mb-6 text-tertiary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="card-title text-2xl mb-4 text-on-surface">Community Driven</h3>
+                    <p class="text-on-surface-variant text-lg">Read and write reviews to help other readers discover great books and make informed choices.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="py-16 bg-surface">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="font-headline text-4xl font-bold mb-8 text-on-surface">Join Thousands of Readers</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <div class="text-4xl font-bold text-primary mb-2">10K+</div>
+                <div class="text-on-surface-variant">Books Available</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-secondary mb-2">5K+</div>
+                <div class="text-on-surface-variant">Active Users</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-tertiary mb-2">50K+</div>
+                <div class="text-on-surface-variant">Books Rented</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-primary-container mb-2">4.8</div>
+                <div class="text-on-surface-variant">Average Rating</div>
+            </div>
+        </div>
+    </div>
 </div>
