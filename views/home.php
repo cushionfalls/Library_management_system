@@ -17,11 +17,13 @@
                         <i class="fas fa-sign-in-alt mr-3"></i> Sign In
                     </a>
                 </div>
-            <?php else: ?>
+            <?php
+else: ?>
                 <a href="<?php echo APP_URL; ?>/public/index.php?page=books" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl bg-primary text-on-primary shadow-md hover:bg-primary-container transition-all active:scale-[0.99]">
                     <i class="fas fa-book mr-3"></i> Browse Books
                 </a>
-            <?php endif; ?>
+            <?php
+endif; ?>
         </div>
     </div>
 </div>
