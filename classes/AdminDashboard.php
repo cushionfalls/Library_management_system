@@ -75,7 +75,9 @@ class AdminDashboard {
     public function getBooks($limit = 100) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT id, isbn, name, publisher, number_of_copies, price, created_at
+            "SELECT id, isbn, name, description, publisher, published_at, language, genre,
+                    number_of_copies, price, online_rent_price, online_buy_price,
+                    cover_image, online_copy_pdf, created_at
              FROM Books
              ORDER BY created_at DESC
              LIMIT ?"
@@ -85,18 +87,32 @@ class AdminDashboard {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function createBook($isbn, $name, $publisher, $copies, $price) {
+    public function createBook($isbn, $name, $publisher, $copies, $price, $bookData = []) {
         $isbn = trim((string)$isbn);
         $name = trim((string)$name);
         $publisher = trim((string)$publisher);
         $copies = (int)$copies;
         $price = (int)$price;
+        $description = trim((string)($bookData['description'] ?? ''));
+        $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
+        $language = trim((string)($bookData['language'] ?? 'English'));
+        $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
+        $onlineRentPrice = $this->normalizeOptionalInt($bookData['online_rent_price'] ?? null);
+        $onlineBuyPrice = $this->normalizeOptionalInt($bookData['online_buy_price'] ?? null);
+        $coverImage = trim((string)($bookData['cover_image'] ?? ''));
+        $onlineCopyPdf = trim((string)($bookData['online_copy_pdf'] ?? ''));
 
         if ($isbn === '' || $name === '' || $publisher === '') {
             return ['success' => false, 'message' => 'ISBN, name and publisher are required'];
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
+        }
+        if ($onlineRentPrice !== null && $onlineRentPrice < 0) {
+            return ['success' => false, 'message' => 'Online rent price must be a valid number'];
+        }
+        if ($onlineBuyPrice !== null && $onlineBuyPrice < 0) {
+            return ['success' => false, 'message' => 'Online buy price must be a valid number'];
         }
 
         $stmt = $this->db->prepare("SELECT id FROM Books WHERE isbn = ? LIMIT 1");
@@ -107,10 +123,32 @@ class AdminDashboard {
         }
 
         $insert = $this->db->prepare(
-            "INSERT INTO Books (isbn, name, publisher, number_of_copies, price)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO Books (
+                isbn, name, description, publisher, published_at, language, genre,
+                number_of_copies, price, online_rent_price, online_buy_price, cover_image, online_copy_pdf
+            )
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        $insert->bind_param('sssii', $isbn, $name, $publisher, $copies, $price);
+        $descriptionOrNull = ($description === '') ? null : $description;
+        $language = ($language === '') ? 'English' : $language;
+        $coverImageOrNull = ($coverImage === '') ? null : $coverImage;
+        $onlineCopyPdfOrNull = ($onlineCopyPdf === '') ? null : $onlineCopyPdf;
+        $insert->bind_param(
+            'sssssssiiiiss',
+            $isbn,
+            $name,
+            $descriptionOrNull,
+            $publisher,
+            $publishedAt,
+            $language,
+            $genre,
+            $copies,
+            $price,
+            $onlineRentPrice,
+            $onlineBuyPrice,
+            $coverImageOrNull,
+            $onlineCopyPdfOrNull
+        );
 
         if (!$insert->execute()) {
             return ['success' => false, 'message' => 'Failed to create book'];
@@ -119,13 +157,21 @@ class AdminDashboard {
         return ['success' => true, 'message' => 'Book created successfully'];
     }
 
-    public function updateBook($id, $isbn, $name, $publisher, $copies, $price) {
+    public function updateBook($id, $isbn, $name, $publisher, $copies, $price, $bookData = []) {
         $id = (int)$id;
         $isbn = trim((string)$isbn);
         $name = trim((string)$name);
         $publisher = trim((string)$publisher);
         $copies = (int)$copies;
         $price = (int)$price;
+        $description = trim((string)($bookData['description'] ?? ''));
+        $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
+        $language = trim((string)($bookData['language'] ?? 'English'));
+        $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
+        $onlineRentPrice = $this->normalizeOptionalInt($bookData['online_rent_price'] ?? null);
+        $onlineBuyPrice = $this->normalizeOptionalInt($bookData['online_buy_price'] ?? null);
+        $coverImage = trim((string)($bookData['cover_image'] ?? ''));
+        $onlineCopyPdf = trim((string)($bookData['online_copy_pdf'] ?? ''));
 
         if ($id <= 0) {
             return ['success' => false, 'message' => 'Invalid book id'];
@@ -135,6 +181,12 @@ class AdminDashboard {
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
+        }
+        if ($onlineRentPrice !== null && $onlineRentPrice < 0) {
+            return ['success' => false, 'message' => 'Online rent price must be a valid number'];
+        }
+        if ($onlineBuyPrice !== null && $onlineBuyPrice < 0) {
+            return ['success' => false, 'message' => 'Online buy price must be a valid number'];
         }
 
         $dup = $this->db->prepare("SELECT id FROM Books WHERE isbn = ? AND id != ? LIMIT 1");
@@ -146,10 +198,32 @@ class AdminDashboard {
 
         $stmt = $this->db->prepare(
             "UPDATE Books
-             SET isbn = ?, name = ?, publisher = ?, number_of_copies = ?, price = ?, updated_at = NOW()
+             SET isbn = ?, name = ?, description = ?, publisher = ?, published_at = ?, language = ?, genre = ?,
+                 number_of_copies = ?, price = ?, online_rent_price = ?, online_buy_price = ?, cover_image = ?, online_copy_pdf = ?,
+                 updated_at = NOW()
              WHERE id = ?"
         );
-        $stmt->bind_param('sssiii', $isbn, $name, $publisher, $copies, $price, $id);
+        $descriptionOrNull = ($description === '') ? null : $description;
+        $language = ($language === '') ? 'English' : $language;
+        $coverImageOrNull = ($coverImage === '') ? null : $coverImage;
+        $onlineCopyPdfOrNull = ($onlineCopyPdf === '') ? null : $onlineCopyPdf;
+        $stmt->bind_param(
+            'sssssssiiiissi',
+            $isbn,
+            $name,
+            $descriptionOrNull,
+            $publisher,
+            $publishedAt,
+            $language,
+            $genre,
+            $copies,
+            $price,
+            $onlineRentPrice,
+            $onlineBuyPrice,
+            $coverImageOrNull,
+            $onlineCopyPdfOrNull,
+            $id
+        );
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to update book'];
         }
@@ -230,6 +304,50 @@ class AdminDashboard {
         }
 
         return ['success' => true, 'message' => 'User updated successfully'];
+    }
+
+    public function createUser($firstName, $lastName, $email, $password, $role, $isActive) {
+        $firstName = trim((string)$firstName);
+        $lastName = trim((string)$lastName);
+        $email = trim((string)$email);
+        $password = (string)$password;
+        $role = strtoupper(trim((string)$role));
+        $isActive = (int)$isActive === 1 ? 1 : 0;
+
+        if ($firstName === '' || $lastName === '' || $email === '' || $password === '') {
+            return ['success' => false, 'message' => 'First name, last name, email and password are required'];
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['success' => false, 'message' => 'Invalid email format'];
+        }
+        if (strlen($password) < 6) {
+            return ['success' => false, 'message' => 'Password must be at least 6 characters'];
+        }
+
+        $allowedRoles = ['USER', 'LIBRARIAN'];
+        if (!in_array($role, $allowedRoles, true)) {
+            return ['success' => false, 'message' => 'Role must be USER or LIBRARIAN'];
+        }
+
+        $dup = $this->db->prepare("SELECT id FROM Users WHERE email = ? LIMIT 1");
+        $dup->bind_param('s', $email);
+        $dup->execute();
+        if ($dup->get_result()->num_rows > 0) {
+            return ['success' => false, 'message' => 'Email already used by another user'];
+        }
+
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+        $stmt = $this->db->prepare(
+            "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at)
+             VALUES (?, ?, ?, ?, ?, ?, 1, NOW())"
+        );
+        $stmt->bind_param('sssssi', $firstName, $lastName, $email, $passwordHash, $role, $isActive);
+
+        if (!$stmt->execute()) {
+            return ['success' => false, 'message' => 'Failed to create user'];
+        }
+
+        return ['success' => true, 'message' => 'User created successfully'];
     }
 
     public function deleteUser($id, $actorId) {
@@ -356,6 +474,50 @@ class AdminDashboard {
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
+    }
+
+    private function normalizeGenre($genre) {
+        $genre = strtoupper(trim((string)$genre));
+        $allowed = [
+            'FANTASY',
+            'SCIENCE_FICTION',
+            'MYSTERY',
+            'ROMANCE',
+            'THRILLER',
+            'NON_FICTION',
+            'BIOGRAPHY',
+            'HISTORY',
+            'OTHERS'
+        ];
+        if (!in_array($genre, $allowed, true)) {
+            return 'OTHERS';
+        }
+        return $genre;
+    }
+
+    private function normalizeOptionalInt($value) {
+        if ($value === null) {
+            return null;
+        }
+        $value = trim((string)$value);
+        if ($value === '') {
+            return null;
+        }
+        return (int)$value;
+    }
+
+    private function normalizeDatetime($value) {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return null;
+        }
+
+        $time = strtotime($value);
+        if ($time === false) {
+            return null;
+        }
+
+        return date('Y-m-d H:i:s', $time);
     }
 }
 
