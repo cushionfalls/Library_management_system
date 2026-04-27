@@ -279,7 +279,7 @@ function initNavbarBookSearch() {
             return;
         }
 
-        const url = appBaseUrl() + '/controllers/book.php?action=getBookSuggestions&search=' + encodeURIComponent(query) + '&limit=6';
+        const url = appBaseUrl() + '/controllers/books.php?action=suggestions&search=' + encodeURIComponent(query) + '&limit=6';
         const response = await fetch(url);
         const data = await response.json().catch(() => null);
 
@@ -298,7 +298,7 @@ function initNavbarBookSearch() {
 
         const items = books.map(b => {
             const safeName = escapeHtml(b.name);
-            const detailUrl = appBaseUrl() + '/public/index.php?page=books&detail=' + encodeURIComponent(b.id) + '&search=' + encodeURIComponent(query);
+            const detailUrl = appBaseUrl() + '/public/index.php?page=books&book=' + encodeURIComponent(b.id) + '&search=' + encodeURIComponent(query);
             return '<li><a href="' + detailUrl + '" class="justify-between"><span>' + safeName + '</span></a></li>';
         }).join('');
 

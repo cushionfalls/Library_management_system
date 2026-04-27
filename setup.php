@@ -97,7 +97,7 @@ echo "\n" . str_repeat("=", 45) . "\n";
 echo "✓ Database setup completed successfully!\n\n";
 echo "Next steps:\n";
 echo "1. Update config/config.php with your email credentials\n";
-echo "2. Login to http://localhost/Library_management_system/index.php\n";
+echo "2. Login to http://localhost/library_management_system/index.php\n";
 echo "3. Email: admin@librarymanagement.com\n";
 echo "4. Password: admin123\n";
 echo "5. Change password immediately after login\n";
