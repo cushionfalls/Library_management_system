@@ -10,7 +10,7 @@
 
             <?php if (!isset($_SESSION['user_id'])): ?>
                 <div class="flex gap-6 justify-center flex-wrap">
-                    <a href="<?php echo APP_URL; ?>/public/index.php?page=register" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl bg-primary text-on-primary shadow-md hover:bg-primary-container transition-all active:scale-[0.99]">
+                    <a href="<?php echo APP_URL; ?>/public/index.php?page=register" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg text-white font-bold rounded-xl bg-primary text-on-primary shadow-md hover:bg-primary-container transition-all active:scale-[0.99]">
                         <i class="fas fa-rocket mr-3"></i> Get Started
                     </a>
                     <a href="<?php echo APP_URL; ?>/public/index.php?page=login" class="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-bold rounded-xl border border-outline-variant/60 text-on-surface hover:bg-surface-container-high transition-all active:scale-[0.99]">

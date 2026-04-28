@@ -12,9 +12,15 @@
             <div class="card-body">
                 <h1 class="card-title text-3xl mb-6 text-center">Sign In</h1>
 
-                <div id="loginMessage" class="mb-4"></div>
+                <div id="loginMessage" class="mb-4">
+                    <?php if (!empty($_GET['reset']) && (string) $_GET['reset'] === '1'): ?>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle mr-2"></i>Password updated. You can sign in with your new password.
+                    </div>
+                    <?php endif; ?>
+                </div>
 
-                <form id="loginForm" class="space-y-4">
+                <form id="loginForm" class="space-y-4" autocomplete="on">
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text font-medium">Email Address</span>
@@ -26,11 +32,16 @@
                         <label class="label">
                             <span class="label-text font-medium">Password</span>
                         </label>
-                        <input type="password" placeholder="••••••••" class="input input-bordered focus:input-primary" id="loginPassword" name="password" required>
+                        <input type="password" placeholder="••••••••" class="input input-bordered focus:input-primary" id="loginPassword" name="password" required autocomplete="current-password">
+                    </div>
+
+                    <div class="flex items-center gap-2.5 py-1">
+                        <input type="checkbox" id="loginRemember" name="remember_me" value="1" class="checkbox checkbox-primary checkbox-sm shrink-0" />
+                        <label for="loginRemember" class="text-sm cursor-pointer select-none">Remember me on this device</label>
                     </div>
 
                     <div class="text-right">
-                        <a href="<?php echo APP_ROUTE; ?>?page=forgot-password" class="link link-primary text-sm font-semibold">
+                        <a href="<?php echo APP_ROUTE; ?>?page=forgot_password" class="link link-primary text-sm font-semibold">
                             Forgot password?
                         </a>
                     </div>
@@ -75,11 +86,43 @@ async function resendOTPFromLogin(email) {
     }
 }
 
+const LMS_REMEMBER_KEY = 'lms_remember_email';
+const LMS_REMEMBER_FLAG = 'lms_remember_me';
+
+(function initLoginRemember() {
+    const emailIn = document.getElementById('loginEmail');
+    const remember = document.getElementById('loginRemember');
+    if (!emailIn || !remember) return;
+    try {
+        if (localStorage.getItem(LMS_REMEMBER_FLAG) === '1') {
+            const saved = localStorage.getItem(LMS_REMEMBER_KEY);
+            if (saved) {
+                emailIn.value = saved;
+                remember.checked = true;
+            }
+        }
+    } catch (e) { /* private mode */ }
+})();
+
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
+    const remember = document.getElementById('loginRemember');
+    const emailVal = (document.getElementById('loginEmail') && document.getElementById('loginEmail').value) || '';
 
     try {
+        if (remember && remember.checked) {
+            try {
+                localStorage.setItem(LMS_REMEMBER_FLAG, '1');
+                localStorage.setItem(LMS_REMEMBER_KEY, emailVal.trim());
+            } catch (e) { /* ignore */ }
+        } else {
+            try {
+                localStorage.removeItem(LMS_REMEMBER_FLAG);
+                localStorage.removeItem(LMS_REMEMBER_KEY);
+            } catch (e) { /* ignore */ }
+        }
+
         const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=login', {
             method: 'POST',
             body: formData

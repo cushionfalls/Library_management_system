@@ -101,7 +101,7 @@ class User {
         return $stmt->execute();
     }
 
-    // Resets password for an account by email (used for forgot-password OTP flow).
+    // Resets password by email (views/forgot_password.php OTP flow).
     public function resetPasswordByEmail($email, $newPassword) {
         $hashedPassword = password_hash($newPassword, PASSWORD_HASH_ALGO, PASSWORD_HASH_OPTIONS);
         $stmt = $this->db->prepare("UPDATE Users SET password = ?, updated_at = NOW() WHERE email = ? LIMIT 1");

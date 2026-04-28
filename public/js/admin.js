@@ -20,6 +20,19 @@ function adminApiUrl(action) {
     return (window.ADMIN_API_URL || '') + '?action=' + encodeURIComponent(action);
 }
 
+function adminBaseUrl() {
+    const api = window.ADMIN_API_URL || '';
+    return api.replace(/\/controllers\/admin\.php.*$/, '');
+}
+
+function adminAssetUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith('/')) return adminBaseUrl() + raw;
+    return adminBaseUrl() + '/' + raw.replace(/^\/+/, '');
+}
+
 async function adminFetch(action, options = {}) {
     const response = await fetch(adminApiUrl(action), options);
     return response.json();
@@ -40,7 +53,9 @@ function renderOverview(overview) {
     document.getElementById('adminOverdueBooks').textContent = overview.overdue_books ?? 0;
     document.getElementById('adminWalletCreditsToday').textContent = '₹' + (overview.wallet_credits_today ?? 0);
 }
-
+    function fallbackCover() {
+        return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
+    }
 function renderBooks(books) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
@@ -49,10 +64,12 @@ function renderBooks(books) {
         return;
     }
 
+
     body.innerHTML = books.map((book) => {
         return `
             <tr class="hover:bg-[#eef1f2]/20 transition-colors">
                 <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(book.isbn)}</td>
+                <td class="px-8 py-6"><img class="w-16 h-20 object-cover rounded-md" alt="Book Cover" src="${adminAssetUrl(book.cover_image) || fallbackCover()}"/></td>
                 <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${adminEscape(book.name)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher)}</td>
                 <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(book.number_of_copies)}</td>
@@ -166,34 +183,138 @@ async function loadAdminDashboard() {
 function openBookModal(book = null) {
     const modal = document.getElementById('adminBookModal');
     const title = document.getElementById('adminBookModalTitle');
+    const saveBtn = document.getElementById('adminBookSaveBtn');
     const idEl = document.getElementById('adminBookId');
+    const existingCoverEl = document.getElementById('adminBookExistingCoverImage');
+    const existingPdfEl = document.getElementById('adminBookExistingOnlinePdf');
     const isbnEl = document.getElementById('adminBookIsbn');
     const nameEl = document.getElementById('adminBookName');
+    const descriptionEl = document.getElementById('adminBookDescription');
     const publisherEl = document.getElementById('adminBookPublisher');
+    const publishedAtEl = document.getElementById('adminBookPublishedAt');
+    const languageEl = document.getElementById('adminBookLanguage');
+    const genreEl = document.getElementById('adminBookGenre');
     const copiesEl = document.getElementById('adminBookCopies');
     const priceEl = document.getElementById('adminBookPrice');
+    const onlineRentPriceEl = document.getElementById('adminBookOnlineRentPrice');
+    const onlineBuyPriceEl = document.getElementById('adminBookOnlineBuyPrice');
+    const coverInput = document.getElementById('adminBookCoverImage');
+    const pdfInput = document.getElementById('adminBookOnlinePdf');
+    const coverPreview = document.getElementById('adminBookCoverPreview');
+    const coverPlaceholder = document.getElementById('adminBookCoverPlaceholder');
+    const pdfFilename = document.getElementById('adminBookPdfFilename');
 
     if (!modal) return;
 
+    const setCover = (url) => {
+        const finalUrl = adminAssetUrl(url);
+        if (!finalUrl) {
+            coverPreview.removeAttribute('src');
+            coverPreview.classList.add('hidden');
+            coverPlaceholder.classList.remove('hidden');
+            return;
+        }
+        coverPreview.src = finalUrl;
+        coverPreview.classList.remove('hidden');
+        coverPlaceholder.classList.add('hidden');
+    };
+
     if (book) {
-        title.textContent = 'Edit Book';
+        title.textContent = 'Edit Entry';
+        saveBtn.textContent = 'Save Changes';
         idEl.value = book.id;
+        existingCoverEl.value = book.cover_image || '';
+        existingPdfEl.value = book.online_copy_pdf || '';
         isbnEl.value = book.isbn || '';
         nameEl.value = book.name || '';
+        descriptionEl.value = book.description || '';
         publisherEl.value = book.publisher || '';
+        publishedAtEl.value = book.published_at ? String(book.published_at).slice(0, 10) : '';
+        languageEl.value = book.language || 'English';
+        genreEl.value = String(book.genre || 'OTHERS').toUpperCase();
         copiesEl.value = book.number_of_copies ?? 0;
         priceEl.value = book.price ?? 0;
+        onlineRentPriceEl.value = book.online_rent_price ?? '';
+        onlineBuyPriceEl.value = book.online_buy_price ?? '';
+        setCover(book.cover_image || '');
+        pdfFilename.textContent = book.online_copy_pdf ? String(book.online_copy_pdf).split('/').pop() : 'No file selected';
     } else {
-        title.textContent = 'Add New Book';
+        title.textContent = 'Add New Entry';
+        saveBtn.textContent = 'Add Book';
         idEl.value = '';
+        existingCoverEl.value = '';
+        existingPdfEl.value = '';
         isbnEl.value = '';
         nameEl.value = '';
+        descriptionEl.value = '';
         publisherEl.value = '';
-        copiesEl.value = 0;
+        publishedAtEl.value = '';
+        languageEl.value = 'English';
+        genreEl.value = 'OTHERS';
+        copiesEl.value = 1;
         priceEl.value = 0;
+        onlineRentPriceEl.value = '';
+        onlineBuyPriceEl.value = '';
+        setCover('');
+        pdfFilename.textContent = 'No file selected';
     }
 
+    if (coverInput) coverInput.value = '';
+    if (pdfInput) pdfInput.value = '';
+
     modal.showModal();
+}
+
+async function autofillBookByIsbn() {
+    const isbnEl = document.getElementById('adminBookIsbn');
+    const existingCoverEl = document.getElementById('adminBookExistingCoverImage');
+    const autofillBtn = document.getElementById('adminBookAutofillBtn');
+    const coverPreview = document.getElementById('adminBookCoverPreview');
+    const coverPlaceholder = document.getElementById('adminBookCoverPlaceholder');
+
+    const rawIsbn = String((isbnEl && isbnEl.value) || '').trim();
+    if (!rawIsbn) {
+        adminToast('Enter ISBN first', 'warning');
+        return;
+    }
+
+    try {
+        if (autofillBtn) {
+            autofillBtn.disabled = true;
+            autofillBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+
+        const response = await fetch(adminApiUrl('book-by-isbn') + '&isbn=' + encodeURIComponent(rawIsbn), { cache: 'no-store' });
+        const result = await response.json();
+        if (!result || !result.success || !result.data) {
+            adminToast((result && (result.message || result.error)) || 'No book data found for this ISBN', 'error');
+            return;
+        }
+
+        const data = result.data;
+        document.getElementById('adminBookName').value = data.name || '';
+        document.getElementById('adminBookDescription').value = data.description || '';
+        document.getElementById('adminBookPublisher').value = data.publisher || '';
+        document.getElementById('adminBookPublishedAt').value = data.published_at || '';
+        document.getElementById('adminBookLanguage').value = data.language || 'English';
+        document.getElementById('adminBookGenre').value = String(data.genre || 'OTHERS').toUpperCase();
+
+        if (data.cover_image_url) {
+            existingCoverEl.value = data.cover_image_url;
+            coverPreview.src = data.cover_image_url;
+            coverPreview.classList.remove('hidden');
+            coverPlaceholder.classList.add('hidden');
+        }
+
+        adminToast('Book details autofilled from ISBN', 'success');
+    } catch (error) {
+        adminToast('Failed to autofill book details', 'error');
+    } finally {
+        if (autofillBtn) {
+            autofillBtn.disabled = false;
+            autofillBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    }
 }
 
 async function saveBook(event) {
@@ -205,7 +326,7 @@ async function saveBook(event) {
 
     const result = await adminFetch(action, {
         method: 'POST',
-        body: new URLSearchParams(formData)
+        body: formData
     });
 
     if (!result || !result.success) {
@@ -236,15 +357,52 @@ async function deleteBook(id) {
     await loadAdminDashboard();
 }
 
-function openUserModal(user) {
+function openUserModal(user = null, preferredRole = 'USER') {
     const modal = document.getElementById('adminUserModal');
-    if (!modal || !user) return;
-    document.getElementById('adminUserId').value = user.id || '';
-    document.getElementById('adminUserFirstName').value = user.first_name || '';
-    document.getElementById('adminUserLastName').value = user.last_name || '';
-    document.getElementById('adminUserEmail').value = user.email || '';
-    document.getElementById('adminUserRole').value = user.role || 'USER';
-    document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
+    if (!modal) return;
+    const idEl = document.getElementById('adminUserId');
+    const titleEl = document.getElementById('adminUserModalTitle');
+    const subtitleEl = document.getElementById('adminUserModalSubtitle');
+    const saveBtnEl = document.getElementById('adminUserSaveBtn');
+    const passwordBlockEl = document.getElementById('adminUserPasswordBlock');
+    const passwordEl = document.getElementById('adminUserPassword');
+    const roleEl = document.getElementById('adminUserRole');
+    const adminRoleOption = roleEl ? roleEl.querySelector('option[value="ADMIN"]') : null;
+
+    if (user) {
+        idEl.value = user.id || '';
+        document.getElementById('adminUserFirstName').value = user.first_name || '';
+        document.getElementById('adminUserLastName').value = user.last_name || '';
+        document.getElementById('adminUserEmail').value = user.email || '';
+        document.getElementById('adminUserRole').value = user.role || 'USER';
+        document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
+        if (titleEl) titleEl.textContent = 'Edit Member';
+        if (subtitleEl) subtitleEl.textContent = 'Update user information and access role.';
+        if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
+        if (adminRoleOption) adminRoleOption.disabled = false;
+        if (passwordBlockEl) passwordBlockEl.classList.add('hidden');
+        if (passwordEl) {
+            passwordEl.value = '';
+            passwordEl.required = false;
+        }
+    } else {
+        idEl.value = '';
+        document.getElementById('adminUserFirstName').value = '';
+        document.getElementById('adminUserLastName').value = '';
+        document.getElementById('adminUserEmail').value = '';
+        document.getElementById('adminUserRole').value = preferredRole === 'LIBRARIAN' ? 'LIBRARIAN' : 'USER';
+        document.getElementById('adminUserStatus').value = '1';
+        if (titleEl) titleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Add New Librarian' : 'Add New User';
+        if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
+        if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
+        if (adminRoleOption) adminRoleOption.disabled = true;
+        if (passwordBlockEl) passwordBlockEl.classList.remove('hidden');
+        if (passwordEl) {
+            passwordEl.value = '';
+            passwordEl.required = true;
+        }
+    }
+
     modal.showModal();
 }
 
@@ -252,19 +410,25 @@ async function saveUser(event) {
     event.preventDefault();
     const form = document.getElementById('adminUserForm');
     const formData = new FormData(form);
+    const id = String(formData.get('id') || '').trim();
+    const action = id ? 'update-user' : 'create-user';
 
-    const result = await adminFetch('update-user', {
+    if (id) {
+        formData.delete('password');
+    }
+
+    const result = await adminFetch(action, {
         method: 'POST',
         body: new URLSearchParams(formData)
     });
 
     if (!result || !result.success) {
-        adminToast((result && result.message) || (result && result.error) || 'Failed to update user', 'error');
+        adminToast((result && result.message) || (result && result.error) || 'Failed to save user', 'error');
         return;
     }
 
     document.getElementById('adminUserModal').close();
-    adminToast(result.message || 'User updated successfully', 'success');
+    adminToast(result.message || 'User saved successfully', 'success');
     await loadAdminDashboard();
 }
 
@@ -289,16 +453,46 @@ async function deleteUser(id) {
 function bindAdminEvents() {
     const addBtn = document.getElementById('adminAddBookBtn');
     const cancelBtn = document.getElementById('adminBookCancelBtn');
+    const closeBtn = document.getElementById('adminBookCloseBtn');
+    const addUserBtn = document.getElementById('adminAddUserBtn');
     const form = document.getElementById('adminBookForm');
     const booksBody = document.getElementById('adminBooksBody');
     const usersBody = document.getElementById('adminUsersBody');
     const userForm = document.getElementById('adminUserForm');
     const userCancelBtn = document.getElementById('adminUserCancelBtn');
+    const userCloseBtn = document.getElementById('adminUserCloseBtn');
     const tabButtons = document.querySelectorAll('.admin-tab-btn');
+    const autofillBtn = document.getElementById('adminBookAutofillBtn');
+    const coverInput = document.getElementById('adminBookCoverImage');
+    const coverPreview = document.getElementById('adminBookCoverPreview');
+    const coverPlaceholder = document.getElementById('adminBookCoverPlaceholder');
+    const pdfInput = document.getElementById('adminBookOnlinePdf');
+    const pdfFilename = document.getElementById('adminBookPdfFilename');
 
     if (addBtn) addBtn.addEventListener('click', () => openBookModal(null));
+    if (addUserBtn) addUserBtn.addEventListener('click', () => openUserModal(null, 'USER'));
     if (cancelBtn) cancelBtn.addEventListener('click', () => document.getElementById('adminBookModal').close());
+    if (closeBtn) closeBtn.addEventListener('click', () => document.getElementById('adminBookModal').close());
     if (form) form.addEventListener('submit', saveBook);
+    if (autofillBtn) autofillBtn.addEventListener('click', autofillBookByIsbn);
+
+    if (coverInput) {
+        coverInput.addEventListener('change', () => {
+            const file = coverInput.files && coverInput.files[0];
+            if (!file) return;
+            const src = URL.createObjectURL(file);
+            coverPreview.src = src;
+            coverPreview.classList.remove('hidden');
+            coverPlaceholder.classList.add('hidden');
+        });
+    }
+
+    if (pdfInput) {
+        pdfInput.addEventListener('change', () => {
+            const file = pdfInput.files && pdfInput.files[0];
+            pdfFilename.textContent = file ? file.name : 'No file selected';
+        });
+    }
 
     if (booksBody) {
         booksBody.addEventListener('click', async (event) => {
@@ -343,6 +537,7 @@ function bindAdminEvents() {
 
     if (userForm) userForm.addEventListener('submit', saveUser);
     if (userCancelBtn) userCancelBtn.addEventListener('click', () => document.getElementById('adminUserModal').close());
+    if (userCloseBtn) userCloseBtn.addEventListener('click', () => document.getElementById('adminUserModal').close());
 
     tabButtons.forEach((btn) => {
         btn.addEventListener('click', () => {

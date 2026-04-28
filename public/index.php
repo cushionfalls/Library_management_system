@@ -5,9 +5,15 @@ require_once __DIR__ . '/../classes/Session.php';
 
 $session = new Session();
 
+// Default entry: Sign In for guests, home for logged-in users (uses /library_management_system/ path via APP_URL).
+if (isset($_GET['page']) && $_GET['page'] !== '') {
+    $current_page = $_GET['page'];
+} else {
+    $current_page = $session->isLoggedIn() ? 'home' : 'login';
+}
+
 // Check authentication for protected routes
 $protected_pages = ['dashboard', 'books', 'wallet', 'fines', 'profile', 'my-books', 'book-detail', 'admin'];
-$current_page = $_GET['page'] ?? 'home';
 
 if (in_array($current_page, $protected_pages)) {
     if (!$session->isLoggedIn()) {

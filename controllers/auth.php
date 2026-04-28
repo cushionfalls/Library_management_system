@@ -1,4 +1,9 @@
 <?php
+/**
+ * JSON API for register, login, OTP, logout.
+ * Password reset for views/forgot_password.php + public/js/forgot_password.js:
+ *   request-password-reset, verify-password-reset-otp, reset-password
+ */
 // Start output buffering
 ob_start();
 
@@ -238,7 +243,7 @@ class AuthController {
         return ['error' => $loginResult['message'] ?? 'Login failed'];
     }
 
-    // Sends OTP to the user's email for password reset.
+    // —— Password reset (views/forgot_password.php) —— Sends OTP to the user's email.
     public function requestPasswordReset() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return ['error' => 'Invalid request method'];
@@ -272,33 +277,80 @@ class AuthController {
         ];
     }
 
-    // Verifies OTP and resets the password.
-    public function resetPassword() {
+    /**
+     * Step 2 (views/forgot_password.php): confirm OTP; session is marked until resetPassword completes or expires.
+     */
+    public function verifyPasswordResetOtp() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return ['error' => 'Invalid request method'];
         }
 
         $email = trim($_POST['email'] ?? '');
         $otp = trim($_POST['otp'] ?? '');
+
+        if (empty($email) || empty($otp)) {
+            return ['error' => 'Email and OTP are required'];
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['error' => 'Invalid email format'];
+        }
+        if (!$this->user->emailExists($email)) {
+            return ['error' => 'Invalid or expired OTP'];
+        }
+        if (!$this->otp->verify($email, $otp)) {
+            return ['error' => 'Invalid or expired OTP'];
+        }
+
+        $this->session->set('password_reset_email', $email);
+        $this->session->set('password_reset_expires', time() + 900);
+
+        return [
+            'success' => true,
+            'message' => 'Code verified. You can set a new password.',
+            'email' => $email
+        ];
+    }
+
+    /**
+     * Step 3: new password (requires a prior verifyPasswordResetOtp in the same session).
+     */
+    public function resetPassword() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return ['error' => 'Invalid request method'];
+        }
+
+        $email = trim($_POST['email'] ?? '');
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
-        if (empty($email) || empty($otp) || empty($newPassword) || empty($confirmPassword)) {
-            return ['error' => 'All fields are required'];
+        if (empty($email) || $newPassword === '' || $confirmPassword === '') {
+            return ['error' => 'Email, new password, and confirm password are required'];
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return ['error' => 'Invalid email format'];
-        if (strlen($newPassword) < 6) return ['error' => 'Password must be at least 6 characters'];
-        if ($newPassword !== $confirmPassword) return ['error' => 'Passwords do not match'];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['error' => 'Invalid email format'];
+        }
 
-        if (!$this->otp->verify($email, $otp)) {
-            return ['error' => 'Invalid or expired OTP'];
+        $authorizedEmail = $this->session->get('password_reset_email');
+        $expires = (int) $this->session->get('password_reset_expires', 0);
+        if ($authorizedEmail === null || $authorizedEmail === '' || strcasecmp($authorizedEmail, $email) !== 0 || time() > $expires) {
+            return ['error' => 'Session expired or not verified. Please start the password reset process again.'];
+        }
+
+        if (strlen($newPassword) < 6) {
+            return ['error' => 'Password must be at least 6 characters'];
+        }
+        if ($newPassword !== $confirmPassword) {
+            return ['error' => 'Passwords do not match'];
         }
 
         if (!$this->user->resetPasswordByEmail($email, $newPassword)) {
             return ['error' => 'Failed to reset password'];
         }
 
-        return ['success' => true, 'message' => 'Password reset successfully. Please login.'];
+        $this->session->remove('password_reset_email');
+        $this->session->remove('password_reset_expires');
+
+        return ['success' => true, 'message' => 'Password reset successfully. You can sign in.'];
     }
 
     public function logout() {
@@ -325,8 +377,12 @@ try {
         case 'login':
             $response = $controller->login();
             break;
+        // forgot_password.js → request-password-reset (email), then verify-password-reset-otp, then reset-password
         case 'request-password-reset':
             $response = $controller->requestPasswordReset();
+            break;
+        case 'verify-password-reset-otp':
+            $response = $controller->verifyPasswordResetOtp();
             break;
         case 'reset-password':
             $response = $controller->resetPassword();
