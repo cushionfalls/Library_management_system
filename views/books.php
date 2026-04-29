@@ -187,6 +187,7 @@ tailwind.config = {
 
                     <form id="bookReviewForm" class="bg-surface-container-lowest p-6 rounded-2xl mb-8 border border-outline-variant/20">
                         <input type="hidden" id="bookReviewBookId" name="book_id" />
+                        <input type="hidden" id="bookReviewId" name="review_id" value="" />
                         <div class="flex items-center gap-4 mb-4">
                             <span class="text-sm font-medium text-on-surface text-left">Your Rating:</span>
                             <select id="bookReviewRating" name="rating" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-sm">
@@ -198,6 +199,9 @@ tailwind.config = {
                             </select>
                         </div>
                         <textarea id="bookReviewText" name="review" class="w-full bg-surface-container-low border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 h-24 resize-none mb-4" placeholder="Share your thoughts on this title..."></textarea>
+                        <button id="bookReviewCancelEdit" class="w-full py-3 mb-3 border border-outline-variant text-on-surface font-bold rounded-xl text-sm transition-all hover:bg-surface-container-low hidden" type="button">
+                            Cancel Edit
+                        </button>
                         <button class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold text-white rounded-xl text-sm transition-all hover:opacity-90" type="submit">
                             Submit Review
                         </button>
@@ -214,5 +218,6 @@ tailwind.config = {
 window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
 window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
 window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/books.js"></script>
