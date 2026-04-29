@@ -56,6 +56,44 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendWalletTopUpOTP($recipientEmail, $otp, $recipientName = '') {
+        $subject = 'Your OTP for Wallet Top Up - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #4f1bf1; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+                .content { padding: 20px; background-color: #f9f9f9; margin-top: 10px; }
+                .otp-box { background-color: #4f1bf1; color: white; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 5px; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>" . APP_NAME . "</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello " . htmlspecialchars($recipientName) . ",</p>
+                    <p>Use the following OTP to confirm your wallet top up:</p>
+                    <div class='otp-box'>$otp</div>
+                    <p>This OTP is valid for the next 5 minutes. Do not share this code with anyone.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - Digital Library Management System</p>
+                    <p>&copy; 2026. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     // Sends OTP for password reset (forgot password).
     public function sendPasswordResetOTP($recipientEmail, $otp, $recipientName = '') {
         $subject = 'Your OTP for Password Reset - ' . APP_NAME;
