@@ -60,7 +60,7 @@ function renderBooks(books) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
     if (!books || books.length === 0) {
-        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-[#595c5d]">No books found.</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-[#595c5d]">No books found.</td></tr>';
         return;
     }
 
@@ -71,8 +71,8 @@ function renderBooks(books) {
                 <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(book.isbn)}</td>
                 <td class="px-8 py-6"><img class="w-16 h-20 object-cover rounded-md" alt="Book Cover" src="${adminAssetUrl(book.cover_image) || fallbackCover()}"/></td>
                 <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${adminEscape(book.name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(book.number_of_copies)}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher || '-')}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.authors || book.author || '-')}</td>
                 <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">₹${adminEscape(book.price)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
@@ -190,6 +190,7 @@ function openBookModal(book = null) {
     const isbnEl = document.getElementById('adminBookIsbn');
     const nameEl = document.getElementById('adminBookName');
     const descriptionEl = document.getElementById('adminBookDescription');
+    const authorEl = document.getElementById('adminBookAuthor');
     const publisherEl = document.getElementById('adminBookPublisher');
     const publishedAtEl = document.getElementById('adminBookPublishedAt');
     const languageEl = document.getElementById('adminBookLanguage');
@@ -228,6 +229,7 @@ function openBookModal(book = null) {
         isbnEl.value = book.isbn || '';
         nameEl.value = book.name || '';
         descriptionEl.value = book.description || '';
+        authorEl.value = book.authors || '';
         publisherEl.value = book.publisher || '';
         publishedAtEl.value = book.published_at ? String(book.published_at).slice(0, 10) : '';
         languageEl.value = book.language || 'English';
@@ -247,6 +249,7 @@ function openBookModal(book = null) {
         isbnEl.value = '';
         nameEl.value = '';
         descriptionEl.value = '';
+        authorEl.value = '';
         publisherEl.value = '';
         publishedAtEl.value = '';
         languageEl.value = 'English';
@@ -294,6 +297,7 @@ async function autofillBookByIsbn() {
         const data = result.data;
         document.getElementById('adminBookName').value = data.name || '';
         document.getElementById('adminBookDescription').value = data.description || '';
+        document.getElementById('adminBookAuthor').value = data.author || '';
         document.getElementById('adminBookPublisher').value = data.publisher || '';
         document.getElementById('adminBookPublishedAt').value = data.published_at || '';
         document.getElementById('adminBookLanguage').value = data.language || 'English';

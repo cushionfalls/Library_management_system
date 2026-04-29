@@ -55,6 +55,7 @@ class AdminController {
                     $_POST['price'] ?? 0,
                     [
                         'description' => $_POST['description'] ?? '',
+                        'author' => $_POST['author'] ?? '',
                         'published_at' => $_POST['published_at'] ?? '',
                         'language' => $_POST['language'] ?? 'English',
                         'genre' => $_POST['genre'] ?? 'OTHERS',
@@ -84,6 +85,7 @@ class AdminController {
                     $_POST['price'] ?? 0,
                     [
                         'description' => $_POST['description'] ?? '',
+                        'author' => $_POST['author'] ?? '',
                         'published_at' => $_POST['published_at'] ?? '',
                         'language' => $_POST['language'] ?? 'English',
                         'genre' => $_POST['genre'] ?? 'OTHERS',
@@ -269,6 +271,7 @@ class AdminController {
         $book = [
             'name' => (string)($volume['title'] ?? ''),
             'description' => (string)($volume['description'] ?? ''),
+            'author' => !empty($volume['authors'][0]) ? (string)$volume['authors'][0] : '',
             'publisher' => (string)($volume['publisher'] ?? ''),
             'published_at' => $publishedAt,
             'language' => ucfirst(strtolower((string)($volume['language'] ?? 'English'))),

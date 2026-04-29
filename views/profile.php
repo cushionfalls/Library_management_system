@@ -67,7 +67,6 @@ $loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) * 10))
         </div>
         <div class="flex-1 pb-2">
             <div class="flex items-center gap-4 mb-2">
-                <span class="bg-[#9c2a00] text-[#ffb6a1] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Active Patron</span>
                 <span class="text-slate-400 text-sm font-medium">Member since <?php echo htmlspecialchars($memberSince); ?></span>
             </div>
             <h1 class="font-['Manrope'] font-extrabold text-5xl text-[#1c1a25] tracking-tight"><?php echo htmlspecialchars($displayName ?: 'Library Member'); ?></h1>
@@ -103,10 +102,10 @@ $loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) * 10))
                         <div><label class="profile-label">First Name</label><input class="profile-input" type="text" name="first_name" value="<?php echo htmlspecialchars((string)($profileUser['first_name'] ?? '')); ?>" required /></div>
                         <div><label class="profile-label">Last Name</label><input class="profile-input" type="text" name="last_name" value="<?php echo htmlspecialchars((string)($profileUser['last_name'] ?? '')); ?>" required /></div>
                     </div>
-                    <div><label class="profile-label">Email Address (Read Only)</label><input class="profile-input opacity-60 cursor-not-allowed" type="email" value="<?php echo htmlspecialchars((string)($profileUser['email'] ?? '')); ?>" readonly /></div>
+                    <div><label class="profile-label">Email Address</label><input class="profile-input opacity-60 cursor-not-allowed" type="email" value="<?php echo htmlspecialchars((string)($profileUser['email'] ?? '')); ?>" readonly /></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div><label class="profile-label">Date of Birth</label><input class="profile-input" type="date" name="dob" value="<?php echo htmlspecialchars($dobValue); ?>" /></div>
-                        <div><label class="profile-label">Phone Number</label><input class="profile-input" type="text" name="phone_number" value="<?php echo htmlspecialchars($phoneValue); ?>" placeholder="+1 (555) 000-0000" /></div>
+                        <div><label class="profile-label">Phone Number</label><input class="profile-input" type="text" name="phone_number" value="<?php echo htmlspecialchars($phoneValue); ?>" placeholder="+977 - 00000-00000" /></div>
                     </div>
                     <button class="bg-gradient-to-r from-[#3800bf] to-[#4f1bf1] text-white px-8 py-3 rounded-lg font-bold text-sm shadow-lg hover:opacity-90 transition-opacity" type="submit">Save Changes</button>
                 </form>

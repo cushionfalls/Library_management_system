@@ -75,11 +75,15 @@ class AdminDashboard {
     public function getBooks($limit = 100) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT id, isbn, name, description, publisher, published_at, language, genre,
-                    number_of_copies, price, online_rent_price, online_buy_price,
-                    cover_image, online_copy_pdf, created_at
-             FROM Books
-             ORDER BY created_at DESC
+            "SELECT b.id, b.isbn, b.name, b.description, b.publisher, b.published_at, b.language, b.genre,
+                    b.number_of_copies, b.price, b.online_rent_price, b.online_buy_price,
+                    b.cover_image, b.online_copy_pdf, b.created_at,
+                    COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors
+             FROM Books b
+             LEFT JOIN BookAuthors ba ON ba.book_id = b.id
+             LEFT JOIN Authors a ON a.id = ba.author_id
+             GROUP BY b.id
+             ORDER BY b.created_at DESC
              LIMIT ?"
         );
         $stmt->bind_param('i', $limit);
@@ -94,6 +98,7 @@ class AdminDashboard {
         $copies = (int)$copies;
         $price = (int)$price;
         $description = trim((string)($bookData['description'] ?? ''));
+        $author = trim((string)($bookData['author'] ?? ''));
         $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
         $language = trim((string)($bookData['language'] ?? 'English'));
         $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
@@ -102,8 +107,8 @@ class AdminDashboard {
         $coverImage = trim((string)($bookData['cover_image'] ?? ''));
         $onlineCopyPdf = trim((string)($bookData['online_copy_pdf'] ?? ''));
 
-        if ($isbn === '' || $name === '' || $publisher === '') {
-            return ['success' => false, 'message' => 'ISBN, name and publisher are required'];
+        if ($isbn === '' || $name === '' || $author === '' || $publisher === '') {
+            return ['success' => false, 'message' => 'ISBN, name, author and publisher are required'];
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
@@ -153,6 +158,7 @@ class AdminDashboard {
         if (!$insert->execute()) {
             return ['success' => false, 'message' => 'Failed to create book'];
         }
+        $this->syncBookAuthor((int)$insert->insert_id, $author);
 
         return ['success' => true, 'message' => 'Book created successfully'];
     }
@@ -165,6 +171,7 @@ class AdminDashboard {
         $copies = (int)$copies;
         $price = (int)$price;
         $description = trim((string)($bookData['description'] ?? ''));
+        $author = trim((string)($bookData['author'] ?? ''));
         $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
         $language = trim((string)($bookData['language'] ?? 'English'));
         $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
@@ -176,8 +183,8 @@ class AdminDashboard {
         if ($id <= 0) {
             return ['success' => false, 'message' => 'Invalid book id'];
         }
-        if ($isbn === '' || $name === '' || $publisher === '') {
-            return ['success' => false, 'message' => 'ISBN, name and publisher are required'];
+        if ($isbn === '' || $name === '' || $author === '' || $publisher === '') {
+            return ['success' => false, 'message' => 'ISBN, name, author and publisher are required'];
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
@@ -227,6 +234,7 @@ class AdminDashboard {
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to update book'];
         }
+        $this->syncBookAuthor($id, $author);
 
         return ['success' => true, 'message' => 'Book updated successfully'];
     }
@@ -518,6 +526,64 @@ class AdminDashboard {
         }
 
         return date('Y-m-d H:i:s', $time);
+    }
+
+    private function syncBookAuthor($bookId, $authorFullName) {
+        $bookId = (int)$bookId;
+        $authorFullName = trim((string)$authorFullName);
+        if ($bookId <= 0 || $authorFullName === '') {
+            return;
+        }
+
+        $parts = preg_split('/\s+/u', $authorFullName, -1, PREG_SPLIT_NO_EMPTY);
+        if (!$parts || count($parts) === 0) {
+            return;
+        }
+
+        $firstName = trim((string)$parts[0]);
+        $lastName = trim((string)implode(' ', array_slice($parts, 1)));
+        if ($lastName === '') {
+            $lastName = '-';
+        }
+
+        $authorId = $this->findOrCreateAuthor($firstName, $lastName);
+        if ($authorId <= 0) {
+            return;
+        }
+
+        $del = $this->db->prepare("DELETE FROM BookAuthors WHERE book_id = ?");
+        $del->bind_param('i', $bookId);
+        $del->execute();
+
+        $ins = $this->db->prepare("INSERT INTO BookAuthors (book_id, author_id) VALUES (?, ?)");
+        $ins->bind_param('ii', $bookId, $authorId);
+        $ins->execute();
+    }
+
+    private function findOrCreateAuthor($firstName, $lastName) {
+        $firstName = trim((string)$firstName);
+        $lastName = trim((string)$lastName);
+        if ($firstName === '') {
+            return 0;
+        }
+        if ($lastName === '') {
+            $lastName = '-';
+        }
+
+        $find = $this->db->prepare("SELECT id FROM Authors WHERE first_name = ? AND last_name = ? LIMIT 1");
+        $find->bind_param('ss', $firstName, $lastName);
+        $find->execute();
+        $row = $find->get_result()->fetch_assoc();
+        if ($row && !empty($row['id'])) {
+            return (int)$row['id'];
+        }
+
+        $create = $this->db->prepare("INSERT INTO Authors (first_name, last_name) VALUES (?, ?)");
+        $create->bind_param('ss', $firstName, $lastName);
+        if (!$create->execute()) {
+            return 0;
+        }
+        return (int)$create->insert_id;
     }
 }
 

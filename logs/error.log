@@ -1,1 +1,19 @@
 [23-Apr-2026 08:20:22 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2002): No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[29-Apr-2026 04:43:53 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:30
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(143): AdminDashboard->getRecentUsers(200)
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(315): AdminController->handle('dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 30
+[29-Apr-2026 04:43:54 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:30
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(143): AdminDashboard->getRecentUsers(200)
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(315): AdminController->handle('dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 30
+[29-Apr-2026 04:44:08 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:30
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(143): AdminDashboard->getRecentUsers(200)
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(315): AdminController->handle('dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 30
