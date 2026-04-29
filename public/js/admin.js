@@ -60,7 +60,7 @@ function renderBooks(books) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
     if (!books || books.length === 0) {
-        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-[#595c5d]">No books found.</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-[#595c5d]">No books found.</td></tr>';
         return;
     }
 
@@ -71,8 +71,8 @@ function renderBooks(books) {
                 <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(book.isbn)}</td>
                 <td class="px-8 py-6"><img class="w-16 h-20 object-cover rounded-md" alt="Book Cover" src="${adminAssetUrl(book.cover_image) || fallbackCover()}"/></td>
                 <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${adminEscape(book.name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(book.number_of_copies)}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher || '-')}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.authors || book.author || '-')}</td>
                 <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">₹${adminEscape(book.price)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>

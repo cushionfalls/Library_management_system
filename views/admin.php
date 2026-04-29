@@ -59,13 +59,13 @@
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Cover Image</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Name</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Publisher</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Copies</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Author</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Price</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="adminBooksBody" class="divide-y divide-[#c9c4da]/20">
-                    <tr><td colspan="6" class="px-4 py-6 text-center text-[#474557]">Loading books...</td></tr>
+                    <tr><td colspan="7" class="px-4 py-6 text-center text-[#474557]">Loading books...</td></tr>
                 </tbody>
             </table>
         </div>

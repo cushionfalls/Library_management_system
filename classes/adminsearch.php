@@ -41,13 +41,37 @@ class AdminSearch {
 
     private function searchBooks($like, $limit) {
         $stmt = $this->db->prepare(
-            "SELECT id, isbn, name, publisher, number_of_copies, price, created_at
-             FROM Books
-             WHERE isbn LIKE ? OR name LIKE ? OR publisher LIKE ?
-             ORDER BY created_at DESC
+            "SELECT
+                b.id,
+                b.isbn,
+                b.name,
+                b.publisher,
+                b.number_of_copies,
+                b.price,
+                b.cover_image,
+                b.created_at,
+                COALESCE(
+                    GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '),
+                    ''
+                ) AS authors
+             FROM Books b
+             LEFT JOIN BookAuthors ba ON ba.book_id = b.id
+             LEFT JOIN Authors a ON a.id = ba.author_id
+             WHERE b.isbn LIKE ?
+                OR b.name LIKE ?
+                OR b.publisher LIKE ?
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookAuthors ba2
+                    INNER JOIN Authors a2 ON a2.id = ba2.author_id
+                    WHERE ba2.book_id = b.id
+                      AND CONCAT(a2.first_name, ' ', a2.last_name) LIKE ?
+                )
+             GROUP BY b.id
+             ORDER BY b.created_at DESC
              LIMIT ?"
         );
-        $stmt->bind_param('sssi', $like, $like, $like, $limit);
+        $stmt->bind_param('ssssi', $like, $like, $like, $like, $limit);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }

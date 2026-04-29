@@ -8,7 +8,7 @@
             name="admin_catalog_search"
             autocomplete="off"
             class="w-full bg-[#ebe6f5] border-none rounded-xl py-4 pl-12 pr-6 focus:ring-2 focus:ring-[#3800bf]/40 text-[#1c1a25] font-medium"
-            placeholder="Search books by ISBN, title, or publisher..."
+            placeholder="Search books by ISBN, title, author, or publisher..."
         />
     </div>
 </section>

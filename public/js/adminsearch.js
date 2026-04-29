@@ -21,7 +21,7 @@
             case 'overdue':
                 return 'Search overdue by book or member...';
             default:
-                return 'Search books by ISBN, title, or publisher...';
+                return 'Search books by ISBN, title, author, or publisher...';
         }
     }
 
