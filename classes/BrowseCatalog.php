@@ -3,9 +3,11 @@ require_once __DIR__ . '/Database.php';
 
 class BrowseCatalog {
     private $db;
+    private $reviewHasUpdatedAt = null;
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
+        $this->ensureReviewUpdatedAtColumn();
     }
 
     public function getCatalog($params = []) {
@@ -223,13 +225,78 @@ class BrowseCatalog {
             return ['success' => false, 'message' => 'You already reviewed this book'];
         }
 
-        $stmt = $this->db->prepare("INSERT INTO BookReviews (book_id, user_id, rating, review) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('iiis', $bookId, $userId, $rating, $reviewText);
+        if ($this->hasReviewUpdatedAtColumn()) {
+            $stmt = $this->db->prepare("INSERT INTO BookReviews (book_id, user_id, rating, review, updated_at) VALUES (?, ?, ?, ?, NOW())");
+            $stmt->bind_param('iiis', $bookId, $userId, $rating, $reviewText);
+        } else {
+            $stmt = $this->db->prepare("INSERT INTO BookReviews (book_id, user_id, rating, review) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param('iiis', $bookId, $userId, $rating, $reviewText);
+        }
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to submit review'];
         }
 
         return ['success' => true, 'message' => 'Review submitted successfully'];
+    }
+
+    public function updateReview($reviewId, $userId, $rating, $reviewText) {
+        $reviewId = (int)$reviewId;
+        $userId = (int)$userId;
+        $rating = (int)$rating;
+        $reviewText = trim((string)$reviewText);
+
+        if ($reviewId <= 0 || $userId <= 0) {
+            return ['success' => false, 'message' => 'Invalid review request'];
+        }
+        if ($rating < 1 || $rating > 5) {
+            return ['success' => false, 'message' => 'Rating must be between 1 and 5'];
+        }
+        if ($reviewText === '') {
+            return ['success' => false, 'message' => 'Review text is required'];
+        }
+
+        $check = $this->db->prepare("SELECT id FROM BookReviews WHERE id = ? AND user_id = ? LIMIT 1");
+        $check->bind_param('ii', $reviewId, $userId);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            return ['success' => false, 'message' => 'Review not found or not owned by you'];
+        }
+
+        if ($this->hasReviewUpdatedAtColumn()) {
+            $stmt = $this->db->prepare("UPDATE BookReviews SET rating = ?, review = ?, updated_at = NOW() WHERE id = ? AND user_id = ? LIMIT 1");
+            $stmt->bind_param('isii', $rating, $reviewText, $reviewId, $userId);
+        } else {
+            $stmt = $this->db->prepare("UPDATE BookReviews SET rating = ?, review = ? WHERE id = ? AND user_id = ? LIMIT 1");
+            $stmt->bind_param('isii', $rating, $reviewText, $reviewId, $userId);
+        }
+
+        if (!$stmt->execute()) {
+            return ['success' => false, 'message' => 'Failed to update review'];
+        }
+        if ($stmt->affected_rows <= 0) {
+            return ['success' => false, 'message' => 'No changes were made'];
+        }
+
+        return ['success' => true, 'message' => 'Review updated successfully'];
+    }
+
+    public function deleteReview($reviewId, $userId) {
+        $reviewId = (int)$reviewId;
+        $userId = (int)$userId;
+        if ($reviewId <= 0 || $userId <= 0) {
+            return ['success' => false, 'message' => 'Invalid review request'];
+        }
+
+        $stmt = $this->db->prepare("DELETE FROM BookReviews WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmt->bind_param('ii', $reviewId, $userId);
+        if (!$stmt->execute()) {
+            return ['success' => false, 'message' => 'Failed to delete review'];
+        }
+        if ($stmt->affected_rows <= 0) {
+            return ['success' => false, 'message' => 'Review not found or not owned by you'];
+        }
+
+        return ['success' => true, 'message' => 'Review deleted successfully'];
     }
 
     private function mapBookRow($row) {
@@ -308,12 +375,16 @@ class BrowseCatalog {
     }
 
     private function getBookReviews($bookId) {
+        $hasUpdatedAt = $this->hasReviewUpdatedAtColumn();
+        $updatedAtSelect = $hasUpdatedAt ? "br.updated_at," : "br.created_at AS updated_at,";
         $stmt = $this->db->prepare(
             "SELECT
                 br.id,
+                br.user_id,
                 br.rating,
                 br.review,
                 br.created_at,
+                {$updatedAtSelect}
                 u.first_name,
                 u.last_name,
                 u.profile_image
@@ -335,13 +406,48 @@ class BrowseCatalog {
 
             return [
                 'id' => (int)$row['id'],
+                'user_id' => (int)($row['user_id'] ?? 0),
                 'rating' => (int)($row['rating'] ?? 0),
                 'review' => (string)($row['review'] ?? ''),
                 'created_at' => (string)($row['created_at'] ?? ''),
+                'updated_at' => (string)($row['updated_at'] ?? ''),
+                'is_edited' => (string)($row['updated_at'] ?? '') !== '' && (string)($row['updated_at'] ?? '') !== (string)($row['created_at'] ?? ''),
                 'reviewer_name' => trim((string)($row['first_name'] ?? '') . ' ' . (string)($row['last_name'] ?? '')),
                 'profile_image_url' => $profileImage
             ];
         }, $rows);
+    }
+
+    private function ensureReviewUpdatedAtColumn() {
+        if ($this->reviewHasUpdatedAt !== null) {
+            return;
+        }
+        $this->reviewHasUpdatedAt = $this->hasColumn('BookReviews', 'updated_at');
+        if ($this->reviewHasUpdatedAt) {
+            return;
+        }
+
+        // Best-effort upgrade for edited-review support.
+        $this->db->query("ALTER TABLE BookReviews ADD COLUMN updated_at datetime NOT NULL DEFAULT (now())");
+        $this->reviewHasUpdatedAt = $this->hasColumn('BookReviews', 'updated_at');
+    }
+
+    private function hasReviewUpdatedAtColumn() {
+        if ($this->reviewHasUpdatedAt === null) {
+            $this->reviewHasUpdatedAt = $this->hasColumn('BookReviews', 'updated_at');
+        }
+        return $this->reviewHasUpdatedAt;
+    }
+
+    private function hasColumn($tableName, $columnName) {
+        $table = preg_replace('/[^A-Za-z0-9_]/', '', (string)$tableName);
+        $column = preg_replace('/[^A-Za-z0-9_]/', '', (string)$columnName);
+        if ($table === '' || $column === '') {
+            return false;
+        }
+
+        $result = $this->db->query("SHOW COLUMNS FROM `{$table}` LIKE '{$column}'");
+        return $result && $result->num_rows > 0;
     }
 
     private function getRelatedBooks($bookId, $genre, $limit = 6) {

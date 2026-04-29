@@ -9,7 +9,8 @@
         view: 'grid',
         totalPages: 1,
         genresLoaded: false,
-        catalogById: {}
+        catalogById: {},
+        currentBookId: 0
     };
 
     function esc(value) {
@@ -262,6 +263,7 @@
             document.getElementById('bookDetailOnlinePrice').textContent = formatCurrency(book.online_buy_price);
             document.getElementById('bookDetailReviewsCount').textContent = (book.total_reviews || 0) + ' reviews';
             document.getElementById('bookReviewBookId').value = String(book.id || '');
+            state.currentBookId = Number(book.id || 0);
 
             renderReviews(book.reviews || []);
             configureReviewForm();
@@ -283,21 +285,30 @@
         }
 
         list.innerHTML = reviews.map((review) => {
+            const ownReview = Number(review.user_id || 0) === Number(window.BROWSE_CURRENT_USER_ID || 0);
+            const editedBadge = review.is_edited ? '<span class="text-[11px] text-outline ml-2">(edited)</span>' : '';
             const stars = Array.from({ length: 5 }).map((_, i) => {
                 const fill = i < Number(review.rating || 0) ? "style=\"font-variation-settings:'FILL' 1;\"" : '';
                 return `<span class="material-symbols-outlined text-xs text-primary" ${fill}>star</span>`;
             }).join('');
             const avatar = esc(review.profile_image_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80');
+            const ownerActions = ownReview
+                ? `<div class="mt-3 flex gap-3">
+                        <button type="button" class="text-xs font-semibold text-primary hover:underline" data-review-action="edit" data-review-id="${esc(review.id)}" data-review-rating="${esc(review.rating)}" data-review-text="${esc(review.review || '')}">Edit</button>
+                        <button type="button" class="text-xs font-semibold text-red-600 hover:underline" data-review-action="delete" data-review-id="${esc(review.id)}">Delete</button>
+                   </div>`
+                : '';
             return `
                 <article class="flex gap-4">
                     <img class="w-10 h-10 rounded-full object-cover" src="${avatar}" alt="${esc(review.reviewer_name || 'Reader')}" />
                     <div class="flex-1">
                         <div class="flex justify-between mb-1">
                             <span class="font-bold text-sm">${esc(review.reviewer_name || 'Reader')}</span>
-                            <span class="text-xs text-outline">${esc(formatDate(review.created_at))}</span>
+                            <span class="text-xs text-outline">${esc(formatDate(review.created_at))}${editedBadge}</span>
                         </div>
                         <div class="flex mb-2">${stars}</div>
                         <p class="text-sm text-on-surface-variant italic">"${esc(review.review || '')}"</p>
+                        ${ownerActions}
                     </div>
                 </article>
             `;
@@ -308,6 +319,7 @@
         const form = document.getElementById('bookReviewForm');
         const textarea = document.getElementById('bookReviewText');
         const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+        const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
         if (!form || !textarea || !submitBtn) return;
 
         if (!window.BROWSE_IS_LOGGED_IN) {
@@ -315,12 +327,29 @@
             textarea.placeholder = 'Please login to submit a review.';
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
         } else {
             textarea.disabled = false;
             textarea.placeholder = 'Share your thoughts on this title...';
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
         }
+    }
+
+    function resetReviewForm() {
+        const form = document.getElementById('bookReviewForm');
+        if (!form) return;
+        const reviewIdInput = document.getElementById('bookReviewId');
+        const ratingInput = document.getElementById('bookReviewRating');
+        const textInput = document.getElementById('bookReviewText');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
+
+        if (reviewIdInput) reviewIdInput.value = '';
+        if (ratingInput) ratingInput.value = '5';
+        if (textInput) textInput.value = '';
+        if (submitBtn) submitBtn.textContent = 'Submit Review';
+        if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
     }
 
     async function submitReview(event) {
@@ -332,17 +361,38 @@
         const form = document.getElementById('bookReviewForm');
         if (!form) return;
         const formData = new FormData(form);
-
-        const response = await fetch(apiUrl('add-review'), { method: 'POST', body: new URLSearchParams(formData) });
+        const reviewId = String(formData.get('review_id') || '').trim();
+        const action = reviewId ? 'edit-review' : 'add-review';
+        const response = await fetch(apiUrl(action), { method: 'POST', body: new URLSearchParams(formData) });
         const result = await response.json().catch(() => null);
         if (!result || !result.success) {
             if (window.showToast) window.showToast((result && result.message) || 'Failed to submit review', 'error');
             return;
         }
-        if (window.showToast) window.showToast(result.message || 'Review submitted', 'success');
-        document.getElementById('bookReviewText').value = '';
+        if (window.showToast) window.showToast(result.message || (reviewId ? 'Review updated' : 'Review submitted'), 'success');
+        resetReviewForm();
         await openBookDetail(formData.get('book_id'));
         await loadCatalog();
+    }
+
+    async function deleteReview(reviewId) {
+        if (!window.BROWSE_IS_LOGGED_IN) return;
+        if (!confirm('Delete your review?')) return;
+
+        const formData = new URLSearchParams();
+        formData.set('review_id', String(reviewId || ''));
+        const response = await fetch(apiUrl('delete-review'), { method: 'POST', body: formData });
+        const result = await response.json().catch(() => null);
+        if (!result || !result.success) {
+            if (window.showToast) window.showToast((result && result.message) || 'Failed to delete review', 'error');
+            return;
+        }
+        if (window.showToast) window.showToast(result.message || 'Review deleted', 'success');
+        resetReviewForm();
+        if (state.currentBookId > 0) {
+            await openBookDetail(state.currentBookId);
+            await loadCatalog();
+        }
     }
 
     function closeBookDetail() {
@@ -350,6 +400,8 @@
         if (!overlay) return;
         overlay.classList.add('hidden');
         overlay.classList.remove('flex');
+        resetReviewForm();
+        state.currentBookId = 0;
         setBookParam('');
     }
 
@@ -389,6 +441,8 @@
         if (closeBtn) closeBtn.addEventListener('click', closeBookDetail);
         if (backdrop) backdrop.addEventListener('click', closeBookDetail);
         if (reviewForm) reviewForm.addEventListener('submit', submitReview);
+        const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
 
         document.addEventListener('click', (event) => {
             const link = event.target.closest('a[data-book-id]');
@@ -397,6 +451,38 @@
             const bookId = Number(link.getAttribute('data-book-id') || 0);
             if (bookId > 0) openBookDetail(bookId);
         });
+
+        const reviewList = document.getElementById('bookDetailReviewsList');
+        if (reviewList) {
+            reviewList.addEventListener('click', async (event) => {
+                const btn = event.target.closest('button[data-review-action]');
+                if (!btn) return;
+                const action = btn.getAttribute('data-review-action');
+                const reviewId = Number(btn.getAttribute('data-review-id') || 0);
+                if (!reviewId) return;
+
+                if (action === 'edit') {
+                    const reviewIdInput = document.getElementById('bookReviewId');
+                    const ratingInput = document.getElementById('bookReviewRating');
+                    const textInput = document.getElementById('bookReviewText');
+                    const submitBtn = document.querySelector('#bookReviewForm button[type="submit"]');
+                    const cancelEditBtnInner = document.getElementById('bookReviewCancelEdit');
+                    if (reviewIdInput) reviewIdInput.value = String(reviewId);
+                    if (ratingInput) ratingInput.value = String(btn.getAttribute('data-review-rating') || '5');
+                    if (textInput) {
+                        textInput.value = String(btn.getAttribute('data-review-text') || '');
+                        textInput.focus();
+                    }
+                    if (submitBtn) submitBtn.textContent = 'Update Review';
+                    if (cancelEditBtnInner) cancelEditBtnInner.classList.remove('hidden');
+                    return;
+                }
+
+                if (action === 'delete') {
+                    await deleteReview(reviewId);
+                }
+            });
+        }
     }
 
     function openFromUrlIfAny() {

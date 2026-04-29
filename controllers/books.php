@@ -61,6 +61,32 @@ class BooksController {
                     $_POST['review'] ?? ''
                 );
 
+            case 'edit-review':
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    return ['success' => false, 'message' => 'Invalid request method'];
+                }
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login to edit your review'];
+                }
+                return $this->catalog->updateReview(
+                    $_POST['review_id'] ?? 0,
+                    $this->session->getUserId(),
+                    $_POST['rating'] ?? 0,
+                    $_POST['review'] ?? ''
+                );
+
+            case 'delete-review':
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    return ['success' => false, 'message' => 'Invalid request method'];
+                }
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login to delete your review'];
+                }
+                return $this->catalog->deleteReview(
+                    $_POST['review_id'] ?? 0,
+                    $this->session->getUserId()
+                );
+
             default:
                 return ['error' => 'Invalid action'];
         }
