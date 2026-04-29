@@ -8,7 +8,8 @@
         sort: 'recent',
         view: 'grid',
         totalPages: 1,
-        genresLoaded: false
+        genresLoaded: false,
+        catalogById: {}
     };
 
     function esc(value) {
@@ -68,6 +69,10 @@
             const data = result.data;
             const items = data.items || [];
             state.totalPages = Math.max(1, Number(data.meta && data.meta.total_pages) || 1);
+            state.catalogById = {};
+            items.forEach((item) => {
+                state.catalogById[String(item.id)] = item;
+            });
 
             renderGenres(data.genres || []);
             renderGrid(items);
@@ -248,6 +253,9 @@
             document.getElementById('bookDetailTagGenre').textContent = book.genre_label || 'Genre';
             document.getElementById('bookDetailTitle').textContent = book.name || 'Untitled';
             document.getElementById('bookDetailAuthor').textContent = 'by ' + (book.author_display || 'Unknown Author');
+            const catalogItem = state.catalogById[String(book.id || '')] || {};
+            const publisherValue = String(book.publisher_display || book.publisher || catalogItem.publisher_display || catalogItem.publisher || '').trim();
+            document.getElementById('bookDetailPublisher').textContent = 'Publisher: ' + (publisherValue || 'Unknown Publisher');
             document.getElementById('bookDetailSynopsis').textContent = book.synopsis || 'No synopsis available.';
             document.getElementById('bookDetailRentPrice').textContent = formatCurrency(book.online_rent_price);
             document.getElementById('bookDetailBuyPrice').textContent = formatCurrency(book.price);

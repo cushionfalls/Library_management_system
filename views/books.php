@@ -76,7 +76,7 @@ tailwind.config = {
             <label class="sr-only" for="browseSearchInput">Search books</label>
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-                <input id="browseSearchInput" class="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm transition-all" placeholder="Search by title, ISBN, publisher..." type="text" />
+                <input id="browseSearchInput" class="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm transition-all" placeholder="Search by title, ISBN, publisher, or author..." type="text" />
             </div>
         </div>
     </section>
@@ -91,16 +91,16 @@ tailwind.config = {
             </button>
         </div>
 
-        <select id="browseGenreSelect" class="bg-surface-container-low px-4 py-2 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
+        <select id="browseGenreSelect" class="bg-surface-container-low px-6 py-3 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
             <option value="ALL">Genre: All Categories</option>
         </select>
 
-        <button id="browseAvailableToggle" type="button" class="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-lg hover:bg-surface-container-high transition-colors">
+        <button id="browseAvailableToggle" type="button" class="flex items-center gap-3 bg-surface-container-low px-6 py-3 rounded-lg hover:bg-surface-container-high transition-colors">
             <span class="text-sm font-semibold text-on-surface">Available Now</span>
             <span id="browseAvailableSwitch" class="browse-switch is-on" aria-hidden="true"></span>
         </button>
 
-        <select id="browseSortSelect" class="bg-surface-container-low px-4 py-2 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
+        <select id="browseSortSelect" class="bg-surface-container-low px-6 py-3 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
             <option value="recent">Recently Added</option>
             <option value="rating">Top Rated</option>
             <option value="title">Title (A-Z)</option>
@@ -149,6 +149,7 @@ tailwind.config = {
                 </div>
                 <h2 class="text-3xl md:text-4xl font-extrabold text-on-background leading-tight mb-2" id="bookDetailTitle">Book Title</h2>
                 <p class="text-lg md:text-xl text-primary font-medium italic" id="bookDetailAuthor">by Author</p>
+                <p class="text-sm text-on-surface-variant font-medium mt-1" id="bookDetailPublisher">Publisher: Unknown Publisher</p>
             </header>
 
             <div class="space-y-10">

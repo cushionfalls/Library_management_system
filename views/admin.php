@@ -217,7 +217,11 @@
                                 <textarea class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookDescription" name="description" placeholder="Brief summary of the book content..." rows="4"></textarea>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Author</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookAuthor" name="author" placeholder="e.g. George Orwell" required type="text"/>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-[#1c1a25]">Publisher</label>
                                     <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookPublisher" name="publisher" placeholder="e.g. Penguin Random House" required type="text"/>

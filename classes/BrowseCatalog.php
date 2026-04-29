@@ -25,9 +25,16 @@ class BrowseCatalog {
         }
 
         if ($search !== '') {
-            $where[] = '(b.name LIKE ? OR b.publisher LIKE ? OR b.isbn LIKE ?)';
+            $where[] = '(b.name LIKE ? OR b.publisher LIKE ? OR b.isbn LIKE ? OR EXISTS (
+                SELECT 1
+                FROM BookAuthors ba2
+                INNER JOIN Authors a2 ON a2.id = ba2.author_id
+                WHERE ba2.book_id = b.id
+                  AND CONCAT(a2.first_name, \' \', a2.last_name) LIKE ?
+            ))';
             $q = '%' . $search . '%';
-            $bindTypes .= 'sss';
+            $bindTypes .= 'ssss';
+            $bindValues[] = $q;
             $bindValues[] = $q;
             $bindValues[] = $q;
             $bindValues[] = $q;
@@ -117,10 +124,17 @@ class BrowseCatalog {
             "SELECT id, name
              FROM Books
              WHERE name LIKE ? OR isbn LIKE ? OR publisher LIKE ?
+                OR EXISTS (
+                    SELECT 1
+                    FROM BookAuthors ba
+                    INNER JOIN Authors a ON a.id = ba.author_id
+                    WHERE ba.book_id = Books.id
+                      AND CONCAT(a.first_name, ' ', a.last_name) LIKE ?
+                )
              ORDER BY name ASC
              LIMIT ?"
         );
-        $stmt->bind_param('sssi', $query, $query, $query, $limit);
+        $stmt->bind_param('ssssi', $query, $query, $query, $query, $limit);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
@@ -223,6 +237,7 @@ class BrowseCatalog {
         if ($cover !== '' && stripos($cover, 'http://') !== 0 && stripos($cover, 'https://') !== 0) {
             $cover = APP_URL . '/' . ltrim($cover, '/');
         }
+        $publisher = trim((string)($row['publisher'] ?? ''));
 
         $genre = strtoupper((string)($row['genre'] ?? 'OTHERS'));
 
@@ -231,7 +246,8 @@ class BrowseCatalog {
             'isbn' => (string)($row['isbn'] ?? ''),
             'name' => (string)($row['name'] ?? ''),
             'description' => (string)($row['description'] ?? ''),
-            'publisher' => (string)($row['publisher'] ?? ''),
+            'publisher' => $publisher,
+            'publisher_display' => $publisher !== '' ? $publisher : 'Unknown Publisher',
             'genre' => $genre,
             'genre_label' => $this->genreLabel($genre),
             'language' => (string)($row['language'] ?? 'English'),
