@@ -17,3 +17,8 @@ Stack trace:
 #1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(315): AdminController->handle('dashboard')
 #2 {main}
   thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 30
+[30-Apr-2026 08:21:11 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'users' already exists in C:\xampp\htdocs\Library_management_system\setup.php:45
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\setup.php(45): mysqli->query('CREATE TABLE `U...')
+#1 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\setup.php on line 45

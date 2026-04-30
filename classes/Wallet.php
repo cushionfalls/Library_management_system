@@ -6,6 +6,7 @@ class Wallet {
     private $db;
     const TOPUP_MAX_AMOUNT = 10000;
     const TX_MAX_LIMIT = 10000;
+    const SPEND_MAX_AMOUNT = 100000;
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
@@ -92,6 +93,58 @@ class Wallet {
         } catch (Exception $e) {
             $this->db->rollback();
             return ['success' => false, 'message' => 'Top up failed'];
+        }
+    }
+
+    /**
+     * Debit funds from wallet and log transaction.
+     * @param string $reason One of WalletTransactions.reason enum values
+     */
+    public function spend($userId, $amount, $reason = 'OTHER') {
+        $userId = (int)$userId;
+        $amount = (int)$amount;
+        $reason = (string)$reason;
+        if ($amount <= 0) {
+            return ['success' => false, 'message' => 'Amount must be greater than 0'];
+        }
+        if ($amount > self::SPEND_MAX_AMOUNT) {
+            return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::SPEND_MAX_AMOUNT];
+        }
+
+        $this->db->begin_transaction();
+        try {
+            $stmt = $this->db->prepare(
+                "UPDATE Users
+                 SET wallet = wallet - ?, updated_at = NOW()
+                 WHERE id = ? AND wallet >= ?"
+            );
+            $stmt->bind_param('iii', $amount, $userId, $amount);
+            if (!$stmt->execute() || $stmt->affected_rows <= 0) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Insufficient wallet balance'];
+            }
+
+            $type = 'DEBIT';
+            $stmt2 = $this->db->prepare(
+                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at)
+                 VALUES (?, ?, ?, ?, NOW())"
+            );
+            $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
+            if (!$stmt2->execute()) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Failed to log transaction'];
+            }
+
+            $this->db->commit();
+            return [
+                'success' => true,
+                'message' => 'Payment successful',
+                'balance' => $this->getBalance($userId),
+                'transaction_id' => (int)$this->db->insert_id
+            ];
+        } catch (Exception $e) {
+            $this->db->rollback();
+            return ['success' => false, 'message' => 'Payment failed'];
         }
     }
 

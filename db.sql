@@ -92,8 +92,39 @@ CREATE TABLE `WalletTransactions` (
   `user_id` int NOT NULL,
   `amount` int NOT NULL,
   `type` ENUM ('CREDIT', 'DEBIT') NOT NULL,
-  `reason` ENUM ('TOP_UP', 'BOOK_RENT', 'BOOK_BUY', 'FINE_PAYMENT', 'REFUND') NOT NULL,
+  `reason` ENUM ('TOP_UP', 'BOOK_RENT', 'BOOK_BUY', 'FINE_PAYMENT', 'REFUND', 'MEMBERSHIP') NOT NULL,
   `created_at` datetime NOT NULL DEFAULT (now())
+);
+
+CREATE TABLE `MembershipPlans` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `slug` varchar(40) UNIQUE NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `duration_days` int NOT NULL,
+  `price` int NOT NULL,
+  `is_active` bool NOT NULL DEFAULT true,
+  `created_at` datetime NOT NULL DEFAULT (now())
+);
+
+CREATE TABLE `UserMemberships` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `plan_id` int NOT NULL,
+  `status` ENUM ('ACTIVE', 'CANCELLED', 'EXPIRED') NOT NULL DEFAULT 'ACTIVE',
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT (now()),
+  `updated_at` datetime
+);
+
+CREATE TABLE `MembershipPurchases` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `membership_id` int NOT NULL,
+  `plan_id` int NOT NULL,
+  `amount` int NOT NULL,
+  `wallet_transaction_id` int,
+  `purchased_at` datetime NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE `BookReviews` (
@@ -121,6 +152,13 @@ ALTER TABLE `Fines` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
 ALTER TABLE `WalletTransactions` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
+ALTER TABLE `UserMemberships` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+ALTER TABLE `UserMemberships` ADD FOREIGN KEY (`plan_id`) REFERENCES `MembershipPlans` (`id`);
+ALTER TABLE `MembershipPurchases` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+ALTER TABLE `MembershipPurchases` ADD FOREIGN KEY (`membership_id`) REFERENCES `UserMemberships` (`id`);
+ALTER TABLE `MembershipPurchases` ADD FOREIGN KEY (`plan_id`) REFERENCES `MembershipPlans` (`id`);
+ALTER TABLE `MembershipPurchases` ADD FOREIGN KEY (`wallet_transaction_id`) REFERENCES `WalletTransactions` (`id`);
+
 ALTER TABLE `BookReviews` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
 
 ALTER TABLE `BookReviews` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
@@ -132,4 +170,12 @@ CREATE INDEX idx_transactions_user ON BookTransactions(user_id);
 CREATE INDEX idx_transactions_due_date ON BookTransactions(due_date);
 CREATE INDEX idx_fines_user ON Fines(user_id);
 CREATE INDEX idx_reviews_book ON BookReviews(book_id);
+
+CREATE INDEX idx_memberships_user ON UserMemberships(user_id, ends_at);
+CREATE INDEX idx_membership_purchases_user ON MembershipPurchases(user_id, purchased_at);
+
+INSERT INTO MembershipPlans (slug, name, duration_days, price, is_active) VALUES
+('MONTHLY_1', 'Bibliophile (1 Month)', 30, 399, 1),
+('MONTHS_6', 'Bibliophile (6 Months)', 180, 699, 1),
+('MONTHS_12', 'Bibliophile (12 Months)', 365, 1999, 1);
 
