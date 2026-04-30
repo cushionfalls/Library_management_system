@@ -21,6 +21,7 @@ function reasonLabel(reason) {
         case 'BOOK_BUY': return 'Book Purchase';
         case 'FINE_PAYMENT': return 'Fine Settlement';
         case 'REFUND': return 'Refund';
+        case 'MEMBERSHIP': return 'Membership Purchase';
         default: return 'Wallet Transaction';
     }
 }
@@ -32,6 +33,7 @@ function reasonIcon(reason) {
         case 'BOOK_BUY': return 'shopping_bag';
         case 'FINE_PAYMENT': return 'warning';
         case 'REFUND': return 'replay';
+        case 'MEMBERSHIP': return 'verified_user';
         default: return 'payments';
     }
 }

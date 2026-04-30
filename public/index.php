@@ -13,7 +13,7 @@ if (isset($_GET['page']) && $_GET['page'] !== '') {
 }
 
 // Check authentication for protected routes
-$protected_pages = ['dashboard', 'books', 'wallet', 'fines', 'profile', 'my-books', 'book-detail', 'admin'];
+$protected_pages = ['dashboard', 'books', 'wallet', 'membership', 'fines', 'profile', 'my-books', 'book-detail', 'admin'];
 
 if (in_array($current_page, $protected_pages)) {
     if (!$session->isLoggedIn()) {
@@ -84,6 +84,7 @@ $navActive = [
     'books' => $current_page === 'books',
     'my-books' => $current_page === 'my-books',
     'wallet' => $current_page === 'wallet',
+    'membership' => $current_page === 'membership',
     'fines' => $current_page === 'fines',
     'admin' => in_array($current_page, $admin_nav_pages, true),
 ];
@@ -143,7 +144,7 @@ $navActive = [
         .nav-lumina-link { font-family: 'Manrope', system-ui, sans-serif; }
     </style>
 </head>
-<body class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'fines' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
+<body class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'fines' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
     <!-- Navigation -->
     <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
@@ -179,6 +180,7 @@ $navActive = [
                     echo $lum(APP_ROUTE . '?page=books', 'Browse', $navActive['books']);
                     echo $lum(APP_ROUTE . '?page=my-books', 'My Books', $navActive['my-books']);
                     echo $lum(APP_ROUTE . '?page=wallet', 'Wallet', $navActive['wallet']);
+                    echo $lum(APP_ROUTE . '?page=membership', 'Membership', $navActive['membership']);
                     echo $lum(APP_ROUTE . '?page=fines', 'Fines', $navActive['fines']);
                     if ($session->isAdmin() || $session->isLibrarian()) {
                         echo $lum(APP_ROUTE . '?page=admin', 'Admin', $navActive['admin']);
@@ -194,6 +196,7 @@ $navActive = [
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=books">Browse</a></li>
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=my-books">My Books</a></li>
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=wallet">Wallet</a></li>
+                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=membership">Membership</a></li>
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=fines">Fines</a></li>
                             <?php if ($session->isAdmin() || $session->isLibrarian()): ?>
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin">Admin</a></li>
@@ -232,7 +235,7 @@ $navActive = [
     <!-- Main Content -->
     <main class="min-h-screen">
         <div class="<?php
-            if ($current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'fines' || $current_page === 'profile') {
+            if ($current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'fines' || $current_page === 'profile') {
                 echo 'w-full max-w-screen-2xl mx-auto px-4 sm:px-8 py-10';
             } else {
                 echo 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8';
