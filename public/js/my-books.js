@@ -153,7 +153,7 @@
         if (!modal || !container) return;
 
         if (title) title.textContent = book.name || 'Reader';
-        if (meta) meta.textContent = 'Current marker: ' + (book.current_location || 'Start');
+        if (meta) meta.textContent = '';
         container.innerHTML = '';
 
         if (currentRendition && currentRendition.destroy) {

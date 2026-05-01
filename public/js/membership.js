@@ -10,6 +10,7 @@ function membershipBaseUrl() {
 
 function planButtonLabel(active, plan) {
     if (!active) return 'Buy with Wallet';
+    if (plan.id == active.plan_id) return 'Owned';
     const price = Number(plan.price || 0);
     const activePrice = Number(active.price || 0);
     if (price < activePrice) return 'Downgrade Not Allowed';
@@ -32,7 +33,8 @@ function planCardHtml(plan, active) {
 
     const activePrice = active ? Number(active.price || 0) : 0;
     const isDowngrade = active && price < activePrice;
-    const disabledAttr = isDowngrade ? 'disabled' : '';
+    const isOwned = active && plan.id == active.plan_id;
+    const disabledAttr = (isDowngrade || isOwned) ? 'disabled' : '';
 
     const btnCls = popular
         ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
