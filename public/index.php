@@ -147,21 +147,10 @@ $navActive = [
     <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <div class="flex items-center gap-4 lg:gap-10 flex-1 min-w-0">
-                <a href="<?php echo APP_ROUTE; ?>" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
+                <a href="<?php echo APP_ROUTE; ?>?page=dashboard" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[#4F1BF1] text-2xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
                     <span class="text-lg font-bold tracking-tight font-['Manrope'] hidden sm:inline"><?php echo htmlspecialchars(APP_NAME); ?></span>
                 </a>
-                <div class="relative flex-1 max-w-md min-w-0">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#787588]/60 text-[20px] pointer-events-none">search</span>
-                    <input
-                        type="text"
-                        id="navbarSearchInput"
-                        class="w-full pl-11 pr-4 py-2 bg-[#f7f1ff] rounded-lg border border-[#c9c4da]/50 focus:border-[#4F1BF1] focus:ring-4 focus:ring-[#4F1BF1]/10 transition-all text-sm placeholder:text-[#787588]/60 font-medium text-[#1c1a25]"
-                        placeholder="Search books..."
-                        autocomplete="off"
-                    />
-                    <div id="navbarSearchResults" class="hidden absolute left-0 right-0 mt-2 z-[60]"></div>
-                </div>
             </div>
 
             <?php if ($session->isLoggedIn()): ?>

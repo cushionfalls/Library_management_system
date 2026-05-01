@@ -32,20 +32,6 @@
     const $amountInput  = $topUpForm?.querySelector('[name="amount"]');
     const STRIPE_PK     = (typeof window.STRIPE_PUBLISHABLE_KEY === 'string' ? window.STRIPE_PUBLISHABLE_KEY : '').trim();
 
-    function escHtml(str) {
-        const d = document.createElement('div');
-        d.textContent = String(str ?? '');
-        return d.innerHTML;
-    }
-
-    function fmtCurrency(cents) {
-        return cents;
-    }
-
-    function fmtDate(s) {
-        if (!s) return '—';
-        return new Date(s).toLocaleDateString('en-NP', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
 
     function reasonLabel(r) {
         const map = {
@@ -94,7 +80,7 @@
             boxShadow:    '0 8px 32px rgba(0,0,0,.18)',
             transition:   'opacity .3s, transform .3s',
         });
-        el.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px">${icons[type] || 'info'}</span>${escHtml(msg)}`;
+        el.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px">${icons[type] || 'info'}</span>${escapeHtml(msg)}`;
         document.body.appendChild(el);
 
         setTimeout(() => {
@@ -109,7 +95,7 @@
             const res  = await fetch(API + 'getBalance', { credentials: 'same-origin', cache: 'no-store' });
             const data = await res.json();
             if (data.success && $balanceHero) {
-                $balanceHero.textContent = fmtCurrency(data.balance ?? 0);
+                $balanceHero.textContent = formatUsdFromCents(data.balance ?? 0);
             }
         } catch (_) { /* silent */ }
     }
@@ -122,15 +108,15 @@
         return `
         <tr style="border-bottom:1px solid var(--color-surface-container,#f1ebfb);transition:background .15s"
             onmouseover="this.style.background='#e5e0f0'" onmouseout="this.style.background=''">
-            <td class="px-6 py-5 text-sm font-medium text-on-surface-variant">${escHtml(fmtDate(tx.created_at))}</td>
+            <td class="px-6 py-5 text-sm font-medium text-on-surface-variant">${escapeHtml(formatDate(tx.created_at))}</td>
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-primary" style="font-size:20px">${escHtml(reasonIcon(tx.reason))}</span>
-                    <span class="font-semibold text-on-surface text-sm">${escHtml(reasonLabel(tx.reason))}</span>
+                    <span class="material-symbols-outlined text-primary" style="font-size:20px">${escapeHtml(reasonIcon(tx.reason))}</span>
+                    <span class="font-semibold text-on-surface text-sm">${escapeHtml(reasonLabel(tx.reason))}</span>
                 </div>
             </td>
             <td class="px-6 py-5 text-right text-sm font-bold" style="${amtCls}">
-                ${prefix}${escHtml(fmtCurrency(Math.abs(tx.amount || 0)))}
+                ${prefix}${escapeHtml(formatUsdFromCents(Math.abs(tx.amount || 0)))}
             </td>
             <td class="px-6 py-5">
                 <span style="padding:3px 10px;border-radius:9999px;font-size:11px;font-weight:700;
@@ -270,7 +256,7 @@
 
         /* Validate amount */
         if (!amountCents || amountCents <= 0) { toast('Enter a valid amount.', 'warning'); return; }
-        if (amountCents > TOPUP_MAX_CENTS)     { toast(`Maximum top-up is ${fmtCurrency(TOPUP_MAX_CENTS)}.`, 'warning'); return; }
+        if (amountCents > TOPUP_MAX_CENTS)     { toast(`Maximum top-up is ${formatUsdFromCents(TOPUP_MAX_CENTS)}.`, 'warning'); return; }
 
         setSubmitLoading(true, 'Creating payment…');
         try {
@@ -324,7 +310,7 @@
                 return;
             }
 
-            toast(`Top up successful! New balance: ${fmtCurrency(data2.balance ?? 0)}`, 'success');
+            toast(`Top up successful! New balance: ${formatUsdFromCents(data2.balance ?? 0)}`, 'success');
             if (typeof $topUpModal?.close === 'function') $topUpModal.close();
             resetModal();
             await loadBalance();
@@ -344,7 +330,7 @@
             const method = (params.get('method') || 'gateway').toUpperCase();
             const amount = params.get('amount') || '';
             toast(
-                `${method} top up of ${amount ? fmtCurrency(parseInt(amount, 10) * 100) : ''} successful!`,
+                `${method} top up of ${amount ? formatUsdFromCents(parseInt(amount, 10) * 100) : ''} successful!`,
                 'success'
             );
         } else if (topup === 'failed') {

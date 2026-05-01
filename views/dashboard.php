@@ -38,12 +38,6 @@
 </div>
 
 <script>
-function escapeHtml(str) {
-    if (str == null) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
-}
 
 async function loadQuote() {
     const textEl = document.getElementById('quoteText');
@@ -75,7 +69,7 @@ async function loadDashboard() {
     ]);
 
     if (wallet && wallet.success) {
-        document.getElementById('walletBalance').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((Number(wallet.balance || 0) / 100));
+        document.getElementById('walletBalance').textContent = window.formatUsdFromCents(wallet.balance || 0);
     }
 
     const books = (myBooks && myBooks.success && Array.isArray(myBooks.books)) ? myBooks.books : [];
@@ -88,9 +82,9 @@ async function loadDashboard() {
             booksList.innerHTML = books.slice(0, 6).map((b) => `
                 <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group">
                     <div class="aspect-[3/4] rounded-lg overflow-hidden mb-2 bg-surface-container">
-                        <img src="${escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${escapeHtml(b.name || 'Book')}">
+                        <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${window.escapeHtml(b.name || 'Book')}">
                     </div>
-                    <p class="text-xs font-semibold truncate">${escapeHtml(b.name || 'Book')}</p>
+                    <p class="text-xs font-semibold truncate">${window.escapeHtml(b.name || 'Book')}</p>
                 </a>
             `).join('');
         }
@@ -100,7 +94,7 @@ async function loadDashboard() {
     const untilEl = document.getElementById('membershipUntil');
     if (membership && membership.success && membership.active) {
         statusEl.textContent = membership.active.plan_name || 'Active';
-        untilEl.textContent = 'Valid until: ' + new Date(membership.active.ends_at).toLocaleDateString();
+        untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
     } else {
         statusEl.textContent = 'Not Active';
         untilEl.textContent = 'Activate membership to unlock more books.';

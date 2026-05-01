@@ -7,21 +7,6 @@ function membershipBaseUrl() {
     return '';
 }
 
-function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = String(str ?? '');
-    return d.innerHTML;
-}
-
-function formatUsdFromCents(cents) {
-    return cents;
-}
-
-function fmtDate(dateStr) {
-    if (!dateStr) return '';
-    if (typeof window.formatDate === 'function') return window.formatDate(dateStr);
-    return new Date(dateStr).toLocaleDateString('en-US');
-}
 
 function planButtonLabel(active, plan) {
     if (!active) return 'Buy with Wallet';
@@ -105,7 +90,7 @@ function renderStatus(active) {
     planEl.textContent = active.plan_name || 'Active';
     planEl.classList.add('text-primary');
     planEl.classList.remove('text-error');
-    nextEl.textContent = 'Valid until: ' + fmtDate(active.ends_at);
+    nextEl.textContent = 'Valid until: ' + formatDate(active.ends_at);
 }
 
 async function loadStatus() {
@@ -167,7 +152,7 @@ async function loadPlans(active) {
 }
 
 function historyRowHtml(row) {
-    const date = fmtDate(row.purchased_at);
+    const date = formatDate(row.purchased_at);
     const plan = row.plan_name || row.plan_slug || 'Plan';
     const amt = formatUsdFromCents(row.amount || 0);
     return `

@@ -89,6 +89,7 @@ function showToast(message, type = 'info') {
 
 // Format date
 function formatDate(dateString) {
+    if (!dateString) return '—';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }
@@ -96,6 +97,19 @@ function formatDate(dateString) {
 // Format currency
 function formatCurrency(amount) {
     return amount;
+}
+
+// Format USD from cents
+function formatUsdFromCents(cents) {
+    const dollars = (Number(cents || 0) / 100);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(dollars);
+}
+
+// Escape HTML
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str ?? '');
+    return d.innerHTML;
 }
 
 // Debounce function
@@ -246,6 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export functions for use in other scripts
 window.formatDate = formatDate;
 window.formatCurrency = formatCurrency;
+window.formatUsdFromCents = formatUsdFromCents;
+window.escapeHtml = escapeHtml;
 window.showToast = showToast;
 window.apiCall = apiCall;
 window.validateForm = validateForm;
@@ -256,64 +272,4 @@ window.redirect = redirect;
 window.Storage = Storage;
 window.SessionStorage = SessionStorage;
 
-// Navbar book search dropdown (always visible).
-function escapeHtml(str) {
-    return String(str ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
-
-function initNavbarBookSearch() {
-    const input = document.getElementById('navbarSearchInput');
-    const results = document.getElementById('navbarSearchResults');
-    if (!input || !results) return;
-
-    const runSearch = debounce(async function () {
-        const query = (input.value || '').trim();
-        if (query.length < 2) {
-            results.classList.add('hidden');
-            results.innerHTML = '';
-            return;
-        }
-
-        const url = appBaseUrl() + '/controllers/books.php?action=suggestions&search=' + encodeURIComponent(query) + '&limit=6';
-        const response = await fetch(url);
-        const data = await response.json().catch(() => null);
-
-        if (!data || !data.success) {
-            results.classList.add('hidden');
-            results.innerHTML = '';
-            return;
-        }
-
-        const books = data.books || [];
-        if (books.length === 0) {
-            results.classList.add('hidden');
-            results.innerHTML = '';
-            return;
-        }
-
-        const items = books.map(b => {
-            const safeName = escapeHtml(b.name);
-            const detailUrl = appBaseUrl() + '/public/index.php?page=books&book=' + encodeURIComponent(b.id) + '&search=' + encodeURIComponent(query);
-            return '<li><a href="' + detailUrl + '" class="justify-between"><span>' + safeName + '</span></a></li>';
-        }).join('');
-
-        results.innerHTML = '<ul class="menu bg-base-100 rounded-box shadow border border-base-200 p-2">' + items + '</ul>';
-        results.classList.remove('hidden');
-    }, 300);
-
-    input.addEventListener('input', runSearch);
-
-    document.addEventListener('click', function (e) {
-        if (e.target === input) return;
-        if (results.contains(e.target)) return;
-        results.classList.add('hidden');
-    });
-}
-
-document.addEventListener('DOMContentLoaded', initNavbarBookSearch);
 

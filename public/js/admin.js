@@ -1,12 +1,3 @@
-function adminEscape(value) {
-    if (value == null) return '';
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
 
 function adminToast(message, type = 'info') {
     if (typeof window.showToast === 'function') {
@@ -38,12 +29,6 @@ async function adminFetch(action, options = {}) {
     return response.json();
 }
 
-function adminFormatDate(value) {
-    if (!value) return '-';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString();
-}
 
 function renderOverview(overview) {
     document.getElementById('adminTotalUsers').textContent = overview.total_users ?? 0;
@@ -67,12 +52,12 @@ function renderBooks(books) {
     body.innerHTML = books.map((book) => {
         return `
             <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(book.isbn)}</td>
+                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(book.isbn)}</td>
                 <td class="px-8 py-6"><img class="w-16 h-20 object-cover rounded-md" alt="Book Cover" src="${adminAssetUrl(book.cover_image) || fallbackCover()}"/></td>
-                <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${adminEscape(book.name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher || '-')}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.authors || book.author || '-')}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${adminEscape(book.price)}</td>
+                <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${escapeHtml(book.name)}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.publisher || '-')}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.authors || book.author || '-')}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${escapeHtml(book.price)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
                     <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>
@@ -92,11 +77,11 @@ function renderUsers(users) {
 
     body.innerHTML = users.map((u) => `
         <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(u.email)}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(u.role)}</td>
+            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
+            <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(u.email)}</td>
+            <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(u.role)}</td>
             <td class="px-8 py-6 text-sm text-[#2c2f30]">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${adminFormatDate(u.created_at)}</td>
+            <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(u.created_at)}</td>
             <td class="px-8 py-6 text-right">
                 <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
                 <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>
@@ -117,11 +102,11 @@ function renderTransactions(transactions) {
         const status = Number(tx.is_returned) === 1 ? 'Returned' : 'Active';
         return `
             <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(tx.book_name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(tx.transaction_type)}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${adminEscape(tx.amount_paid)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${adminFormatDate(tx.due_date)}</td>
+                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(tx.book_name)}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
+                <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(tx.transaction_type)}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${escapeHtml(tx.amount_paid)}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(tx.due_date)}</td>
                 <td class="px-8 py-6 text-sm text-[#2c2f30]">${status}</td>
             </tr>
         `;
@@ -138,10 +123,10 @@ function renderOverdue(overdueBooks) {
 
     body.innerHTML = overdueBooks.map((item) => `
         <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(item.book_name)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape((item.first_name || '') + ' ' + (item.last_name || ''))}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminFormatDate(item.due_date)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${adminFormatDate(item.created_at)}</td>
+            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(item.book_name)}</td>
+            <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((item.first_name || '') + ' ' + (item.last_name || ''))}</td>
+            <td class="px-8 py-6 text-sm text-[#2c2f30]">${formatDate(item.due_date)}</td>
+            <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(item.created_at)}</td>
         </tr>
     `).join('');
 }
