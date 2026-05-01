@@ -26,7 +26,7 @@
     function formatCurrency(value) {
         if (value == null || value === '') return 'N/A';
         const amount = Number(value || 0);
-        return '₹' + new Intl.NumberFormat('en-IN').format(amount);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
     }
 
     function formatDate(value) {
@@ -108,8 +108,8 @@
         grid.innerHTML = items.map((book) => {
             const cover = esc(book.cover_image_url || fallbackCover());
             return `
-                <article class="group flex flex-col cursor-pointer">
-                    <div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-5 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(56,0,191,0.15)]">
+                <article class="group flex flex-col cursor-pointer" data-book-id="${book.id}">
+                    <div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-5 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(56,0,191,0.15)]" data-book-id="${book.id}">
                         <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" />
                         <div class="absolute top-4 left-4">
                             <span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full uppercase tracking-widest backdrop-blur-md bg-opacity-80">${esc(book.genre_label)}</span>
@@ -120,7 +120,7 @@
                         <span class="text-sm font-bold text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
                         <span class="text-xs text-on-surface-variant ml-auto">${book.number_of_copies > 0 ? 'Available' : 'Out of stock'}</span>
                     </div>
-                    <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors">${esc(book.name)}</h3>
+                    <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors" data-book-id="${book.id}">${esc(book.name)}</h3>
                     <p class="text-sm text-on-surface-variant font-medium mb-2">${esc(book.author_display)}</p>
                     <p class="text-sm font-semibold text-primary mb-4">${formatCurrency(book.price)}</p>
                     <a class="text-primary text-sm font-bold hover:underline decoration-2 underline-offset-4 inline-flex items-center gap-1" href="${window.BROWSE_PAGE_URL}&book=${encodeURIComponent(book.id)}" data-book-id="${book.id}">
@@ -258,12 +258,28 @@
             const publisherValue = String(book.publisher_display || book.publisher || catalogItem.publisher_display || catalogItem.publisher || '').trim();
             document.getElementById('bookDetailPublisher').textContent = 'Publisher: ' + (publisherValue || 'Unknown Publisher');
             document.getElementById('bookDetailSynopsis').textContent = book.synopsis || 'No synopsis available.';
-            document.getElementById('bookDetailRentPrice').textContent = formatCurrency(book.online_rent_price);
-            document.getElementById('bookDetailBuyPrice').textContent = formatCurrency(book.price);
             document.getElementById('bookDetailOnlinePrice').textContent = formatCurrency(book.online_buy_price);
             document.getElementById('bookDetailReviewsCount').textContent = (book.total_reviews || 0) + ' reviews';
             document.getElementById('bookReviewBookId').value = String(book.id || '');
             state.currentBookId = Number(book.id || 0);
+            const buyBtn = document.getElementById('bookDetailBuyOnlineBtn');
+            const membershipBtn = document.getElementById('bookDetailMembershipAccessBtn');
+            const accessType = String(book.user_access && book.user_access.access_type ? book.user_access.access_type : '').toUpperCase();
+            const alreadyOwned = accessType === 'OWNED';
+            const alreadyMembership = accessType === 'MEMBERSHIP';
+            if (buyBtn) {
+                buyBtn.disabled = alreadyOwned;
+                buyBtn.textContent = alreadyOwned ? 'Already Owned' : 'Buy with Wallet';
+                buyBtn.classList.toggle('opacity-60', alreadyOwned);
+                buyBtn.classList.toggle('cursor-not-allowed', alreadyOwned);
+            }
+            if (membershipBtn) {
+                const alreadyHasAccess = alreadyOwned || alreadyMembership;
+                membershipBtn.disabled = alreadyHasAccess;
+                membershipBtn.textContent = alreadyHasAccess ? 'Already in My Books' : 'Grant Access';
+                membershipBtn.classList.toggle('opacity-60', alreadyHasAccess);
+                membershipBtn.classList.toggle('cursor-not-allowed', alreadyHasAccess);
+            }
 
             renderReviews(book.reviews || []);
             configureReviewForm();
@@ -441,14 +457,46 @@
         if (closeBtn) closeBtn.addEventListener('click', closeBookDetail);
         if (backdrop) backdrop.addEventListener('click', closeBookDetail);
         if (reviewForm) reviewForm.addEventListener('submit', submitReview);
+        const buyOnlineBtn = document.getElementById('bookDetailBuyOnlineBtn');
+        const membershipBtn = document.getElementById('bookDetailMembershipAccessBtn');
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
+        if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
+            if (!state.currentBookId) return;
+            const body = new URLSearchParams();
+            body.set('book_id', String(state.currentBookId));
+            const response = await fetch(apiUrl('purchase-online'), { method: 'POST', body });
+            const result = await response.json().catch(() => null);
+            if (!result || !result.success) {
+                window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
+                return;
+            }
+            window.showToast?.(result.message || 'Book purchased', 'success');
+            if (window.MY_BOOKS_PAGE_URL) {
+                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            }
+        });
+        if (membershipBtn) membershipBtn.addEventListener('click', async () => {
+            if (!state.currentBookId) return;
+            const body = new URLSearchParams();
+            body.set('book_id', String(state.currentBookId));
+            const response = await fetch(apiUrl('unlock-with-membership'), { method: 'POST', body });
+            const result = await response.json().catch(() => null);
+            if (!result || !result.success) {
+                window.showToast?.((result && result.message) || 'Unable to grant access', 'error');
+                return;
+            }
+            window.showToast?.(result.message || 'Book added to your library', 'success');
+            if (window.MY_BOOKS_PAGE_URL) {
+                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            }
+        });
 
         document.addEventListener('click', (event) => {
-            const link = event.target.closest('a[data-book-id]');
-            if (!link) return;
+            const trigger = event.target.closest('[data-book-id]');
+            if (!trigger) return;
             event.preventDefault();
-            const bookId = Number(link.getAttribute('data-book-id') || 0);
+            const bookId = Number(trigger.getAttribute('data-book-id') || 0);
             if (bookId > 0) openBookDetail(bookId);
         });
 

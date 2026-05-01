@@ -18,16 +18,12 @@
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminOverdueBooks">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
-            <p class="text-sm font-semibold text-[#474557] mb-1">Unpaid Fines</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminPendingFines">0</h3>
-        </div>
-        <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Active Rentals</p>
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminActiveRentals">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Total Income</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminWalletCreditsToday">₹0</h3>
+            <h3 class="text-3xl font-black text-[#3800bf]" id="adminWalletCreditsToday">$0.00</h3>
         </div>
     </section>
 
@@ -182,13 +178,13 @@
                         </section>
 
                         <section class="space-y-4">
-                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy PDF</label>
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy EPUB</label>
                             <div class="p-6 bg-[#f7f1ff] rounded-xl border border-[#d7d2e7] flex flex-col items-center text-center">
-                                <span class="material-symbols-outlined text-3xl text-[#575d7c] mb-3">picture_as_pdf</span>
+                                <span class="material-symbols-outlined text-3xl text-[#575d7c] mb-3">menu_book</span>
                                 <span class="text-sm font-medium text-[#1c1a25] mb-4" id="adminBookPdfFilename">No file selected</span>
                                 <label class="w-full py-2.5 px-4 bg-[#ebe6f5] text-[#3800bf] font-semibold rounded-lg hover:bg-[#e5e0f0] transition-colors text-sm cursor-pointer">
                                     Choose File
-                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".pdf" />
+                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub,.pdf" />
                                 </label>
                             </div>
                         </section>
@@ -261,15 +257,15 @@
                                         <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookCopies" name="number_of_copies" min="0" type="number" value="1"/>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Price (NPR)</label>
+                                        <label class="text-xs font-bold text-[#595c5d]">Price (USD)</label>
                                         <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookPrice" name="price" min="0" placeholder="0" type="number" value="0"/>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Rent (NPR)</label>
+                                        <label class="text-xs font-bold text-[#595c5d]">Membership Access</label>
                                         <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineRentPrice" name="online_rent_price" min="0" placeholder="0" type="number"/>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Buy (NPR)</label>
+                                        <label class="text-xs font-bold text-[#595c5d]">Buy Online (USD)</label>
                                         <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineBuyPrice" name="online_buy_price" min="0" placeholder="0" type="number"/>
                                     </div>
                                 </div>

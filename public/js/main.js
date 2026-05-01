@@ -90,12 +90,12 @@ function showToast(message, type = 'info') {
 // Format date
 function formatDate(dateString) {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-IN', options);
+    return new Date(dateString).toLocaleDateString('en-US', options);
 }
 
 // Format currency
 function formatCurrency(amount) {
-    return '₹' + new Intl.NumberFormat('en-IN').format(amount);
+    return amount;
 }
 
 // Debounce function

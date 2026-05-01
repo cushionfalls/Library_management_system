@@ -49,9 +49,8 @@ function renderOverview(overview) {
     document.getElementById('adminTotalUsers').textContent = overview.total_users ?? 0;
     document.getElementById('adminTotalBooks').textContent = overview.total_books ?? 0;
     document.getElementById('adminActiveRentals').textContent = overview.active_rentals ?? 0;
-    document.getElementById('adminPendingFines').textContent = overview.pending_fines ?? 0;
     document.getElementById('adminOverdueBooks').textContent = overview.overdue_books ?? 0;
-    document.getElementById('adminWalletCreditsToday').textContent = '₹' + (overview.wallet_credits_today ?? 0);
+    document.getElementById('adminWalletCreditsToday').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((overview.wallet_credits_today ?? 0) / 100);
 }
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
@@ -73,7 +72,7 @@ function renderBooks(books) {
                 <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${adminEscape(book.name)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.publisher || '-')}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape(book.authors || book.author || '-')}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">₹${adminEscape(book.price)}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${adminEscape(book.price)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
                     <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>
@@ -121,7 +120,7 @@ function renderTransactions(transactions) {
                 <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${adminEscape(tx.book_name)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${adminEscape((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
                 <td class="px-8 py-6 text-sm text-[#2c2f30]">${adminEscape(tx.transaction_type)}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">₹${adminEscape(tx.amount_paid)}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${adminEscape(tx.amount_paid)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${adminFormatDate(tx.due_date)}</td>
                 <td class="px-8 py-6 text-sm text-[#2c2f30]">${status}</td>
             </tr>

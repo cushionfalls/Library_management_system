@@ -13,21 +13,19 @@ function escapeHtml(str) {
     return d.innerHTML;
 }
 
-function formatInr(amount) {
-    if (typeof window.formatCurrency === 'function') return window.formatCurrency(Number(amount || 0));
-    return '₹' + Number(amount || 0);
+function formatUsdFromCents(cents) {
+    return cents;
 }
 
 function fmtDate(dateStr) {
     if (!dateStr) return '';
     if (typeof window.formatDate === 'function') return window.formatDate(dateStr);
-    return new Date(dateStr).toLocaleDateString('en-IN');
+    return new Date(dateStr).toLocaleDateString('en-US');
 }
 
 function planButtonLabel(active, plan) {
     if (!active) return 'Buy with Wallet';
-    // If active, user is extending (or switching).
-    return 'Extend with Wallet';
+    return 'Upgrade / Extend';
 }
 
 function planCardHtml(plan, active) {
@@ -56,7 +54,7 @@ function planCardHtml(plan, active) {
             <div class="mb-8">
                 <h3 class="font-headline font-bold text-2xl mb-2">${escapeHtml(name)}</h3>
                 <div class="flex items-baseline space-x-1">
-                    <span class="text-4xl font-extrabold ${popular ? 'text-primary' : 'text-on-surface'}">${escapeHtml(formatInr(price))}</span>
+                    <span class="text-4xl font-extrabold ${popular ? 'text-primary' : 'text-on-surface'}">${escapeHtml(formatUsdFromCents(price))}</span>
                     <span class="text-on-surface-variant font-medium">${escapeHtml(durationLabel)}</span>
                 </div>
                 <p class="text-sm text-on-surface-variant mt-2">Duration: <span class="font-semibold text-on-surface">${escapeHtml(String(days))} days</span></p>
@@ -64,11 +62,11 @@ function planCardHtml(plan, active) {
             <ul class="flex-grow space-y-4 mb-10">
                 <li class="flex items-start space-x-3 text-on-surface-variant font-medium">
                     <span class="material-symbols-outlined text-primary scale-90">check_circle</span>
-                    <span>Unlimited monthly rentals</span>
+                    <span>Membership-based digital access</span>
                 </li>
                 <li class="flex items-start space-x-3 text-on-surface-variant font-medium">
                     <span class="material-symbols-outlined text-primary scale-90">check_circle</span>
-                    <span>No late fines during active membership</span>
+                    <span>Add books to My Books while membership is active</span>
                 </li>
                 <li class="flex items-start space-x-3 text-on-surface-variant font-medium">
                     <span class="material-symbols-outlined text-primary scale-90">check_circle</span>
@@ -87,7 +85,7 @@ async function loadWalletBalance() {
         const res = await fetch(membershipBaseUrl() + '/controllers/wallet.php?action=getBalance', { cache: 'no-store' });
         const data = await res.json().catch(() => null);
         if (!data || !data.success) return;
-        el.textContent = formatInr(data.balance || 0);
+        el.textContent = formatUsdFromCents(data.balance || 0);
     } catch (_) {}
 }
 
@@ -154,7 +152,7 @@ async function loadPlans(active) {
                     window.showToast?.(data2?.message || data2?.error || 'Purchase failed.', 'danger');
                     return;
                 }
-                window.showToast?.('Membership activated.', 'success');
+                window.showToast?.(data2?.message || 'Membership updated.', 'success');
                 await loadWalletBalance();
                 const activeNow = await loadStatus();
                 await loadPlans(activeNow);
@@ -171,7 +169,7 @@ async function loadPlans(active) {
 function historyRowHtml(row) {
     const date = fmtDate(row.purchased_at);
     const plan = row.plan_name || row.plan_slug || 'Plan';
-    const amt = formatInr(row.amount || 0);
+    const amt = formatUsdFromCents(row.amount || 0);
     return `
         <tr class="hover:bg-surface-container-highest transition-colors">
             <td class="px-6 py-6 text-sm font-medium text-on-surface-variant">${escapeHtml(date)}</td>

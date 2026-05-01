@@ -41,19 +41,23 @@ define('PASSWORD_HASH_OPTIONS', ['cost' => 12]);
 // File Upload
 define('MAX_UPLOAD_SIZE', 5 * 1024 * 1024); // 5MB
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'image/pjpeg', 'image/x-png']);
-define('ALLOWED_PDF_TYPES', ['application/pdf']);
+define('ALLOWED_PDF_TYPES', ['application/pdf', 'application/epub+zip', 'application/octet-stream', 'application/zip']);
 define('UPLOAD_DIR', __DIR__ . '/../public/uploads');
 
 // Pagination
 define('ITEMS_PER_PAGE', 12);
 
-// Fine Configuration
-define('FINE_PER_DAY', 5); // Amount per day
-define('MAX_FINE', 100);   // Maximum fine amount
-
 error_reporting(E_ALL);
 ini_set('display_errors', APP_ENV === 'development' ? 1 : 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../logs/error.log');
+
+// ===== Stripe (test) =====
+define('STRIPE_PUBLISHABLE_KEY', 'pk_test_51TSItQEh0eL1WU0o43wWT2VdIcQQFbL8E7kfwleAhWsjM9LJ0lkFNnKUsDcn1Iqu8WTWow24ggRbGX7EpQTn0mqL00tbC3jgo9');
+define('STRIPE_SECRET_KEY', 'sk_test_51TSItQEh0eL1WU0ogF5lqPp92SoJQqWZ1OWAbPSh6k2ijZ1sAWN4RGlhD0TwhwXgWGURO77ONI61U9oSbWw1Tlqg00HeogWABy');
+define('STRIPE_CURRENCY', 'usd');
+
+// Base URL of your site
+define('BASE_URL', 'http://localhost/library_management_system/index.php');
 ?>
 

@@ -75,9 +75,11 @@ tailwind.config = {
 </style>
 
 <div class="w-full">
-    <!-- Wallet Overview -->
+
+    <!-- ── Wallet Overview ──────────────────────────────────────────────── -->
     <section class="mb-16">
         <div class="relative overflow-hidden bg-primary rounded-xl p-10 md:p-12 text-on-primary shadow-2xl flex flex-col md:flex-row justify-between items-center">
+            <!-- decorative rings -->
             <div class="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
                 <svg fill="none" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="200" cy="200" r="180" stroke="white" stroke-width="2"></circle>
@@ -87,13 +89,20 @@ tailwind.config = {
             </div>
 
             <div class="z-10 text-center md:text-left mb-8 md:mb-0">
-                <span class="text-primary-fixed-dim font-medium tracking-widest uppercase text-xs mb-2 block">Current Balance</span>
-                <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4" id="walletBalanceHero">₹0</h1>
-                <p class="text-on-primary-container text-opacity-80 max-w-md">Your funds are ready for your next archival discovery or to settle any pending dues.</p>
+                <span class="text-primary-fixed-dim font-medium tracking-widest uppercase text-xs mb-2 block">
+                    Current Balance
+                </span>
+                <h1 class="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4"
+                    id="walletBalanceHero">$0.00</h1>
+                <p class="text-on-primary-container text-opacity-80 max-w-md">
+                    Your funds are ready for your next archival discovery or to settle any pending dues.
+                </p>
             </div>
 
             <div class="z-10 flex flex-col sm:flex-row gap-3">
-                <button id="walletTopUpBtn" class="bg-primary-container text-on-primary px-8 py-4 rounded-lg font-bold text-lg hover:brightness-110 active:scale-95 transition-all shadow-lg flex items-center gap-3">
+                <button id="walletTopUpBtn"
+                        class="bg-primary-container text-on-primary px-8 py-4 rounded-lg font-bold text-lg
+                               hover:brightness-110 active:scale-95 transition-all shadow-lg flex items-center gap-3">
                     <span class="material-symbols-outlined">add_circle</span>
                     Top Up Wallet
                 </button>
@@ -102,75 +111,49 @@ tailwind.config = {
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <!-- Payment Methods -->
+
+        <!-- ── Payment Methods ────────────────────────────────────────── -->
         <div class="lg:col-span-1 space-y-8">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold tracking-tight">Linked Payment Methods</h2>
-            </div>
+            <h2 class="text-2xl font-bold tracking-tight">Linked Payment Methods</h2>
 
             <div class="space-y-4">
-                <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between hover:bg-surface-container transition-colors group">
+
+                <!-- Stripe -->
+                <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between
+                            hover:bg-surface-container transition-colors group">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm p-2">
-                            <img alt="" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM_BqhLsZTGpZG-Ge28e9Z4_4O1NLsetxl9JKuXXVIm5md9FE45XfwFoT7DZUr6fP1eLfMr5xlreT4ODKXriKJ_ESCh7gEFlRI-1WaWK3zeXsYqgCOkwx5-5U02MQpus0YCfn6TCwO_30aEGPyrW3cYit5kLYKIDSOunnYy3M1L0kbHOGQSLKe0wI2pYrC4fn-w4gzZrP8xaVgFrj1Bdx17KRzHEnxrw50IO-LXQ3LcLs7NmxgzhyjqaCcylxgDtokrC-RSidKBPo"/>
+                            <span class="material-symbols-outlined text-primary" style="font-size:26px">credit_card</span>
                         </div>
                         <div>
-                            <p class="font-bold text-on-surface">eSewa</p>
-                            <p class="text-xs text-on-surface-variant">Default</p>
+                            <p class="font-bold text-on-surface">Stripe</p>
+                            <p class="text-xs text-on-surface-variant">Card payments</p>
                         </div>
                     </div>
-                    <button class="text-primary font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity" disabled>Manage</button>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container
+                                 opacity-0 group-hover:opacity-100 transition-opacity">Test mode</span>
                 </div>
-
-                <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between hover:bg-surface-container transition-colors group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm p-2">
-                            <img alt="" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoBbB_mumDHgEU9SBpSC41j9NsyA3TcSDWA--Uf-z7wYVkA4AuQhU5_ewfPstbxsdXFb_bWZzeh1EuqmTPgrNmMKh1aH6Wiib1YAkLmoaDj8Bzk_8ItJ4SZ5isd-5hAKqDYfnQXOrWUR60F3atCBl7XUcpHS3UbeVATWMS5GgUG4kvjlRrmHnep2U65Ul5sbkDb_cyJBSq4b_UbQdXz6AK1AHBMhQjbbQkk3EdViumuTqPKozG2M4NPM9o6PvQWI6uGDXt415uKyw"/>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface">Khalti</p>
-                            <p class="text-xs text-on-surface-variant">Secondary</p>
-                        </div>
-                    </div>
-                    <button class="text-primary font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity" disabled>Manage</button>
-                </div>
-
-                <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between hover:bg-surface-container transition-colors group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm p-2">
-                            <img alt="" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfzOI2yTPz5f9Ar6NzZd4_zokn0TuiE24LL7pDkvtoatob-gLcQKSC-obP61MCPQird7H42d7-szs6SVNWcJcNHP2VwLXpi0IGXyEcjXYt9lVnzjZPwp8So8kG74S7phgZ9GpdjMCRRhBsKOaQXXzRYJaSpDt33MzXlYD1zwCP4fdVcEkCFblAAawZMTY39J9wCmMKVSlr_5TWqnr-KTJ-tJJH34uEEq-zagHr4KqM-fVyJO6sUGmDvKCZfSTYCcPbQUOF4_aljI0"/>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface">PhonePe</p>
-                            <p class="text-xs text-on-surface-variant">Linked</p>
-                        </div>
-                    </div>
-                    <button class="text-primary font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity" disabled>Set Default</button>
-                </div>
-
-                <button class="w-full py-4 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant hover:text-primary hover:border-primary transition-all flex items-center justify-center gap-2 font-medium" disabled>
-                    <span class="material-symbols-outlined">add</span>
-                    Add New Method
-                </button>
             </div>
         </div>
 
-        <!-- Recent Transactions -->
+        <!-- ── Recent Transactions ────────────────────────────────────── -->
         <div class="lg:col-span-2 space-y-8">
             <div class="flex items-center justify-between">
                 <h2 class="text-2xl font-bold tracking-tight">Recent Transactions</h2>
-                <button id="walletDownloadStatementBtn" class="text-primary font-semibold hover:underline">Download Statement</button>
+                <button id="walletDownloadStatementBtn" class="text-primary font-semibold hover:underline">
+                    Download Statement
+                </button>
             </div>
 
             <div class="bg-surface-container-low rounded-xl overflow-hidden">
                 <table class="w-full text-left">
                     <thead>
-                    <tr class="bg-surface-container-high border-b border-surface-container-highest">
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Date</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Description</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Amount</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
-                    </tr>
+                        <tr class="bg-surface-container-high border-b border-surface-container-highest">
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Date</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Description</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Amount</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</th>
+                        </tr>
                     </thead>
                     <tbody class="divide-y divide-surface-container" id="walletTxBody">
                         <tr>
@@ -180,7 +163,8 @@ tailwind.config = {
                 </table>
 
                 <div class="p-6 bg-surface-container-low flex justify-center">
-                    <button id="walletLoadMoreBtn" class="text-sm font-bold text-primary flex items-center gap-2">
+                    <button id="walletLoadMoreBtn"
+                            class="text-sm font-bold text-primary flex items-center gap-2 transition-opacity">
                         View Older Transactions
                         <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
                     </button>
@@ -190,39 +174,88 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- ── Top Up Modal ──────────────────────────────────────────────────────── -->
 <dialog id="walletTopUpModal" class="modal">
     <div class="modal-box max-w-lg bg-white">
+
         <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
             Top Up Wallet
         </h3>
+
         <form id="walletTopUpForm" class="space-y-4">
+
+            <!-- Amount -->
             <div>
-                <label class="block text-sm font-semibold text-on-surface-variant mb-1">Amount</label>
-                <input name="amount" type="number" min="1" max="10000" step="1" required class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Enter amount (max 10000)" />
+                <label class="block text-sm font-semibold text-on-surface-variant mb-1">Amount (USD)</label>
+                <input name="amount" type="number" min="1" max="1000" step="0.01" required
+                       class="w-full px-4 py-3 rounded-lg border border-outline-variant/60
+                              focus:border-primary focus:ring-4 focus:ring-primary/10"
+                       placeholder="Enter amount (max $1,000.00)" />
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-on-surface-variant mb-1">Payment Method</label>
-                <select name="method" class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 focus:border-primary focus:ring-4 focus:ring-primary/10">
-                    <option value="ESEWA">eSewa</option>
-                    <option value="KHALTI">Khalti</option>
-                    <option value="PHONEPE">PhonePe</option>
-                    <option value="OTHER">Other</option>
-                </select>
+
+            <!-- Card input -->
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-semibold text-on-surface-variant mb-1">Card number</label>
+                    <div class="relative">
+                        <div id="walletStripeCardNumber"
+                             class="w-full px-4 pr-12 py-3 rounded-lg border border-outline-variant/60 bg-white"></div>
+                        <span id="walletCardBrandIcon"
+                              class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">
+                            <i class="fa-regular fa-credit-card text-lg"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-on-surface-variant mb-1">Expiry</label>
+                        <div id="walletStripeCardExpiry"
+                             class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 bg-white"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-on-surface-variant mb-1">CVC</label>
+                        <div id="walletStripeCardCvc"
+                             class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 bg-white"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-on-surface-variant mb-1">ZIP / Postal code</label>
+                    <div id="walletStripePostal"
+                         class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 bg-white"></div>
+                </div>
+                <p class="text-xs text-on-surface-variant">
+                    Test card: <code>4242 4242 4242 4242</code> — any future expiry — any CVC — any ZIP.
+                </p>
             </div>
-            <div id="walletOtpWrap" class="hidden">
-                <label class="block text-sm font-semibold text-on-surface-variant mb-1">OTP</label>
-                <input name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full px-4 py-3 rounded-lg border border-outline-variant/60 focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Enter 6-digit OTP" />
-                <p class="text-xs text-on-surface-variant mt-2">We sent an OTP to your email. Enter it to confirm the top up.</p>
+
+            <!-- Info banner -->
+            <div id="walletGatewayInfo"
+                 class="hidden bg-secondary-container text-on-secondary-container rounded-lg px-4 py-3 text-sm flex items-start gap-2">
+                <span class="material-symbols-outlined text-base mt-0.5">info</span>
+                <span id="walletGatewayInfoText">
+                    You will pay using Stripe test mode. No real money is charged.
+                </span>
             </div>
+
+            <!-- Actions -->
             <div class="flex justify-end gap-2 pt-3">
-                <button type="button" class="btn btn-ghost" onclick="document.getElementById('walletTopUpModal').close()">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="walletTopUpSubmitBtn">Send OTP</button>
+                <button type="button" class="btn btn-ghost"
+                        onclick="document.getElementById('walletTopUpModal').close()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" id="walletTopUpSubmitBtn">
+                    Pay with card
+                </button>
             </div>
+
         </form>
     </div>
     <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
 
+<script>
+window.STRIPE_PUBLISHABLE_KEY = <?php echo json_encode(defined('STRIPE_PUBLISHABLE_KEY') ? STRIPE_PUBLISHABLE_KEY : ''); ?>;
+</script>
+<script src="https://js.stripe.com/v3/"></script>
 <script src="<?php echo APP_URL; ?>/public/js/wallet.js"></script>
-

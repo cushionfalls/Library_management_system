@@ -77,22 +77,13 @@ CREATE TABLE `BookTransactions` (
   `created_at` datetime NOT NULL DEFAULT (now())
 );
 
-CREATE TABLE `Fines` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `book_transaction_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `amount` int NOT NULL,
-  `is_paid` bool NOT NULL DEFAULT false,
-  `paid_at` datetime,
-  `created_at` datetime NOT NULL DEFAULT (now())
-);
-
 CREATE TABLE `WalletTransactions` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `amount` int NOT NULL,
   `type` ENUM ('CREDIT', 'DEBIT') NOT NULL,
-  `reason` ENUM ('TOP_UP', 'BOOK_RENT', 'BOOK_BUY', 'FINE_PAYMENT', 'REFUND', 'MEMBERSHIP') NOT NULL,
+  `reason` ENUM ('TOP_UP', 'BOOK_RENT', 'BOOK_BUY', 'REFUND', 'MEMBERSHIP') NOT NULL,
+  `external_ref` varchar(255),
   `created_at` datetime NOT NULL DEFAULT (now())
 );
 
@@ -136,6 +127,27 @@ CREATE TABLE `BookReviews` (
   `created_at` datetime NOT NULL DEFAULT (now())
 );
 
+CREATE TABLE `UserBookAccess` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `access_type` ENUM ('OWNED', 'MEMBERSHIP') NOT NULL,
+  `source_ref` int,
+  `created_at` datetime NOT NULL DEFAULT (now()),
+  `updated_at` datetime
+);
+
+CREATE TABLE `UserBookProgress` (
+  `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `progress_percent` int NOT NULL DEFAULT 0,
+  `current_location` text,
+  `last_opened_at` datetime,
+  `created_at` datetime NOT NULL DEFAULT (now()),
+  `updated_at` datetime
+);
+
 ALTER TABLE `Sessions` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
 ALTER TABLE `BookAuthors` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
@@ -145,10 +157,6 @@ ALTER TABLE `BookAuthors` ADD FOREIGN KEY (`author_id`) REFERENCES `Authors` (`i
 ALTER TABLE `BookTransactions` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
 ALTER TABLE `BookTransactions` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
-
-ALTER TABLE `Fines` ADD FOREIGN KEY (`book_transaction_id`) REFERENCES `BookTransactions` (`id`);
-
-ALTER TABLE `Fines` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
 ALTER TABLE `WalletTransactions` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
 
@@ -162,20 +170,25 @@ ALTER TABLE `MembershipPurchases` ADD FOREIGN KEY (`wallet_transaction_id`) REFE
 ALTER TABLE `BookReviews` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
 
 ALTER TABLE `BookReviews` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+ALTER TABLE `UserBookAccess` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+ALTER TABLE `UserBookAccess` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
+ALTER TABLE `UserBookProgress` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`);
+ALTER TABLE `UserBookProgress` ADD FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`);
 
 CREATE INDEX idx_otp_email_expires ON OTP(email, expires_at);
 CREATE INDEX idx_users_email ON Users(email);
 CREATE INDEX idx_books_genre ON Books(genre);
 CREATE INDEX idx_transactions_user ON BookTransactions(user_id);
 CREATE INDEX idx_transactions_due_date ON BookTransactions(due_date);
-CREATE INDEX idx_fines_user ON Fines(user_id);
 CREATE INDEX idx_reviews_book ON BookReviews(book_id);
+CREATE UNIQUE INDEX uniq_user_book_access ON UserBookAccess(user_id, book_id);
+CREATE UNIQUE INDEX uniq_user_book_progress ON UserBookProgress(user_id, book_id);
 
 CREATE INDEX idx_memberships_user ON UserMemberships(user_id, ends_at);
 CREATE INDEX idx_membership_purchases_user ON MembershipPurchases(user_id, purchased_at);
 
 INSERT INTO MembershipPlans (slug, name, duration_days, price, is_active) VALUES
-('MONTHLY_1', 'Bibliophile (1 Month)', 30, 399, 1),
-('MONTHS_6', 'Bibliophile (6 Months)', 180, 699, 1),
-('MONTHS_12', 'Bibliophile (12 Months)', 365, 1999, 1);
+('MONTHLY_1', 'Bibliophile (1 Month)', 30, 4.99, 1),
+('MONTHS_6', 'Bibliophile (6 Months)', 180, 15.99, 1),
+('MONTHS_12', 'Bibliophile (12 Months)', 365, 30.00, 1);
 

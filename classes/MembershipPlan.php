@@ -8,7 +8,7 @@ class MembershipPlan {
 
     /**
      * Canonical fallback plans (used if DB table is empty).
-     * Prices are in INR.
+     * Prices are in cents (USD).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -18,19 +18,19 @@ class MembershipPlan {
                 'slug' => self::SLUG_MONTHLY,
                 'name' => 'Bibliophile (1 Month)',
                 'duration_days' => 30,
-                'price' => 399,
+                'price' => 499,
             ],
             [
                 'slug' => self::SLUG_6MONTH,
                 'name' => 'Bibliophile (6 Months)',
                 'duration_days' => 180,
-                'price' => 699,
+                'price' => 1599,
             ],
             [
                 'slug' => self::SLUG_YEARLY,
                 'name' => 'Bibliophile (12 Months)',
                 'duration_days' => 365,
-                'price' => 1999,
+                'price' => 3000,
             ],
         ];
     }

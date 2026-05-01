@@ -170,14 +170,14 @@ class AdminController {
         if (!empty($_FILES['online_copy_pdf']['name'])) {
             $pdfUpload = $this->storeUpload(
                 $_FILES['online_copy_pdf'],
-                __DIR__ . '/../public/uploads/pdfs',
-                'book-pdf-',
+                __DIR__ . '/../public/uploads/epubs',
+                'book-epub-',
                 ALLOWED_PDF_TYPES
             );
             if (!$pdfUpload['success']) {
                 return $pdfUpload;
             }
-            $onlinePdfPath = '/public/uploads/pdfs/' . $pdfUpload['filename'];
+            $onlinePdfPath = '/public/uploads/epubs/' . $pdfUpload['filename'];
         }
 
         return [
@@ -209,7 +209,13 @@ class AdminController {
         $originalName = $file['name'] ?? '';
         $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         if ($extension === '') {
-            $extension = ($detectedType === 'application/pdf') ? 'pdf' : 'jpg';
+            if ($detectedType === 'application/pdf') {
+                $extension = 'pdf';
+            } elseif (in_array($detectedType, ['application/epub+zip', 'application/zip'])) {
+                $extension = 'epub';
+            } else {
+                $extension = 'jpg';
+            }
         }
 
         $filename = $namePrefix . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $extension;

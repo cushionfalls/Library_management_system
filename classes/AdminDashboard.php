@@ -13,7 +13,6 @@ class AdminDashboard {
             'total_users' => $this->countTable('Users'),
             'total_books' => $this->countTable('Books'),
             'active_rentals' => $this->countActiveRentals(),
-            'pending_fines' => $this->countPendingFines(),
             'overdue_books' => $this->countOverdueBooks(),
             'wallet_credits_today' => $this->sumWalletCreditsToday()
         ];
@@ -401,14 +400,6 @@ class AdminDashboard {
             $stmt->bind_param('i', $id);
             $stmt->execute();
 
-            $stmt = $this->db->prepare("DELETE FROM Fines WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Fines WHERE book_transaction_id IN (SELECT id FROM BookTransactions WHERE user_id = ?)");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
             $stmt = $this->db->prepare("DELETE FROM BookTransactions WHERE user_id = ?");
             $stmt->bind_param('i', $id);
             $stmt->execute();
@@ -451,12 +442,6 @@ class AdminDashboard {
              FROM BookTransactions
              WHERE transaction_type = 'RENT' AND is_returned = 0"
         );
-        $row = $result ? $result->fetch_assoc() : ['total' => 0];
-        return (int)($row['total'] ?? 0);
-    }
-
-    private function countPendingFines() {
-        $result = $this->db->query("SELECT COUNT(*) AS total FROM Fines WHERE is_paid = 0");
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
     }

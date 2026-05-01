@@ -85,7 +85,7 @@ tailwind.config = {
                             <span class="text-primary font-bold" id="membershipCurrentPlan">Not Activated</span>
                         </p>
                         <p class="text-sm text-outline mt-1" id="membershipNextBilling">Activate a plan to unlock benefits.</p>
-                        <p class="text-sm text-outline mt-1">Wallet balance: <span class="font-bold text-on-surface" id="membershipWalletBalance">₹0</span></p>
+                        <p class="text-sm text-outline mt-1">Wallet balance: <span class="font-bold text-on-surface" id="membershipWalletBalance">$0.00</span></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">

@@ -158,26 +158,23 @@ tailwind.config = {
                     <p class="text-on-surface-variant leading-relaxed text-base md:text-lg" id="bookDetailSynopsis"></p>
                 </section>
 
-                <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-5 rounded-2xl bg-surface-container-high border border-transparent">
-                        <span class="material-symbols-outlined text-primary mb-3 block">calendar_today</span>
-                        <h4 class="font-bold mb-1">Rent</h4>
-                        <p class="text-xs text-on-surface-variant mb-4">Online rental access</p>
-                        <span class="text-primary font-bold" id="bookDetailRentPrice">N/A</span>
-                    </div>
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 rounded-2xl bg-primary-container text-on-primary shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined mb-3 block">shopping_bag</span>
-                        <h4 class="font-bold mb-1 text-white">Buy In-hand</h4>
-                        <p class="text-xs text-on-primary-container mb-4">Physical copy price</p>
-                        <span class="font-bold text-white" id="bookDetailBuyPrice">N/A</span>
+                        <h4 class="font-bold mb-1 text-white">Buy Online</h4>
+                        <p class="text-xs text-on-primary-container mb-4">Own this digital EPUB</p>
+                        <span class="font-bold text-white" id="bookDetailOnlinePrice">N/A</span>
+                        <button id="bookDetailBuyOnlineBtn" type="button" class="mt-4 w-full py-2.5 bg-white text-primary rounded-xl font-bold text-sm">Buy with Wallet</button>
                     </div>
                     <div class="p-5 rounded-2xl bg-surface-container-high border border-transparent">
-                        <span class="material-symbols-outlined text-primary mb-3 block">language</span>
-                        <h4 class="font-bold mb-1">Buy Online</h4>
-                        <p class="text-xs text-on-surface-variant mb-4">Digital copy</p>
-                        <span class="text-primary font-bold" id="bookDetailOnlinePrice">N/A</span>
+                        <span class="material-symbols-outlined text-primary mb-3 block">verified_user</span>
+                        <h4 class="font-bold mb-1">Use Membership</h4>
+                        <p class="text-xs text-on-surface-variant mb-4">Add to My Books with active membership</p>
+                        <button id="bookDetailMembershipAccessBtn" type="button" class="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-sm">Grant Access</button>
+                        <a href="<?php echo APP_ROUTE; ?>?page=membership" class="mt-3 inline-block text-xs text-primary font-semibold hover:underline">Manage membership</a>
                     </div>
                 </section>
+                <p class="text-xs text-on-surface-variant -mt-6">Purchased or membership books can be read in-browser via EPUB reader from My Books. Downloads are disabled.</p>
 
                 <section>
                     <div class="flex justify-between items-center mb-5">
@@ -219,5 +216,6 @@ window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
 window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
 window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
 window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
+window.MY_BOOKS_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=my-books';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/books.js"></script>

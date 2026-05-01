@@ -8,15 +8,15 @@ This is a **PHP (mysqli) + MySQL** library management system built to run easily
 - **Authentication** (register/login) with **email OTP verification**
 - **User roles**: `ADMIN`, `LIBRARIAN`, `USER`
 - **Books** + rentals/transactions + fines (project modules)
-- **Wallet system** with **OTP-based top up**, transaction history, and admin refund tools
+- **Wallet system** with **eSewa top up**, transaction history, and admin refund tools
 - **Membership system** where users can buy plans using **wallet balance**
 
 ## Membership plans (wallet purchase)
 Membership is available at `index.php?page=membership` and is protected (login required).
 
-- **1 month**: ₹399
-- **6 months**: ₹699
-- **12 months**: ₹1999
+- **1 month**: $4.99
+- **6 months**: $15.99
+- **12 months**: $30.00
 
 When a plan is purchased:
 - Wallet balance is debited and a `WalletTransactions` row is created with reason **`MEMBERSHIP`**
@@ -74,8 +74,8 @@ These live under `controllers/` and are called by `public/js/*.js`.
 ### Wallet API (`controllers/wallet.php`)
 - `GET  ?action=getBalance`
 - `GET  ?action=getTransactions&limit=20&offset=0`
-- `POST ?action=request-topup-otp` (amount, method) → sends OTP to email
-- `POST ?action=verify-topup-otp` (otp) → credits wallet + logs transaction
+- `POST ?action=stripe-create-intent` (amount) → returns client_secret
+- `POST ?action=stripe-finalize` (payment_intent) → verifies + credits wallet
 - `GET  ?action=downloadStatement` (CSV)
 
 ### Membership API (`controllers/membership.php`)
@@ -86,7 +86,7 @@ These live under `controllers/` and are called by `public/js/*.js`.
 
 ## Database tables (high level)
 Core:
-- `Users`, `Books`, `Authors`, `BookTransactions`, `Fines`, `WalletTransactions`, `OTP`
+- `Users`, `Books`, `Authors`, `BookTransactions`, `WalletTransactions`, `OTP`
 
 Membership:
 - `MembershipPlans` (seeded in `db.sql`)
@@ -94,8 +94,7 @@ Membership:
 - `MembershipPurchases`
 
 ## Notes / security
-- **Do not commit real email credentials**. `config/config.php` contains mail settings; keep production secrets out of git.
-- Wallet top-up is **OTP-protected** (email).
+- **Do not commit real credentials**. `config/config.php` contains mail + payment settings; keep production secrets out of git.
 
 ## Troubleshooting
 - **Blank page / routing issues**: confirm `APP_URL` in `config/config.php` matches your folder name under `htdocs`.
