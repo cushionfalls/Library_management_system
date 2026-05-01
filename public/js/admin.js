@@ -179,9 +179,6 @@ function openBookModal(book = null) {
     const publishedAtEl = document.getElementById('adminBookPublishedAt');
     const languageEl = document.getElementById('adminBookLanguage');
     const genreEl = document.getElementById('adminBookGenre');
-    const copiesEl = document.getElementById('adminBookCopies');
-    const priceEl = document.getElementById('adminBookPrice');
-    const onlineRentPriceEl = document.getElementById('adminBookOnlineRentPrice');
     const onlineBuyPriceEl = document.getElementById('adminBookOnlineBuyPrice');
     const coverInput = document.getElementById('adminBookCoverImage');
     const pdfInput = document.getElementById('adminBookOnlinePdf');
@@ -218,10 +215,7 @@ function openBookModal(book = null) {
         publishedAtEl.value = book.published_at ? String(book.published_at).slice(0, 10) : '';
         languageEl.value = book.language || 'English';
         genreEl.value = String(book.genre || 'OTHERS').toUpperCase();
-        copiesEl.value = book.number_of_copies ?? 0;
-        priceEl.value = book.price ?? 0;
-        onlineRentPriceEl.value = book.online_rent_price ?? '';
-        onlineBuyPriceEl.value = book.online_buy_price ?? '';
+        if (onlineBuyPriceEl) onlineBuyPriceEl.value = book.online_buy_price != null ? (Number(book.online_buy_price) / 100).toFixed(2) : '';
         setCover(book.cover_image || '');
         pdfFilename.textContent = book.online_copy_pdf ? String(book.online_copy_pdf).split('/').pop() : 'No file selected';
     } else {
@@ -238,10 +232,7 @@ function openBookModal(book = null) {
         publishedAtEl.value = '';
         languageEl.value = 'English';
         genreEl.value = 'OTHERS';
-        copiesEl.value = 1;
-        priceEl.value = 0;
-        onlineRentPriceEl.value = '';
-        onlineBuyPriceEl.value = '';
+        if (onlineBuyPriceEl) onlineBuyPriceEl.value = '';
         setCover('');
         pdfFilename.textContent = 'No file selected';
     }
@@ -311,6 +302,15 @@ async function saveBook(event) {
     const formData = new FormData(form);
     const id = String(formData.get('id') || '').trim();
     const action = id ? 'update-book' : 'create-book';
+
+    if (formData.has('online_buy_price') && formData.get('online_buy_price')) {
+        formData.set('online_buy_price', Math.round(Number(formData.get('online_buy_price')) * 100));
+    }
+    
+    // Set defaults for removed fields
+    formData.set('number_of_copies', '1');
+    formData.set('price', '0');
+    formData.set('online_rent_price', '0');
 
     const result = await adminFetch(action, {
         method: 'POST',

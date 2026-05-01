@@ -199,15 +199,15 @@
                 percentage = Math.round(epub.locations.percentageFromCfi(location.start.cfi) * 100);
                 pageLabel = `Page ${currentPage} of ${totalPages}`;
                 document.getElementById('myBooksReaderPageInfo').textContent = pageLabel;
+
+                const marker = JSON.stringify({
+                    cfi: location?.start?.cfi || '',
+                    page: pageLabel || 'Start'
+                });
+                queueSaveProgress(id, Math.min(100, Math.max(0, percentage)), marker);
             } else {
                 document.getElementById('myBooksReaderPageInfo').textContent = 'Calculating pages...';
             }
-
-            const marker = JSON.stringify({
-                cfi: location?.start?.cfi || '',
-                page: pageLabel || 'Start'
-            });
-            queueSaveProgress(id, percentage, marker);
         });
     }
 

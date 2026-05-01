@@ -250,23 +250,11 @@
                             </div>
 
                             <div class="pt-4 border-t border-[#ece8f7]">
-                                <h3 class="text-sm font-semibold text-[#3800bf] uppercase tracking-widest mb-4">Inventory &amp; Pricing</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Copies</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookCopies" name="number_of_copies" min="0" type="number" value="1"/>
-                                    </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Price (USD)</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookPrice" name="price" min="0" placeholder="0" type="number" value="0"/>
-                                    </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Membership Access</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineRentPrice" name="online_rent_price" min="0" placeholder="0" type="number"/>
-                                    </div>
+                                <h3 class="text-sm font-semibold text-[#3800bf] uppercase tracking-widest mb-4">Pricing</h3>
+                                <div class="grid grid-cols-1 gap-4">
                                     <div class="space-y-1.5">
                                         <label class="text-xs font-bold text-[#595c5d]">Buy Online (USD)</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineBuyPrice" name="online_buy_price" min="0" placeholder="0" type="number"/>
+                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineBuyPrice" name="online_buy_price" min="0" step="0.01" placeholder="0.00" type="number"/>
                                     </div>
                                 </div>
                             </div>

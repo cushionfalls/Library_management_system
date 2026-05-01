@@ -183,13 +183,14 @@ tailwind.config = {
                         <input type="hidden" id="bookReviewId" name="review_id" value="" />
                         <div class="flex items-center gap-4 mb-4">
                             <span class="text-sm font-medium text-on-surface text-left">Your Rating:</span>
-                            <select id="bookReviewRating" name="rating" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-sm">
-                                <option value="5">5 Stars</option>
-                                <option value="4">4 Stars</option>
-                                <option value="3">3 Stars</option>
-                                <option value="2">2 Stars</option>
-                                <option value="1">1 Star</option>
-                            </select>
+                            <div class="flex items-center gap-1 cursor-pointer" id="bookReviewStars">
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="1">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="2">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="3">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="4">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="5">star</span>
+                            </div>
+                            <input type="hidden" id="bookReviewRating" name="rating" value="5" />
                         </div>
                         <textarea id="bookReviewText" name="review" class="w-full bg-surface-container-low border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 h-24 resize-none mb-4" placeholder="Share your thoughts on this title..."></textarea>
                         <button id="bookReviewCancelEdit" class="w-full py-3 mb-3 border border-outline-variant text-on-surface font-bold rounded-xl text-sm transition-all hover:bg-surface-container-low hidden" type="button">

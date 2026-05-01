@@ -317,7 +317,7 @@
                 const fill = i < Number(review.rating || 0) ? "style=\"font-variation-settings:'FILL' 1;\"" : '';
                 return `<span class="material-symbols-outlined text-xs text-primary" ${fill}>star</span>`;
             }).join('');
-            const avatar = esc(review.profile_image_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80');
+            const avatar = esc(review.profile_image_url || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
             const ownerActions = ownReview
                 ? `<div class="mt-3 flex gap-3">
                         <button type="button" class="text-xs font-semibold text-primary hover:underline" data-review-action="edit" data-review-id="${esc(review.id)}" data-review-rating="${esc(review.rating)}" data-review-text="${esc(review.review || '')}">Edit</button>
@@ -372,10 +372,56 @@
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
 
         if (reviewIdInput) reviewIdInput.value = '';
-        if (ratingInput) ratingInput.value = '5';
+        if (ratingInput) {
+            ratingInput.value = '5';
+            updateReviewStars(5);
+        }
         if (textInput) textInput.value = '';
         if (submitBtn) submitBtn.textContent = 'Submit Review';
         if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+    }
+
+    function updateReviewStars(val) {
+        const starContainer = document.getElementById('bookReviewStars');
+        if (!starContainer) return;
+        const stars = starContainer.querySelectorAll('[data-rating]');
+        stars.forEach(star => {
+            const r = Number(star.getAttribute('data-rating'));
+            if (r <= val) {
+                star.style.fontVariationSettings = "'FILL' 1";
+                star.classList.remove('text-outline');
+                star.classList.add('text-primary');
+            } else {
+                star.style.fontVariationSettings = "'FILL' 0";
+                star.classList.remove('text-primary');
+                star.classList.add('text-outline');
+            }
+        });
+    }
+
+    function initReviewStars() {
+        const starContainer = document.getElementById('bookReviewStars');
+        const ratingInput = document.getElementById('bookReviewRating');
+        if (!starContainer || !ratingInput) return;
+
+        let currentRating = Number(ratingInput.value) || 5;
+        updateReviewStars(currentRating);
+
+        const stars = starContainer.querySelectorAll('[data-rating]');
+        stars.forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                updateReviewStars(Number(star.getAttribute('data-rating')));
+            });
+            star.addEventListener('click', () => {
+                currentRating = Number(star.getAttribute('data-rating'));
+                ratingInput.value = currentRating;
+                updateReviewStars(currentRating);
+            });
+        });
+
+        starContainer.addEventListener('mouseleave', () => {
+            updateReviewStars(currentRating);
+        });
     }
 
     async function submitReview(event) {
@@ -518,7 +564,10 @@
                     const submitBtn = document.querySelector('#bookReviewForm button[type="submit"]');
                     const cancelEditBtnInner = document.getElementById('bookReviewCancelEdit');
                     if (reviewIdInput) reviewIdInput.value = String(reviewId);
-                    if (ratingInput) ratingInput.value = String(btn.getAttribute('data-review-rating') || '5');
+                    if (ratingInput) {
+                        ratingInput.value = String(btn.getAttribute('data-review-rating') || '5');
+                        updateReviewStars(Number(ratingInput.value));
+                    }
                     if (textInput) {
                         textInput.value = String(btn.getAttribute('data-review-text') || '');
                         textInput.focus();
@@ -544,6 +593,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('browseCatalogGrid')) return;
         bindEvents();
+        initReviewStars();
         loadCatalog().then(openFromUrlIfAny);
     });
 })();

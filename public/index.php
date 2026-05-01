@@ -53,28 +53,8 @@ if (!function_exists('nav_profile_image_url')) {
 
 if (!function_exists('nav_user_initials_svg')) {
     function nav_user_initials_svg($navUser, $sessionName) {
-        $a = '';
-        $b = '';
-        if ($navUser) {
-            $a = mb_strtoupper(mb_substr(trim((string)($navUser['first_name'] ?? '')), 0, 1));
-            $b = mb_strtoupper(mb_substr(trim((string)($navUser['last_name'] ?? '')), 0, 1));
-        }
-        $initials = $a . $b;
-        if ($initials === '') {
-            $name = trim((string)($sessionName ?? 'User'));
-            $parts = preg_split('/\s+/u', $name, 3, PREG_SPLIT_NO_EMPTY);
-            if (count($parts) >= 2) {
-                $initials = mb_strtoupper(mb_substr($parts[0], 0, 1)) . mb_strtoupper(mb_substr($parts[1], 0, 1));
-            } else {
-                $initials = mb_strtoupper(mb_substr($name, 0, 2));
-            }
-        }
-        if (mb_strlen($initials) < 1) {
-            $initials = 'U';
-        }
-        $esc = htmlspecialchars(mb_substr($initials, 0, 2), ENT_QUOTES, 'UTF-8');
         $fill = '#4F1BF1';
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" class="rounded-full shrink-0 shadow-sm" role="img" aria-label="Profile"><circle cx="18" cy="18" r="18" fill="' . $fill . '"/><text x="18" y="22" text-anchor="middle" fill="#ffffff" font-family="Manrope, system-ui, sans-serif" font-size="11" font-weight="700">' . $esc . '</text></svg>';
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" class="rounded-full shrink-0 shadow-sm bg-[#ece5fa] text-[#4f1bf1]" role="img" aria-label="Profile"><path fill="currentColor" d="M18 19.5c3.04 0 5.5-2.46 5.5-5.5s-2.46-5.5-5.5-5.5-5.5 2.46-5.5 5.5 2.46 5.5 5.5 5.5zM18 22c-3.67 0-11 1.84-11 5.5V29h22v-1.5c0-3.66-7.33-5.5-11-5.5z"/></svg>';
     }
 }
 
