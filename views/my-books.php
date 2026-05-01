@@ -1,4 +1,3 @@
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
 <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
 <style>
@@ -32,15 +31,20 @@
 </div>
 
 <dialog id="myBooksReaderModal" class="modal">
-    <div class="modal-box w-11/12 max-w-6xl p-0 bg-white">
-        <div class="px-5 py-4 border-b flex items-center justify-between">
+    <div class="modal-box w-11/12 max-w-6xl p-0 bg-white flex flex-col h-[90vh] overflow-hidden">
+        <div class="px-5 py-4 border-b flex items-center justify-between shrink-0">
             <div>
                 <h3 class="font-bold text-lg" id="myBooksReaderTitle">Reader</h3>
                 <p class="text-xs text-gray-500" id="myBooksReaderMeta">Saved position available</p>
             </div>
             <form method="dialog"><button class="btn btn-sm">Close</button></form>
         </div>
-        <div id="myBooksReaderContainer" style="height:72vh;"></div>
+        <div id="myBooksReaderContainer" class="flex-1 relative bg-gray-100"></div>
+        <div class="px-5 py-3 border-t flex items-center justify-between shrink-0 bg-gray-50">
+            <button id="myBooksReaderPrevBtn" class="btn btn-outline btn-sm">Previous</button>
+            <span class="text-sm font-medium" id="myBooksReaderPageInfo">Loading pages...</span>
+            <button id="myBooksReaderNextBtn" class="btn btn-outline btn-sm">Next</button>
+        </div>
     </div>
     <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>

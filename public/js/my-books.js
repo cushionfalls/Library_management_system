@@ -147,13 +147,37 @@
         }
 
         rendition.display(savedLocation.cfi || undefined);
+
+        epub.ready.then(() => {
+            return epub.locations.generate(1600);
+        }).then(() => {
+            const loc = rendition.currentLocation();
+            if (loc && loc.start) {
+                const cur = epub.locations.locationFromCfi(loc.start.cfi);
+                const tot = epub.locations.total;
+                document.getElementById('myBooksReaderPageInfo').textContent = `Page ${cur} of ${tot}`;
+            }
+        });
+
         rendition.on('relocated', (location) => {
+            let percentage = location?.start?.percentage != null ? Math.round(location.start.percentage * 100) : 0;
+            let pageLabel = '';
+            
+            if (epub.locations && epub.locations.length() > 0) {
+                const currentPage = epub.locations.locationFromCfi(location.start.cfi);
+                const totalPages = epub.locations.total;
+                percentage = Math.round(epub.locations.percentageFromCfi(location.start.cfi) * 100);
+                pageLabel = `Page ${currentPage} of ${totalPages}`;
+                document.getElementById('myBooksReaderPageInfo').textContent = pageLabel;
+            } else {
+                document.getElementById('myBooksReaderPageInfo').textContent = 'Calculating pages...';
+            }
+
             const marker = JSON.stringify({
                 cfi: location?.start?.cfi || '',
-                page: location?.start?.displayed?.page || ''
+                page: pageLabel || 'Start'
             });
-            const progress = location?.start?.percentage != null ? Math.round(location.start.percentage * 100) : 0;
-            queueSaveProgress(id, progress, String(marker));
+            queueSaveProgress(id, percentage, marker);
         });
     }
 
@@ -172,6 +196,14 @@
         const btn = event.target.closest('[data-open-reader]');
         if (!btn) return;
         openReader(btn.getAttribute('data-open-reader'));
+    });
+
+    document.getElementById('myBooksReaderPrevBtn')?.addEventListener('click', () => {
+        if (currentRendition) currentRendition.prev();
+    });
+
+    document.getElementById('myBooksReaderNextBtn')?.addEventListener('click', () => {
+        if (currentRendition) currentRendition.next();
     });
 
     document.getElementById('myBooksReaderModal')?.addEventListener('close', () => {

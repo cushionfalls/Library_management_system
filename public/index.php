@@ -78,14 +78,13 @@ if (!function_exists('nav_user_initials_svg')) {
     }
 }
 
-$admin_nav_pages = ['admin', 'manage-books', 'manage-authors', 'manage-users', 'transactions', 'overdue-books'];
 $navActive = [
     'dashboard' => $current_page === 'dashboard',
     'books' => $current_page === 'books',
     'my-books' => $current_page === 'my-books',
     'wallet' => $current_page === 'wallet',
     'membership' => $current_page === 'membership',
-    'admin' => in_array($current_page, $admin_nav_pages, true),
+    'admin' => in_array($current_page, $admin_pages, true),
 ];
 ?>
 <!DOCTYPE html>
