@@ -146,5 +146,17 @@ tailwind.config = {
     <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
 
+<dialog id="membershipConfirmModal" class="modal">
+    <div class="modal-box max-w-sm bg-white">
+        <h3 class="font-bold text-lg mb-2">Confirm Purchase</h3>
+        <p class="text-sm text-on-surface-variant mb-6" id="membershipConfirmText">Are you sure you want to purchase this membership?</p>
+        <div class="flex justify-end gap-3">
+            <button type="button" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" onclick="document.getElementById('membershipConfirmModal').close()">Cancel</button>
+            <button type="button" id="membershipConfirmBtn" class="px-4 py-2 text-sm font-semibold bg-primary text-white hover:opacity-90 rounded-lg transition-opacity">Confirm</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
 <script src="<?php echo APP_URL; ?>/public/js/membership.js"></script>
 

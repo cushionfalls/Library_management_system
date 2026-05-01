@@ -15,16 +15,11 @@ class BrowseCatalog {
         $perPage = max(1, min(24, (int)($params['per_page'] ?? 12)));
         $search = trim((string)($params['search'] ?? ''));
         $genre = strtoupper(trim((string)($params['genre'] ?? '')));
-        $availableOnly = (int)($params['available_only'] ?? 1) === 1;
         $sort = trim((string)($params['sort'] ?? 'recent'));
 
         $where = [];
         $bindTypes = '';
         $bindValues = [];
-
-        if ($availableOnly) {
-            $where[] = 'b.number_of_copies > 0';
-        }
 
         if ($search !== '') {
             $where[] = '(b.name LIKE ? OR b.publisher LIKE ? OR b.isbn LIKE ? OR EXISTS (

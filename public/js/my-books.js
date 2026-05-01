@@ -3,6 +3,8 @@
     let currentRendition = null;
     let saveTimer = null;
     let currentBookId = 0;
+    let allBooks = [];
+    let currentCategory = 'ALL';
 
     function esc(value) {
         return String(value ?? '')
@@ -45,8 +47,36 @@
             renderError((data && data.message) || 'Unable to load your books');
             return;
         }
-        const books = Array.isArray(data.books) ? data.books : [];
-        renderBooks(books);
+        allBooks = Array.isArray(data.books) ? data.books : [];
+        populateCategories(allBooks);
+        applyFilter();
+    }
+
+    function populateCategories(books) {
+        const filter = document.getElementById('myBooksCategoryFilter');
+        if (!filter) return;
+        
+        const genres = new Set();
+        books.forEach(b => {
+            if (b.genre && b.genre.trim() !== '') {
+                genres.add(b.genre.toUpperCase());
+            }
+        });
+        
+        let html = '<option value="ALL">All Categories</option>';
+        Array.from(genres).sort().forEach(g => {
+            const label = g.charAt(0) + g.slice(1).toLowerCase().replace(/_/g, ' ');
+            html += `<option value="${esc(g)}">${esc(label)}</option>`;
+        });
+        filter.innerHTML = html;
+        filter.value = currentCategory;
+    }
+
+    function applyFilter() {
+        const filtered = currentCategory === 'ALL' 
+            ? allBooks 
+            : allBooks.filter(b => (b.genre || '').toUpperCase() === currentCategory);
+        renderBooks(filtered);
     }
 
     function renderError(message) {
@@ -210,5 +240,14 @@
         if (currentBookId) loadMyBooks();
     });
 
-    document.addEventListener('DOMContentLoaded', loadMyBooks);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMyBooks();
+        const filter = document.getElementById('myBooksCategoryFilter');
+        if (filter) {
+            filter.addEventListener('change', (e) => {
+                currentCategory = e.target.value;
+                applyFilter();
+            });
+        }
+    });
 })();

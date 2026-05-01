@@ -4,7 +4,6 @@
         perPage: 12,
         search: '',
         genre: 'ALL',
-        availableOnly: true,
         sort: 'recent',
         view: 'grid',
         totalPages: 1,
@@ -60,7 +59,6 @@
                 per_page: state.perPage,
                 search: state.search,
                 genre: state.genre,
-                available_only: state.availableOnly ? 1 : 0,
                 sort: state.sort
             }), { cache: 'no-store' });
 
@@ -118,7 +116,6 @@
                     <div class="flex items-center gap-1 mb-2">
                         <span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings:'FILL' 1;">star</span>
                         <span class="text-sm font-bold text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
-                        <span class="text-xs text-on-surface-variant ml-auto">${book.number_of_copies > 0 ? 'Available' : 'Out of stock'}</span>
                     </div>
                     <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors" data-book-id="${book.id}">${esc(book.name)}</h3>
                     <p class="text-sm text-on-surface-variant font-medium mb-2">${esc(book.author_display)}</p>
@@ -154,7 +151,6 @@
                         <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">${esc(book.description || 'No description available.')}</p>
                         <div class="flex items-center gap-4 mt-3 text-xs text-on-surface-variant">
                             <span>Rating: ${esc(Number(book.rating || 0).toFixed(1))}</span>
-                            <span>Copies: ${esc(book.number_of_copies)}</span>
                         </div>
                     </div>
                     <div class="sm:self-center">
@@ -268,17 +264,31 @@
             const alreadyOwned = accessType === 'OWNED';
             const alreadyMembership = accessType === 'MEMBERSHIP';
             if (buyBtn) {
-                buyBtn.disabled = alreadyOwned;
-                buyBtn.textContent = alreadyOwned ? 'Already Owned' : 'Buy with Wallet';
-                buyBtn.classList.toggle('opacity-60', alreadyOwned);
-                buyBtn.classList.toggle('cursor-not-allowed', alreadyOwned);
+                if (alreadyOwned) {
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = 'Go to My Books';
+                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    buyBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
+                } else {
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = 'Buy with Wallet';
+                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    buyBtn.onclick = null; // will be handled by default listener
+                }
             }
             if (membershipBtn) {
                 const alreadyHasAccess = alreadyOwned || alreadyMembership;
-                membershipBtn.disabled = alreadyHasAccess;
-                membershipBtn.textContent = alreadyHasAccess ? 'Already in My Books' : 'Grant Access';
-                membershipBtn.classList.toggle('opacity-60', alreadyHasAccess);
-                membershipBtn.classList.toggle('cursor-not-allowed', alreadyHasAccess);
+                if (alreadyHasAccess) {
+                    membershipBtn.disabled = false;
+                    membershipBtn.textContent = 'Go to My Books';
+                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    membershipBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
+                } else {
+                    membershipBtn.disabled = false;
+                    membershipBtn.textContent = 'Grant Access';
+                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    membershipBtn.onclick = null; // will be handled by default listener
+                }
             }
 
             renderReviews(book.reviews || []);
@@ -425,8 +435,6 @@
         const searchInput = document.getElementById('browseSearchInput');
         const genreSelect = document.getElementById('browseGenreSelect');
         const sortSelect = document.getElementById('browseSortSelect');
-        const availableBtn = document.getElementById('browseAvailableToggle');
-        const availableSwitch = document.getElementById('browseAvailableSwitch');
         const gridBtn = document.getElementById('browseGridBtn');
         const listBtn = document.getElementById('browseListBtn');
         const closeBtn = document.getElementById('bookDetailCloseBtn');
@@ -444,14 +452,6 @@
 
         if (genreSelect) genreSelect.addEventListener('change', () => { state.genre = genreSelect.value || 'ALL'; state.page = 1; loadCatalog(); });
         if (sortSelect) sortSelect.addEventListener('change', () => { state.sort = sortSelect.value || 'recent'; state.page = 1; loadCatalog(); });
-        if (availableBtn && availableSwitch) {
-            availableBtn.addEventListener('click', () => {
-                state.availableOnly = !state.availableOnly;
-                availableSwitch.classList.toggle('is-on', state.availableOnly);
-                state.page = 1;
-                loadCatalog();
-            });
-        }
         if (gridBtn) gridBtn.addEventListener('click', () => { state.view = 'grid'; applyView(); });
         if (listBtn) listBtn.addEventListener('click', () => { state.view = 'list'; applyView(); });
         if (closeBtn) closeBtn.addEventListener('click', closeBookDetail);
@@ -462,6 +462,7 @@
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
         if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
+            if (buyOnlineBtn.textContent === 'Go to My Books') return;
             if (!state.currentBookId) return;
             const body = new URLSearchParams();
             body.set('book_id', String(state.currentBookId));
@@ -477,6 +478,7 @@
             }
         });
         if (membershipBtn) membershipBtn.addEventListener('click', async () => {
+            if (membershipBtn.textContent === 'Go to My Books') return;
             if (!state.currentBookId) return;
             const body = new URLSearchParams();
             body.set('book_id', String(state.currentBookId));

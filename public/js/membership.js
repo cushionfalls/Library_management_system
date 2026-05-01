@@ -10,6 +10,9 @@ function membershipBaseUrl() {
 
 function planButtonLabel(active, plan) {
     if (!active) return 'Buy with Wallet';
+    const price = Number(plan.price || 0);
+    const activePrice = Number(active.price || 0);
+    if (price < activePrice) return 'Downgrade Not Allowed';
     return 'Upgrade / Extend';
 }
 
@@ -27,9 +30,13 @@ function planCardHtml(plan, active) {
         ? `<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary-fixed text-on-tertiary-fixed px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase">Best Value</div>`
         : '';
 
+    const activePrice = active ? Number(active.price || 0) : 0;
+    const isDowngrade = active && price < activePrice;
+    const disabledAttr = isDowngrade ? 'disabled' : '';
+
     const btnCls = popular
-        ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70'
-        : 'w-full py-4 rounded-lg bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant/20 transition-all scale-98 active:opacity-70';
+        ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+        : 'w-full py-4 rounded-lg bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant/20 transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
 
     const durationLabel = days >= 365 ? '/yr' : '/plan';
 
@@ -58,7 +65,7 @@ function planCardHtml(plan, active) {
                     <span>Priority support</span>
                 </li>
             </ul>
-            <button class="${btnCls}" data-plan-id="${escapeHtml(plan.id)}">${escapeHtml(planButtonLabel(active, plan))}</button>
+            <button class="${btnCls}" data-plan-id="${escapeHtml(plan.id)}" ${disabledAttr}>${escapeHtml(planButtonLabel(active, plan))}</button>
         </div>
     `;
 }
@@ -115,38 +122,52 @@ async function loadPlans(active) {
 
     grid.querySelectorAll('button[data-plan-id]').forEach(btn => {
         btn.addEventListener('click', async () => {
+            if (btn.disabled) return;
             const planId = Number(btn.getAttribute('data-plan-id') || 0);
             if (!planId) return;
 
-            btn.disabled = true;
-            const oldText = btn.textContent;
-            btn.textContent = 'Processing…';
+            const confirmModal = document.getElementById('membershipConfirmModal');
+            const confirmBtn = document.getElementById('membershipConfirmBtn');
+            if (!confirmModal || !confirmBtn) return;
+            
+            // Recreate confirm button to clear old event listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-            try {
-                const body = new URLSearchParams();
-                body.set('plan_id', String(planId));
-                const res2 = await fetch(membershipBaseUrl() + '/controllers/membership.php?action=purchase', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: body.toString(),
-                    credentials: 'same-origin',
-                    cache: 'no-store'
-                });
-                const data2 = await res2.json().catch(() => null);
-                if (!data2 || !data2.success) {
-                    window.showToast?.(data2?.message || data2?.error || 'Purchase failed.', 'danger');
-                    return;
+            if (typeof confirmModal.showModal === 'function') confirmModal.showModal();
+
+            newConfirmBtn.addEventListener('click', async () => {
+                newConfirmBtn.disabled = true;
+                const oldText = newConfirmBtn.textContent;
+                newConfirmBtn.textContent = 'Processing…';
+
+                try {
+                    const body = new URLSearchParams();
+                    body.set('plan_id', String(planId));
+                    const res2 = await fetch(membershipBaseUrl() + '/controllers/membership.php?action=purchase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: body.toString(),
+                        credentials: 'same-origin',
+                        cache: 'no-store'
+                    });
+                    const data2 = await res2.json().catch(() => null);
+                    if (!data2 || !data2.success) {
+                        window.showToast?.(data2?.message || data2?.error || 'Purchase failed.', 'danger');
+                        return;
+                    }
+                    window.showToast?.(data2?.message || 'Membership updated.', 'success');
+                    if (typeof confirmModal.close === 'function') confirmModal.close();
+                    await loadWalletBalance();
+                    const activeNow = await loadStatus();
+                    await loadPlans(activeNow);
+                } catch (e) {
+                    window.showToast?.('Purchase failed. Please try again.', 'danger');
+                } finally {
+                    newConfirmBtn.disabled = false;
+                    newConfirmBtn.textContent = oldText;
                 }
-                window.showToast?.(data2?.message || 'Membership updated.', 'success');
-                await loadWalletBalance();
-                const activeNow = await loadStatus();
-                await loadPlans(activeNow);
-            } catch (e) {
-                window.showToast?.('Purchase failed. Please try again.', 'danger');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = oldText;
-            }
+            });
         });
     });
 }

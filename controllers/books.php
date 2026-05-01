@@ -29,7 +29,6 @@ class BooksController {
                         'per_page' => $_GET['per_page'] ?? 12,
                         'search' => $_GET['search'] ?? '',
                         'genre' => $_GET['genre'] ?? 'ALL',
-                        'available_only' => $_GET['available_only'] ?? 1,
                         'sort' => $_GET['sort'] ?? 'recent'
                     ])
                 ];

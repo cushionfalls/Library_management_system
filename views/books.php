@@ -95,10 +95,6 @@ tailwind.config = {
             <option value="ALL">Genre: All Categories</option>
         </select>
 
-        <button id="browseAvailableToggle" type="button" class="flex items-center gap-3 bg-surface-container-low px-6 py-3 rounded-lg hover:bg-surface-container-high transition-colors">
-            <span class="text-sm font-semibold text-on-surface">Available Now</span>
-            <span id="browseAvailableSwitch" class="browse-switch is-on" aria-hidden="true"></span>
-        </button>
 
         <select id="browseSortSelect" class="bg-surface-container-low px-6 py-3 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
             <option value="recent">Recently Added</option>

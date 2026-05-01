@@ -22,9 +22,14 @@
     </section>
 
     <section>
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-bold tracking-tight">Your Collection</h2>
-            <div class="h-px flex-1 bg-surface-container mx-8"></div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div class="flex items-center gap-4 flex-1 w-full">
+                <h2 class="text-2xl font-bold tracking-tight whitespace-nowrap">Your Collection</h2>
+                <div class="h-px flex-1 bg-surface-container mx-4 hidden sm:block"></div>
+            </div>
+            <select id="myBooksCategoryFilter" class="bg-surface-container-low px-4 py-2 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40 min-w-[200px]">
+                <option value="ALL">All Categories</option>
+            </select>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="myBooksCollectionList"></div>
     </section>
