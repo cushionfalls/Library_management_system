@@ -13,15 +13,16 @@ class AdminDashboard {
             'total_users' => $this->countTable('Users'),
             'total_books' => $this->countTable('Books'),
             'active_rentals' => $this->countActiveRentals(),
-            'overdue_books' => $this->countOverdueBooks(),
-            'wallet_credits_today' => $this->sumWalletCreditsToday()
+            'active_rentals' => $this->countActiveRentals(),
+            'total_income' => $this->sumTotalIncome(),
+            'income_chart' => $this->getIncomeChartData()
         ];
     }
 
     public function getRecentUsers($limit = 8) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT id, first_name, last_name, email, role, is_active, created_at
+            "SELECT id, first_name, last_name, email, role, is_active, created_at, profile_image
              FROM Users
              ORDER BY created_at DESC
              LIMIT ?"
@@ -34,14 +35,11 @@ class AdminDashboard {
     public function getRecentTransactions($limit = 8) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT bt.id, bt.transaction_type, bt.amount_paid, bt.due_date, bt.created_at, bt.is_returned,
-                    b.name AS book_name,
-                    u.first_name,
-                    u.last_name
-             FROM BookTransactions bt
-             INNER JOIN Books b ON b.id = bt.book_id
-             INNER JOIN Users u ON u.id = bt.user_id
-             ORDER BY bt.created_at DESC
+            "SELECT wt.id, wt.amount, wt.type, wt.reason, wt.created_at,
+                    u.first_name, u.last_name, u.email
+             FROM WalletTransactions wt
+             INNER JOIN Users u ON u.id = wt.user_id
+             ORDER BY wt.created_at DESC
              LIMIT ?"
         );
         $stmt->bind_param('i', $limit);
@@ -49,27 +47,7 @@ class AdminDashboard {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getOverdueBooks($limit = 8) {
-        $limit = max(1, (int)$limit);
-        $stmt = $this->db->prepare(
-            "SELECT bt.id, bt.due_date, bt.created_at,
-                    b.name AS book_name,
-                    u.first_name,
-                    u.last_name
-             FROM BookTransactions bt
-             INNER JOIN Books b ON b.id = bt.book_id
-             INNER JOIN Users u ON u.id = bt.user_id
-             WHERE bt.transaction_type = 'RENT'
-               AND bt.is_returned = 0
-               AND bt.due_date IS NOT NULL
-               AND bt.due_date < NOW()
-             ORDER BY bt.due_date ASC
-             LIMIT ?"
-        );
-        $stmt->bind_param('i', $limit);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
+
 
     public function getBooks($limit = 100) {
         $limit = max(1, (int)$limit);
@@ -266,13 +244,14 @@ class AdminDashboard {
         return ['success' => true, 'message' => 'Book deleted successfully'];
     }
 
-    public function updateUser($id, $firstName, $lastName, $email, $role, $isActive) {
+    public function updateUser($id, $firstName, $lastName, $email, $role, $isActive, $profileImage = null) {
         $id = (int)$id;
         $firstName = trim((string)$firstName);
         $lastName = trim((string)$lastName);
         $email = trim((string)$email);
         $role = strtoupper(trim((string)$role));
         $isActive = (int)$isActive === 1 ? 1 : 0;
+        $profileImage = trim((string)$profileImage);
 
         if ($id <= 0) {
             return ['success' => false, 'message' => 'Invalid user id'];
@@ -298,10 +277,11 @@ class AdminDashboard {
 
         $stmt = $this->db->prepare(
             "UPDATE Users
-             SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, updated_at = NOW()
+             SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, profile_image = ?, updated_at = NOW()
              WHERE id = ?"
         );
-        $stmt->bind_param('ssssii', $firstName, $lastName, $email, $role, $isActive, $id);
+        $profileImageOrNull = ($profileImage === '') ? null : $profileImage;
+        $stmt->bind_param('ssssisi', $firstName, $lastName, $email, $role, $isActive, $profileImageOrNull, $id);
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to update user'];
         }
@@ -313,13 +293,14 @@ class AdminDashboard {
         return ['success' => true, 'message' => 'User updated successfully'];
     }
 
-    public function createUser($firstName, $lastName, $email, $password, $role, $isActive) {
+    public function createUser($firstName, $lastName, $email, $password, $role, $isActive, $profileImage = null) {
         $firstName = trim((string)$firstName);
         $lastName = trim((string)$lastName);
         $email = trim((string)$email);
         $password = (string)$password;
         $role = strtoupper(trim((string)$role));
         $isActive = (int)$isActive === 1 ? 1 : 0;
+        $profileImage = trim((string)$profileImage);
 
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '') {
             return ['success' => false, 'message' => 'First name, last name, email and password are required'];
@@ -345,10 +326,11 @@ class AdminDashboard {
 
         $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $stmt = $this->db->prepare(
-            "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at)
-             VALUES (?, ?, ?, ?, ?, ?, 1, NOW())"
+            "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, profile_image)
+             VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), ?)"
         );
-        $stmt->bind_param('sssssi', $firstName, $lastName, $email, $passwordHash, $role, $isActive);
+        $profileImageOrNull = ($profileImage === '') ? null : $profileImage;
+        $stmt->bind_param('sssssis', $firstName, $lastName, $email, $passwordHash, $role, $isActive, $profileImageOrNull);
 
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to create user'];
@@ -446,27 +428,34 @@ class AdminDashboard {
         return (int)($row['total'] ?? 0);
     }
 
-    private function countOverdueBooks() {
+    private function sumTotalIncome() {
         $result = $this->db->query(
-            "SELECT COUNT(*) AS total
-             FROM BookTransactions
-             WHERE transaction_type = 'RENT'
-               AND is_returned = 0
-               AND due_date IS NOT NULL
-               AND due_date < NOW()"
+            "SELECT COALESCE(SUM(amount), 0) AS total
+             FROM WalletTransactions
+             WHERE type = 'CREDIT'"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
     }
 
-    private function sumWalletCreditsToday() {
+    private function getIncomeChartData() {
         $result = $this->db->query(
-            "SELECT COALESCE(SUM(amount), 0) AS total
+            "SELECT DATE(created_at) as date, COALESCE(SUM(amount), 0) AS total
              FROM WalletTransactions
-             WHERE type = 'CREDIT' AND DATE(created_at) = CURDATE()"
+             WHERE type = 'CREDIT' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+             GROUP BY DATE(created_at)
+             ORDER BY date ASC"
         );
-        $row = $result ? $result->fetch_assoc() : ['total' => 0];
-        return (int)($row['total'] ?? 0);
+        $data = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $data[] = [
+                    'date' => $row['date'],
+                    'total' => (int)$row['total']
+                ];
+            }
+        }
+        return $data;
     }
 
     private function normalizeGenre($genre) {

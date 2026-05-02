@@ -34,8 +34,7 @@ function renderOverview(overview) {
     document.getElementById('adminTotalUsers').textContent = overview.total_users ?? 0;
     document.getElementById('adminTotalBooks').textContent = overview.total_books ?? 0;
     document.getElementById('adminActiveRentals').textContent = overview.active_rentals ?? 0;
-    document.getElementById('adminOverdueBooks').textContent = overview.overdue_books ?? 0;
-    document.getElementById('adminWalletCreditsToday').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((overview.wallet_credits_today ?? 0) / 100);
+    document.getElementById('adminTotalIncome').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((overview.total_income ?? 0) / 100);
 }
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
@@ -75,9 +74,16 @@ function renderUsers(users) {
         return;
     }
 
-    body.innerHTML = users.map((u) => `
+    body.innerHTML = users.map((u) => {
+        const avatarUrl = u.profile_image ? adminAssetUrl(u.profile_image) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent((u.first_name || '') + ' ' + (u.last_name || '')) + '&background=f1ebfb&color=3800bf';
+        return `
         <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
+            <td class="px-8 py-6">
+                <div class="flex items-center gap-3">
+                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover border border-[#d7d2e7]" alt="Avatar" />
+                    <span class="text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</span>
+                </div>
+            </td>
             <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(u.email)}</td>
             <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(u.role)}</td>
             <td class="px-8 py-6 text-sm text-[#2c2f30]">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
@@ -87,7 +93,8 @@ function renderUsers(users) {
                 <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function renderTransactions(transactions) {
@@ -98,53 +105,87 @@ function renderTransactions(transactions) {
         return;
     }
 
-    body.innerHTML = transactions.map((tx) => {
-        const status = Number(tx.is_returned) === 1 ? 'Returned' : 'Active';
+    body.innerHTML = transactions.map(t => {
+        const userName = escapeHtml((t.first_name || '') + ' ' + (t.last_name || ''));
+        const isCredit = t.type === 'CREDIT';
+        const sign = isCredit ? '+' : '-';
+        const color = isCredit ? 'text-green-600 bg-green-50 border border-green-200' : 'text-red-600 bg-red-50 border border-red-200';
+        const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((t.amount || 0) / 100);
+        
+        let reasonLabel = t.reason || 'Unknown';
+        if (t.reason === 'TOP_UP') reasonLabel = 'Wallet Top-up';
+        else if (t.reason === 'MEMBERSHIP') reasonLabel = 'Bought Membership';
+        else if (t.reason === 'BOOK_BUY') reasonLabel = 'Bought Book';
+        else if (t.reason === 'REFUND') reasonLabel = 'Refund';
+
         return `
             <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(tx.book_name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(tx.transaction_type)}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${escapeHtml(tx.amount_paid)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(tx.due_date)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${status}</td>
+                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${userName}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(t.email || '')}</td>
+                <td class="px-8 py-6 text-sm text-[#2c2f30] font-semibold">${reasonLabel}</td>
+                <td class="px-8 py-6 text-sm font-bold ${isCredit ? 'text-green-600' : 'text-red-600'}">${sign}${formattedAmount}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(t.created_at)}</td>
+                <td class="px-8 py-6">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${color}">${escapeHtml(t.type || '')}</span>
+                </td>
             </tr>
         `;
     }).join('');
 }
 
-function renderOverdue(overdueBooks) {
-    const body = document.getElementById('adminOverdueBody');
-    if (!body) return;
-    if (!overdueBooks || overdueBooks.length === 0) {
-        body.innerHTML = '<tr><td colspan="4" class="px-8 py-6 text-center text-[#595c5d]">No overdue books found.</td></tr>';
+function exportTransactionsToCsv() {
+    if (!window.__adminTransactions || window.__adminTransactions.length === 0) {
+        if (typeof adminToast === 'function') adminToast('No transactions available to export.', 'error');
         return;
     }
 
-    body.innerHTML = overdueBooks.map((item) => `
-        <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(item.book_name)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((item.first_name || '') + ' ' + (item.last_name || ''))}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${formatDate(item.due_date)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(item.created_at)}</td>
-        </tr>
-    `).join('');
+    const headers = ['User', 'Email', 'Action', 'Amount', 'Date', 'Type'];
+    const rows = window.__adminTransactions.map(t => {
+        const userName = `"${((t.first_name || '') + ' ' + (t.last_name || '')).replace(/"/g, '""')}"`;
+        const email = `"${(t.email || '').replace(/"/g, '""')}"`;
+        
+        let reasonLabel = t.reason || 'Unknown';
+        if (t.reason === 'TOP_UP') reasonLabel = 'Wallet Top-up';
+        else if (t.reason === 'MEMBERSHIP') reasonLabel = 'Bought Membership';
+        else if (t.reason === 'BOOK_BUY') reasonLabel = 'Bought Book';
+        else if (t.reason === 'REFUND') reasonLabel = 'Refund';
+        
+        const reason = `"${reasonLabel.replace(/"/g, '""')}"`;
+        const formattedAmount = ((t.amount || 0) / 100).toFixed(2);
+        const sign = t.type === 'CREDIT' ? '+' : '-';
+        const date = `"${formatDate(t.created_at).replace(/"/g, '""')}"`;
+        const type = `"${(t.type || '').replace(/"/g, '""')}"`;
+
+        return [userName, email, reason, `"${sign}${formattedAmount}"`, date, type].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Transactions_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function setActiveTab(tabName) {
     window.__adminActiveTab = tabName;
-    const tabs = ['books', 'users', 'transactions', 'overdue'];
+    const tabs = ['books', 'users', 'transactions'];
     tabs.forEach((tab) => {
         const panel = document.getElementById('adminSection' + tab.charAt(0).toUpperCase() + tab.slice(1));
         const btn = document.querySelector('.admin-tab-btn[data-tab="' + tab + '"]');
         if (panel) panel.classList.toggle('hidden', tab !== tabName);
         if (btn) {
-            btn.classList.toggle('bg-[#6933dc]', tab === tabName);
+            btn.classList.toggle('bg-[#3800bf]', tab === tabName);
             btn.classList.toggle('text-white', tab === tabName);
             btn.classList.toggle('shadow-lg', tab === tabName);
-            btn.classList.toggle('shadow-[#6933dc]/20', tab === tabName);
-            btn.classList.toggle('text-[#595c5d]', tab !== tabName);
-            btn.classList.toggle('hover:bg-[#dfe3e4]', tab !== tabName);
+            btn.classList.toggle('shadow-[#3800bf]/20', tab === tabName);
+            
+            btn.classList.toggle('text-[#474557]', tab !== tabName);
+            btn.classList.toggle('hover:bg-[#e5e0f0]', tab !== tabName);
         }
     });
 }
@@ -159,9 +200,9 @@ async function loadAdminDashboard() {
     renderBooks(result.data.books || []);
     renderUsers(result.data.recent_users || []);
     renderTransactions(result.data.recent_transactions || []);
-    renderOverdue(result.data.overdue_books || []);
     window.__adminBooks = result.data.books || [];
     window.__adminUsers = result.data.recent_users || [];
+    window.__adminTransactions = result.data.recent_transactions || [];
 }
 
 function openBookModal(book = null) {
@@ -357,6 +398,24 @@ function openUserModal(user = null, preferredRole = 'USER') {
     const roleEl = document.getElementById('adminUserRole');
     const adminRoleOption = roleEl ? roleEl.querySelector('option[value="ADMIN"]') : null;
 
+    const avatarInput = document.getElementById('adminUserProfileImage');
+    const existingAvatarEl = document.getElementById('adminUserExistingProfileImage');
+    const avatarPreview = document.getElementById('adminUserAvatarPreview');
+    const avatarPlaceholder = document.getElementById('adminUserAvatarPlaceholder');
+
+    const setAvatar = (url) => {
+        const finalUrl = adminAssetUrl(url);
+        if (!finalUrl) {
+            avatarPreview.removeAttribute('src');
+            avatarPreview.classList.add('hidden');
+            avatarPlaceholder.classList.remove('hidden');
+            return;
+        }
+        avatarPreview.src = finalUrl;
+        avatarPreview.classList.remove('hidden');
+        avatarPlaceholder.classList.add('hidden');
+    };
+
     if (user) {
         idEl.value = user.id || '';
         document.getElementById('adminUserFirstName').value = user.first_name || '';
@@ -364,6 +423,9 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserEmail').value = user.email || '';
         document.getElementById('adminUserRole').value = user.role || 'USER';
         document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
+        if (existingAvatarEl) existingAvatarEl.value = user.profile_image || '';
+        setAvatar(user.profile_image || '');
+
         if (titleEl) titleEl.textContent = 'Edit Member';
         if (subtitleEl) subtitleEl.textContent = 'Update user information and access role.';
         if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
@@ -380,6 +442,9 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserEmail').value = '';
         document.getElementById('adminUserRole').value = preferredRole === 'LIBRARIAN' ? 'LIBRARIAN' : 'USER';
         document.getElementById('adminUserStatus').value = '1';
+        if (existingAvatarEl) existingAvatarEl.value = '';
+        setAvatar('');
+
         if (titleEl) titleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Add New Librarian' : 'Add New User';
         if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
         if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
@@ -390,6 +455,8 @@ function openUserModal(user = null, preferredRole = 'USER') {
             passwordEl.required = true;
         }
     }
+
+    if (avatarInput) avatarInput.value = '';
 
     modal.showModal();
 }
@@ -407,7 +474,7 @@ async function saveUser(event) {
 
     const result = await adminFetch(action, {
         method: 'POST',
-        body: new URLSearchParams(formData)
+        body: formData
     });
 
     if (!result || !result.success) {
@@ -457,12 +524,52 @@ function bindAdminEvents() {
     const pdfInput = document.getElementById('adminBookOnlinePdf');
     const pdfFilename = document.getElementById('adminBookPdfFilename');
 
+    const avatarInput = document.getElementById('adminUserProfileImage');
+    const avatarPreview = document.getElementById('adminUserAvatarPreview');
+    const avatarPlaceholder = document.getElementById('adminUserAvatarPlaceholder');
+
     if (addBtn) addBtn.addEventListener('click', () => openBookModal(null));
     if (addUserBtn) addUserBtn.addEventListener('click', () => openUserModal(null, 'USER'));
     if (cancelBtn) cancelBtn.addEventListener('click', () => document.getElementById('adminBookModal').close());
     if (closeBtn) closeBtn.addEventListener('click', () => document.getElementById('adminBookModal').close());
     if (form) form.addEventListener('submit', saveBook);
     if (autofillBtn) autofillBtn.addEventListener('click', autofillBookByIsbn);
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', () => {
+            const file = avatarInput.files && avatarInput.files[0];
+            if (!file) return;
+            const src = URL.createObjectURL(file);
+            avatarPreview.src = src;
+            avatarPreview.classList.remove('hidden');
+            avatarPlaceholder.classList.add('hidden');
+        });
+    }
+
+    const txFilterBtns = document.querySelectorAll('.admin-tx-filter-btn');
+    if (txFilterBtns.length > 0) {
+        txFilterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                txFilterBtns.forEach(b => {
+                    b.classList.remove('bg-[#3800bf]', 'text-white', 'shadow-md', 'shadow-[#3800bf]/20');
+                    b.classList.add('bg-[#f1ebfb]', 'text-[#474557]');
+                });
+                const target = e.currentTarget;
+                target.classList.remove('bg-[#f1ebfb]', 'text-[#474557]');
+                target.classList.add('bg-[#3800bf]', 'text-white', 'shadow-md', 'shadow-[#3800bf]/20');
+
+                const filter = target.dataset.filter;
+                if (!window.__adminTransactions) return;
+                
+                if (filter === 'all') {
+                    renderTransactions(window.__adminTransactions);
+                } else {
+                    const filtered = window.__adminTransactions.filter(t => t.reason === filter);
+                    renderTransactions(filtered);
+                }
+            });
+        });
+    }
 
     if (coverInput) {
         coverInput.addEventListener('change', () => {

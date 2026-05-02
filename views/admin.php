@@ -14,16 +14,12 @@
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminTotalBooks">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
-            <p class="text-sm font-semibold text-[#474557] mb-1">Overdue Books</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminOverdueBooks">0</h3>
-        </div>
-        <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Active Rentals</p>
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminActiveRentals">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Total Income</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminWalletCreditsToday">$0.00</h3>
+            <h3 class="text-3xl font-black text-[#3800bf]" id="adminTotalIncome">$0.00</h3>
         </div>
     </section>
 
@@ -31,7 +27,6 @@
         <button class="admin-tab-btn px-8 py-2.5 rounded-full bg-[#3800bf] text-white text-sm font-semibold shadow-lg shadow-[#3800bf]/20" data-tab="books">Books</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="users">Users</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="transactions">Transactions</button>
-        <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="overdue">Overdue</button>
     </section>
 
     <?php require __DIR__ . '/partials/admin_search_bar.php'; ?>
@@ -82,7 +77,7 @@
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-left border-b border-[#c9c4da]/30">
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Name</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">User</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Email</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Role</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Status</th>
@@ -98,46 +93,38 @@
     </section>
 
     <section id="adminSectionTransactions" class="admin-tab-panel hidden bg-white rounded-2xl shadow-xl shadow-[#5a30fb]/5 p-8 border border-[#c9c4da]/20">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Transactions</h2>
-            <p class="text-[#474557]">Review activity, due dates, and payment details.</p>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Transactions</h2>
+                <p class="text-[#474557]">Review activity, due dates, and payment details.</p>
+            </div>
+            <button class="bg-white border border-[#c9c4da] text-[#474557] px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-[#f7f1ff] transition-all" onclick="exportTransactionsToCsv()">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                Export Report
+            </button>
         </div>
+
+        <div class="flex flex-wrap items-center gap-2 mb-6" id="adminTransactionFilters">
+            <button class="admin-tx-filter-btn px-5 py-2 rounded-full text-sm font-semibold transition-all bg-[#3800bf] text-white shadow-md shadow-[#3800bf]/20" data-filter="all">All</button>
+            <button class="admin-tx-filter-btn px-5 py-2 rounded-full text-sm font-semibold transition-all bg-[#f1ebfb] text-[#474557] hover:bg-[#e5e0f0]" data-filter="MEMBERSHIP">Membership</button>
+            <button class="admin-tx-filter-btn px-5 py-2 rounded-full text-sm font-semibold transition-all bg-[#f1ebfb] text-[#474557] hover:bg-[#e5e0f0]" data-filter="BOOK_BUY">Books</button>
+            <button class="admin-tx-filter-btn px-5 py-2 rounded-full text-sm font-semibold transition-all bg-[#f1ebfb] text-[#474557] hover:bg-[#e5e0f0]" data-filter="TOP_UP">Wallet Topup</button>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="text-left border-b border-[#c9c4da]/30">
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Book</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">User</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Type</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Email</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Action</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Amount</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Due Date</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Status</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Date</th>
+                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Type</th>
                     </tr>
                 </thead>
                 <tbody id="adminTransactionsBody" class="divide-y divide-[#c9c4da]/20">
                     <tr><td colspan="6" class="px-4 py-6 text-center text-[#474557]">Loading transactions...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <section id="adminSectionOverdue" class="admin-tab-panel hidden bg-white rounded-2xl shadow-xl shadow-[#5a30fb]/5 p-8 border border-[#c9c4da]/20">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Overdue books</h2>
-            <p class="text-[#474557]">Track books that have crossed due dates.</p>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-left border-b border-[#c9c4da]/30">
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Book</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">User</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Due Date</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Rented On</th>
-                    </tr>
-                </thead>
-                <tbody id="adminOverdueBody" class="divide-y divide-[#c9c4da]/20">
-                    <tr><td colspan="4" class="px-4 py-6 text-center text-[#474557]">Loading overdue books...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -277,12 +264,13 @@
 </dialog>
 
 <dialog id="adminUserModal" class="modal">
-    <div class="modal-box max-w-3xl p-0 bg-white border border-[#d7d2e7] shadow-2xl overflow-hidden">
-        <form id="adminUserForm" class="max-h-[88vh] flex flex-col">
+    <div class="modal-box max-w-6xl p-0 bg-white border border-[#d7d2e7] shadow-2xl overflow-hidden">
+        <form id="adminUserForm" class="max-h-[92vh] flex flex-col">
             <input type="hidden" id="adminUserId" name="id" />
-            <header class="flex justify-between items-center px-8 pt-7 pb-5 border-b border-[#ece8f7]">
+
+            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7]">
                 <div>
-                    <h3 class="text-2xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
+                    <h3 class="text-3xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
                     <p class="text-[#595c5d] text-sm mt-1" id="adminUserModalSubtitle">Create a user account for this branch.</p>
                 </div>
                 <button type="button" id="adminUserCloseBtn" class="text-[#595c5d] hover:bg-[#f1ebfb] p-2 rounded-full transition-colors">
@@ -290,49 +278,70 @@
                 </button>
             </header>
 
-            <div class="flex-1 overflow-y-auto px-8 py-7 space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">First Name</label>
-                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserFirstName" name="first_name" required />
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Last Name</label>
-                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserLastName" name="last_name" required />
-                    </div>
-                </div>
+            <div class="flex-1 overflow-y-auto px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <aside class="lg:col-span-4 space-y-8">
+                        <section class="space-y-4">
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">User Avatar</label>
+                            <div class="group relative aspect-square w-full max-w-[240px] mx-auto bg-[#f1ebfb] rounded-full overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-[#c9c4da] hover:border-[#5a30fb] transition-all cursor-pointer">
+                                <img id="adminUserAvatarPreview" class="absolute inset-0 w-full h-full object-cover hidden" alt="User Avatar" />
+                                <div id="adminUserAvatarPlaceholder" class="flex flex-col items-center justify-center text-center p-4">
+                                    <span class="material-symbols-outlined text-6xl text-[#3800bf] mb-2 opacity-50">person</span>
+                                    <span class="text-xs font-medium text-[#3800bf]">Upload Profile Picture</span>
+                                </div>
+                                <input class="absolute inset-0 opacity-0 cursor-pointer" id="adminUserProfileImage" name="profile_image" type="file" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                                <input type="hidden" id="adminUserExistingProfileImage" name="existing_profile_image" />
+                            </div>
+                        </section>
+                    </aside>
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-bold text-[#1c1a25]">Email</label>
-                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserEmail" name="email" type="email" required />
-                </div>
+                    <main class="lg:col-span-8">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">First Name</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserFirstName" name="first_name" placeholder="John" required />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Last Name</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserLastName" name="last_name" placeholder="Doe" required />
+                                </div>
+                            </div>
 
-                <div id="adminUserPasswordBlock" class="space-y-1.5">
-                    <label class="text-sm font-bold text-[#1c1a25]">Password</label>
-                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserPassword" name="password" type="password" minlength="6" />
-                    <p class="text-xs text-[#595c5d]">Minimum 6 characters.</p>
-                </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-bold text-[#1c1a25]">Email</label>
+                                <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserEmail" name="email" type="email" placeholder="john.doe@example.com" required />
+                            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Role</label>
-                        <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserRole" name="role" required>
-                            <option value="USER">USER</option>
-                            <option value="LIBRARIAN">LIBRARIAN</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Status</label>
-                        <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserStatus" name="is_active" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
+                            <div id="adminUserPasswordBlock" class="space-y-1.5">
+                                <label class="text-sm font-bold text-[#1c1a25]">Password</label>
+                                <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserPassword" name="password" type="password" minlength="6" placeholder="••••••••" />
+                                <p class="text-xs text-[#595c5d]">Minimum 6 characters.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Role</label>
+                                    <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3 appearance-none" id="adminUserRole" name="role" required>
+                                        <option value="USER">USER</option>
+                                        <option value="LIBRARIAN">LIBRARIAN</option>
+                                        <option value="ADMIN">ADMIN</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Status</label>
+                                    <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3 appearance-none" id="adminUserStatus" name="is_active" required>
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
                 </div>
             </div>
 
-            <footer class="bg-[#f7f1ff] px-8 py-5 flex items-center justify-end gap-4 border-t border-[#ece8f7]">
+            <footer class="bg-[#f7f1ff] px-8 py-6 flex items-center justify-end gap-4 border-t border-[#ece8f7]">
                 <button type="button" class="px-6 py-3 text-sm font-bold text-[#595c5d] hover:text-[#1c1a25] transition-colors" id="adminUserCancelBtn">Cancel</button>
                 <button type="submit" class="px-10 py-3 bg-gradient-to-r from-[#3800bf] to-[#4f1bf1] text-white font-bold rounded-xl shadow-lg hover:shadow-[#5a30fb]/20 hover:scale-[1.02] active:scale-[0.98] transition-all" id="adminUserSaveBtn">Create User</button>
             </footer>
