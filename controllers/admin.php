@@ -34,7 +34,8 @@ class AdminController {
                 return ['success' => true, 'data' => $this->service->getRecentUsers(200)];
             case 'recent-transactions':
                 return ['success' => true, 'data' => $this->service->getRecentTransactions(200)];
-
+            case 'overdue-books':
+                return ['success' => true, 'data' => $this->service->getOverdueBooks(200)];
             case 'create-book':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
@@ -105,26 +106,17 @@ class AdminController {
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }
-                $userAssets = $this->processUserUploads($_POST['existing_profile_image'] ?? null);
-                if (!$userAssets['success']) {
-                    return $userAssets;
-                }
                 return $this->service->createUser(
                     $_POST['first_name'] ?? '',
                     $_POST['last_name'] ?? '',
                     $_POST['email'] ?? '',
                     $_POST['password'] ?? '',
                     $_POST['role'] ?? 'USER',
-                    $_POST['is_active'] ?? 1,
-                    $userAssets['profile_image']
+                    $_POST['is_active'] ?? 1
                 );
             case 'update-user':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
-                }
-                $userAssets = $this->processUserUploads($_POST['existing_profile_image'] ?? null);
-                if (!$userAssets['success']) {
-                    return $userAssets;
                 }
                 return $this->service->updateUser(
                     $_POST['id'] ?? 0,
@@ -132,8 +124,7 @@ class AdminController {
                     $_POST['last_name'] ?? '',
                     $_POST['email'] ?? '',
                     $_POST['role'] ?? 'USER',
-                    $_POST['is_active'] ?? 0,
-                    $userAssets['profile_image']
+                    $_POST['is_active'] ?? 0
                 );
             case 'delete-user':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -150,7 +141,8 @@ class AdminController {
                         'overview' => $this->service->getOverview(),
                         'books' => $this->service->getBooks(200),
                         'recent_users' => $this->service->getRecentUsers(200),
-                        'recent_transactions' => $this->service->getRecentTransactions(200)
+                        'recent_transactions' => $this->service->getRecentTransactions(200),
+                        'overdue_books' => $this->service->getOverdueBooks(200)
                     ]
                 ];
             default:
@@ -192,28 +184,6 @@ class AdminController {
             'success' => true,
             'cover_image' => $coverImagePath,
             'online_copy_pdf' => $onlinePdfPath
-        ];
-    }
-
-    private function processUserUploads($existingProfileImage) {
-        $profileImagePath = $this->normalizeAssetPath($existingProfileImage);
-
-        if (!empty($_FILES['profile_image']['name'])) {
-            $avatarUpload = $this->storeUpload(
-                $_FILES['profile_image'],
-                __DIR__ . '/../public/uploads/images',
-                'user-avatar-',
-                ALLOWED_IMAGE_TYPES
-            );
-            if (!$avatarUpload['success']) {
-                return $avatarUpload;
-            }
-            $profileImagePath = '/public/uploads/images/' . $avatarUpload['filename'];
-        }
-
-        return [
-            'success' => true,
-            'profile_image' => $profileImagePath
         ];
     }
 
