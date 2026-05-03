@@ -4,6 +4,10 @@ require_once __DIR__ . '/Database.php';
 
 class Wallet {
     private $db;
+
+    // Convention: ALL amounts in the Wallet system are stored and processed as CENTS (integers).
+    // Conversions to dollars only happen in the display layer (JS formatUsdFromCents or PHP number_format).
+
     const TOPUP_MAX_AMOUNT = 100000; // cents ($1,000.00)
     const TX_MAX_LIMIT     = 10000;
     const SPEND_MAX_AMOUNT = 10000000; // cents ($100,000.00)

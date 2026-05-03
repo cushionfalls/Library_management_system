@@ -22,11 +22,8 @@
             .replaceAll("'", '&#039;');
     }
 
-    function formatCurrency(value) {
-        if (value == null || value === '') return 'N/A';
-        const amount = Number(value || 0);
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-    }
+    // We use the global formatUsdFromCents(cents) from main.js
+    // which correctly divides by 100 and formats as USD.
 
     function formatDate(value) {
         if (!value) return '';
@@ -119,7 +116,7 @@
                     </div>
                     <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors" data-book-id="${book.id}">${esc(book.name)}</h3>
                     <p class="text-sm text-on-surface-variant font-medium mb-2">${esc(book.author_display)}</p>
-                    <p class="text-sm font-semibold text-primary mb-4">${formatCurrency(book.price)}</p>
+                    <p class="text-sm font-semibold text-primary mb-4">${formatUsdFromCents(book.price > 0 ? book.price : (book.online_buy_price || 0))}</p>
                     <a class="text-primary text-sm font-bold hover:underline decoration-2 underline-offset-4 inline-flex items-center gap-1" href="${window.BROWSE_PAGE_URL}&book=${encodeURIComponent(book.id)}" data-book-id="${book.id}">
                         View Details <span class="material-symbols-outlined text-xs">arrow_forward</span>
                     </a>
@@ -145,7 +142,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-lg font-bold text-on-surface">${esc(book.name)}</h3>
-                            <span class="text-primary font-bold whitespace-nowrap">${formatCurrency(book.price)}</span>
+                            <span class="text-primary font-bold whitespace-nowrap">${formatUsdFromCents(book.price > 0 ? book.price : (book.online_buy_price || 0))}</span>
                         </div>
                         <p class="text-sm text-on-surface-variant mt-1">${esc(book.author_display)} • ${esc(book.genre_label)}</p>
                         <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">${esc(book.description || 'No description available.')}</p>
@@ -254,7 +251,7 @@
             const publisherValue = String(book.publisher_display || book.publisher || catalogItem.publisher_display || catalogItem.publisher || '').trim();
             document.getElementById('bookDetailPublisher').textContent = 'Publisher: ' + (publisherValue || 'Unknown Publisher');
             document.getElementById('bookDetailSynopsis').textContent = book.synopsis || 'No synopsis available.';
-            document.getElementById('bookDetailOnlinePrice').textContent = formatCurrency(book.online_buy_price);
+            document.getElementById('bookDetailOnlinePrice').textContent = formatUsdFromCents(book.online_buy_price);
             document.getElementById('bookDetailReviewsCount').textContent = (book.total_reviews || 0) + ' reviews';
             document.getElementById('bookReviewBookId').value = String(book.id || '');
             state.currentBookId = Number(book.id || 0);

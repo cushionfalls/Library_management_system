@@ -34,8 +34,7 @@ function renderOverview(overview) {
     document.getElementById('adminTotalUsers').textContent = overview.total_users ?? 0;
     document.getElementById('adminTotalBooks').textContent = overview.total_books ?? 0;
     document.getElementById('adminActiveRentals').textContent = overview.active_rentals ?? 0;
-    document.getElementById('adminOverdueBooks').textContent = overview.overdue_books ?? 0;
-    document.getElementById('adminWalletCreditsToday').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((overview.wallet_credits_today ?? 0) / 100);
+    document.getElementById('adminWalletCreditsToday').textContent = formatUsdFromCents(overview.wallet_credits_today ?? 0);
 }
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
@@ -57,7 +56,7 @@ function renderBooks(books) {
                 <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${escapeHtml(book.name)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.publisher || '-')}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.authors || book.author || '-')}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${escapeHtml(book.price)}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${formatUsdFromCents(book.online_buy_price || book.price || 0)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
                     <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>
@@ -99,52 +98,34 @@ function renderTransactions(transactions) {
     }
 
     body.innerHTML = transactions.map((tx) => {
-        const status = Number(tx.is_returned) === 1 ? 'Returned' : 'Active';
+        const displayType = tx.type.replace('_', ' ');
         return `
             <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(tx.book_name)}</td>
+                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(tx.title)}</td>
                 <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(tx.transaction_type)}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${escapeHtml(tx.amount_paid)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(tx.due_date)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${status}</td>
+                <td class="px-8 py-6 text-sm text-[#2c2f30] capitalize">${escapeHtml(displayType.toLowerCase())}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${formatUsdFromCents(tx.amount)}</td>
             </tr>
         `;
     }).join('');
 }
 
-function renderOverdue(overdueBooks) {
-    const body = document.getElementById('adminOverdueBody');
-    if (!body) return;
-    if (!overdueBooks || overdueBooks.length === 0) {
-        body.innerHTML = '<tr><td colspan="4" class="px-8 py-6 text-center text-[#595c5d]">No overdue books found.</td></tr>';
-        return;
-    }
-
-    body.innerHTML = overdueBooks.map((item) => `
-        <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(item.book_name)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((item.first_name || '') + ' ' + (item.last_name || ''))}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${formatDate(item.due_date)}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(item.created_at)}</td>
-        </tr>
-    `).join('');
-}
 
 function setActiveTab(tabName) {
     window.__adminActiveTab = tabName;
-    const tabs = ['books', 'users', 'transactions', 'overdue'];
+    const tabs = ['books', 'users', 'transactions'];
     tabs.forEach((tab) => {
         const panel = document.getElementById('adminSection' + tab.charAt(0).toUpperCase() + tab.slice(1));
         const btn = document.querySelector('.admin-tab-btn[data-tab="' + tab + '"]');
         if (panel) panel.classList.toggle('hidden', tab !== tabName);
         if (btn) {
-            btn.classList.toggle('bg-[#6933dc]', tab === tabName);
-            btn.classList.toggle('text-white', tab === tabName);
-            btn.classList.toggle('shadow-lg', tab === tabName);
-            btn.classList.toggle('shadow-[#6933dc]/20', tab === tabName);
-            btn.classList.toggle('text-[#595c5d]', tab !== tabName);
-            btn.classList.toggle('hover:bg-[#dfe3e4]', tab !== tabName);
+            if (tab === tabName) {
+                btn.classList.add('bg-[#3800bf]', 'text-white', 'shadow-lg', 'shadow-[#3800bf]/20');
+                btn.classList.remove('text-[#474557]', 'hover:bg-[#e5e0f0]');
+            } else {
+                btn.classList.remove('bg-[#3800bf]', 'text-white', 'shadow-lg', 'shadow-[#3800bf]/20');
+                btn.classList.add('text-[#474557]', 'hover:bg-[#e5e0f0]');
+            }
         }
     });
 }
@@ -159,9 +140,9 @@ async function loadAdminDashboard() {
     renderBooks(result.data.books || []);
     renderUsers(result.data.recent_users || []);
     renderTransactions(result.data.recent_transactions || []);
-    renderOverdue(result.data.overdue_books || []);
     window.__adminBooks = result.data.books || [];
     window.__adminUsers = result.data.recent_users || [];
+    window.__adminTransactions = result.data.recent_transactions || [];
 }
 
 function openBookModal(book = null) {
@@ -309,7 +290,7 @@ async function saveBook(event) {
     
     // Set defaults for removed fields
     formData.set('number_of_copies', '1');
-    formData.set('price', '0');
+    formData.set('price', formData.get('online_buy_price') || '0');
     formData.set('online_rent_price', '0');
 
     const result = await adminFetch(action, {
@@ -531,6 +512,49 @@ function bindAdminEvents() {
         btn.addEventListener('click', () => {
             const tab = btn.getAttribute('data-tab') || 'books';
             setActiveTab(tab);
+        });
+    });
+
+    const exportBtn = document.getElementById('adminExportTransactionsBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            const txs = window.__adminTransactions || [];
+            if (txs.length === 0) {
+                adminToast('No transactions to export', 'warning');
+                return;
+            }
+            let csv = 'Book,User,Type,Amount\n';
+            txs.forEach(tx => {
+                const user = (tx.first_name || '') + ' ' + (tx.last_name || '');
+                const amount = (Number(tx.amount) / 100).toFixed(2);
+                csv += `"${tx.title}","${user}","${tx.type}","${amount}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'transactions.csv');
+            a.click();
+        });
+    }
+
+    const filterBtns = document.querySelectorAll('.admin-tx-filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filter = btn.getAttribute('data-filter');
+            filterBtns.forEach(b => {
+                b.classList.remove('bg-[#3800bf]', 'text-white');
+                b.classList.add('text-[#474557]');
+            });
+            btn.classList.add('bg-[#3800bf]', 'text-white');
+            btn.classList.remove('text-[#474557]');
+            
+            const allTxs = window.__adminTransactions || [];
+            if (filter === 'all') {
+                renderTransactions(allTxs);
+            } else {
+                renderTransactions(allTxs.filter(tx => tx.type === filter));
+            }
         });
     });
 }

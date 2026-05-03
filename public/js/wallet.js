@@ -11,7 +11,14 @@
     const BASE = baseUrl();
     const API  = BASE + '/controllers/wallet.php?action=';
 
-    const TOPUP_MAX_CENTS = 100000; // $1,000.00
+    // ── Unit convention ────────────────────────────────────────────────────
+    // ALL amounts in this file are in CENTS (integer) unless a variable is
+    // explicitly named *Dollars or *Float. formatUsdFromCents() is the only
+    // place that divides by 100 for display. The wire protocol (POST body)
+    // always sends `amount_cents` as an integer string so PHP never needs to
+    // multiply and cannot accidentally double-convert.
+    // ─────────────────────────────────────────────────────────────────────
+    const TOPUP_MAX_CENTS = 100000; // $1,000.00 — 100 000 cents
 
     let txOffset   = 0;
     const TX_LIMIT = 10;
@@ -251,8 +258,9 @@
     async function handleTopUpSubmit(e) {
         e.preventDefault();
 
-        const amountNum = Number($amountInput?.value || 0);
-        const amountCents = Math.round(amountNum * 100);
+        // User types dollars (e.g. "10.50") — convert to cents immediately.
+        const amountDollars = Number($amountInput?.value || 0);
+        const amountCents   = Math.round(amountDollars * 100); // integer cents
 
         /* Validate amount */
         if (!amountCents || amountCents <= 0) { toast('Enter a valid amount.', 'warning'); return; }
@@ -260,7 +268,9 @@
 
         setSubmitLoading(true, 'Creating payment…');
         try {
-            const body = new URLSearchParams({ amount: String(amountNum) });
+            // Send `amount_cents` (integer cents) — PHP reads this directly,
+            // no multiplication needed on the server side.
+            const body = new URLSearchParams({ amount_cents: String(amountCents) });
             const res  = await fetch(API + 'stripe-create-intent', {
                 method:      'POST',
                 headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -310,6 +320,7 @@
                 return;
             }
 
+            // data2.balance is in cents — formatUsdFromCents handles display.
             toast(`Top up successful! New balance: ${formatUsdFromCents(data2.balance ?? 0)}`, 'success');
             if (typeof $topUpModal?.close === 'function') $topUpModal.close();
             resetModal();
@@ -328,9 +339,11 @@
 
         if (topup === 'success') {
             const method = (params.get('method') || 'gateway').toUpperCase();
-            const amount = params.get('amount') || '';
+            // `amount_cents` URL param is always integer cents (set by PHP redirect).
+            const amountCentsStr = params.get('amount_cents') || params.get('amount') || '';
+            const amountCents    = amountCentsStr ? parseInt(amountCentsStr, 10) : 0;
             toast(
-                `${method} top up of ${amount ? formatUsdFromCents(parseInt(amount, 10) * 100) : ''} successful!`,
+                `${method} top up of ${amountCents > 0 ? formatUsdFromCents(amountCents) : ''} successful!`,
                 'success'
             );
         } else if (topup === 'failed') {
@@ -347,7 +360,7 @@
 
         /* Clean up URL without page reload */
         const clean = new URL(window.location.href);
-        ['topup', 'method', 'amount', 'reason'].forEach(k => clean.searchParams.delete(k));
+        ['topup', 'method', 'amount', 'amount_cents', 'reason'].forEach(k => clean.searchParams.delete(k));
         window.history.replaceState({}, '', clean.toString());
     }
 

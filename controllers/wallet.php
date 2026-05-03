@@ -32,7 +32,7 @@ function wallet_me(Session $session): ?array {
         'first_name' => (string)($me['first_name'] ?? ''),
         'last_name'  => (string)($me['last_name']  ?? ''),
         'email'      => (string)($me['email']      ?? ''),
-        'phone'      => (string)($me['phone']       ?? '9800000001'),
+        'phone'      => (string)($me['phone_number'] ?? '9800000001'),
     ];
 }
 
@@ -110,9 +110,8 @@ try {
         case 'stripe-create-intent': {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') wallet_json(['success' => false, 'error' => 'POST required'], 405);
 
-            $amountStr = trim((string)($_POST['amount'] ?? '0'));
-            $amountFloat = (float)$amountStr;
-            $amountCents = (int)round($amountFloat * 100);
+            // Convention: We now expect `amount_cents` as a direct integer from the frontend.
+            $amountCents = (int)($_POST['amount_cents'] ?? 0);
             if ($amountCents <= 0) wallet_json(['success' => false, 'error' => 'Amount must be > 0'], 400);
             if ($amountCents > Wallet::TOPUP_MAX_AMOUNT) wallet_json(['success' => false, 'error' => 'Exceeds max $1,000.00'], 400);
 
@@ -177,7 +176,7 @@ try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') wallet_json(['success' => false, 'error' => 'POST required'], 405);
 
             $targetUserId = (int)($_POST['user_id'] ?? 0);
-            $amount       = (int)($_POST['amount']  ?? 0);
+            $amount       = (int)($_POST['amount_cents']  ?? 0);
             if ($targetUserId <= 0) wallet_json(['success' => false, 'error' => 'user_id required'], 400);
 
             $result = $wallet->refund($targetUserId, $amount);
@@ -207,9 +206,10 @@ try {
             ob_clean();
 
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Date', 'Type', 'Reason', 'Amount']);
+            fputcsv($out, ['Date', 'Type', 'Reason', 'Amount (USD)']);
             foreach ($tx as $row) {
-                fputcsv($out, [$row['created_at'], $row['type'], $row['reason'], $row['amount']]);
+                $formattedAmount = number_format($row['amount'] / 100, 2);
+                fputcsv($out, [$row['created_at'], $row['type'], $row['reason'], $formattedAmount]);
             }
             fclose($out);
             exit;

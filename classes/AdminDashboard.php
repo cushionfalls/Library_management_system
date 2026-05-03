@@ -13,7 +13,6 @@ class AdminDashboard {
             'total_users' => $this->countTable('Users'),
             'total_books' => $this->countTable('Books'),
             'active_rentals' => $this->countActiveRentals(),
-            'overdue_books' => $this->countOverdueBooks(),
             'wallet_credits_today' => $this->sumWalletCreditsToday()
         ];
     }
@@ -31,17 +30,37 @@ class AdminDashboard {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getRecentTransactions($limit = 8) {
+    public function getRecentTransactions($limit = 100) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT bt.id, bt.transaction_type, bt.amount_paid, bt.due_date, bt.created_at, bt.is_returned,
-                    b.name AS book_name,
+            "(SELECT bt.id, 
+                    bt.transaction_type AS type, 
+                    bt.amount_paid AS amount, 
+                    bt.due_date, 
+                    bt.created_at, 
+                    bt.is_returned,
+                    b.name AS title,
                     u.first_name,
-                    u.last_name
+                    u.last_name,
+                    'BOOK' as category
              FROM BookTransactions bt
              INNER JOIN Books b ON b.id = bt.book_id
-             INNER JOIN Users u ON u.id = bt.user_id
-             ORDER BY bt.created_at DESC
+             INNER JOIN Users u ON u.id = bt.user_id)
+             UNION ALL
+             (SELECT wt.id,
+                    wt.reason AS type,
+                    wt.amount,
+                    NULL AS due_date,
+                    wt.created_at,
+                    NULL AS is_returned,
+                    IF(wt.reason = 'BOOK_BUY', 'Book Purchase', wt.reason) AS title,
+                    u.first_name,
+                    u.last_name,
+                    'WALLET' as category
+             FROM WalletTransactions wt
+             INNER JOIN Users u ON u.id = wt.user_id
+             WHERE wt.reason IN ('TOP_UP', 'MEMBERSHIP', 'BOOK_BUY'))
+             ORDER BY created_at DESC
              LIMIT ?"
         );
         $stmt->bind_param('i', $limit);
@@ -49,27 +68,6 @@ class AdminDashboard {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getOverdueBooks($limit = 8) {
-        $limit = max(1, (int)$limit);
-        $stmt = $this->db->prepare(
-            "SELECT bt.id, bt.due_date, bt.created_at,
-                    b.name AS book_name,
-                    u.first_name,
-                    u.last_name
-             FROM BookTransactions bt
-             INNER JOIN Books b ON b.id = bt.book_id
-             INNER JOIN Users u ON u.id = bt.user_id
-             WHERE bt.transaction_type = 'RENT'
-               AND bt.is_returned = 0
-               AND bt.due_date IS NOT NULL
-               AND bt.due_date < NOW()
-             ORDER BY bt.due_date ASC
-             LIMIT ?"
-        );
-        $stmt->bind_param('i', $limit);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
 
     public function getBooks($limit = 100) {
         $limit = max(1, (int)$limit);
@@ -446,18 +444,6 @@ class AdminDashboard {
         return (int)($row['total'] ?? 0);
     }
 
-    private function countOverdueBooks() {
-        $result = $this->db->query(
-            "SELECT COUNT(*) AS total
-             FROM BookTransactions
-             WHERE transaction_type = 'RENT'
-               AND is_returned = 0
-               AND due_date IS NOT NULL
-               AND due_date < NOW()"
-        );
-        $row = $result ? $result->fetch_assoc() : ['total' => 0];
-        return (int)($row['total'] ?? 0);
-    }
 
     private function sumWalletCreditsToday() {
         $result = $this->db->query(
