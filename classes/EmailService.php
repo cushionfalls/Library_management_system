@@ -201,7 +201,7 @@ class EmailService {
                     <div class='details'>
                         <p><strong>Book:</strong> " . htmlspecialchars($bookName) . "</p>
                         <p><strong>Due Date:</strong> $dueDate</p>
-                        <p><strong>Amount Paid:</strong> ₹$amount</p>
+                        <p><strong>Amount Paid:</strong> $" . htmlspecialchars((string)$amount) . "</p>
                     </div>
                     <p>Please ensure to return the book before the due date to avoid fines.</p>
                 </div>
@@ -238,7 +238,7 @@ class EmailService {
                     <p>Hello " . htmlspecialchars($recipientName) . ",</p>
                     <p>You have an overdue book:</p>
                     <p><strong>Book:</strong> " . htmlspecialchars($bookName) . "</p>
-                    <p><strong>Fine Amount:</strong> ₹$fineAmount</p>
+                    <p><strong>Fine Amount:</strong> $" . htmlspecialchars((string)$fineAmount) . "</p>
                     <p>Please return the book or pay the fine through your account.</p>
                 </div>
                 <div class='footer'>

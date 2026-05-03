@@ -8,14 +8,19 @@ if (!$profileUser) {
 $csrfToken = $session->generateCSRFToken();
 $displayName = trim((string)($profileUser['first_name'] ?? '') . ' ' . (string)($profileUser['last_name'] ?? ''));
 $memberSince = !empty($profileUser['created_at']) ? date('M Y', strtotime((string)$profileUser['created_at'])) : 'N/A';
-$walletBalance = number_format((float)($profileUser['wallet'] ?? 0), 2);
+$walletBalance = number_format(((float)($profileUser['wallet'] ?? 0)) / 100, 2);
 $dobValue = !empty($profileUser['dob']) ? date('Y-m-d', strtotime((string)$profileUser['dob'])) : '';
 $phoneValue = (string)($profileUser['phone_number'] ?? '');
 $avatarPath = !empty($profileUser['profile_image']) ? APP_URL . '/public/uploads/profiles/' . basename((string)$profileUser['profile_image']) : '';
 $isActive = (int)($profileUser['is_active'] ?? 0) === 1;
 $statusLabel = $isActive ? 'Active' : 'Inactive';
 $statusDot = $isActive ? 'bg-emerald-400' : 'bg-red-400';
-$loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) * 10));
+$loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) / 100 * 10));
+
+require_once __DIR__ . '/../classes/Membership.php';
+$membershipModel = new Membership();
+$activeMem = $membershipModel->getActiveMembership($profileUser['id']);
+$memPlan = $activeMem ? $activeMem['plan_name'] : 'None';
 ?>
 
 <style>
@@ -148,8 +153,7 @@ $loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) * 10))
                     <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">Account Health</p>
                     <div class="flex items-center gap-4 mb-6"><div class="h-3 w-3 <?php echo $statusDot; ?> rounded-full animate-pulse"></div><span class="font-['Manrope'] font-bold text-2xl tracking-tight">Status: <?php echo htmlspecialchars($statusLabel); ?></span></div>
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center text-sm"><span class="opacity-70">Overdue Items</span><span class="font-bold">0</span></div>
-                        <div class="flex justify-between items-center text-sm"><span class="opacity-70">Holds Pending</span><span class="font-bold">0</span></div>
+                        <div class="flex justify-between items-center text-sm"><span class="opacity-70">Membership</span><span class="font-bold"><?php echo htmlspecialchars($memPlan); ?></span></div>
                         <div class="flex justify-between items-center text-sm"><span class="opacity-70">Loyalty Points</span><span class="font-bold"><?php echo htmlspecialchars((string)$loyaltyPoints); ?></span></div>
                     </div>
                 </div>
@@ -157,8 +161,9 @@ $loyaltyPoints = max(0, (int)floor(((float)($profileUser['wallet'] ?? 0)) * 10))
 
             <div class="bg-[#f7f1ff] rounded-xl p-8 space-y-4">
                 <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Quick Links</h4>
-                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>Borrowing History</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
-                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Favorite Collections</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>My Books</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Browse Catalog</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=membership"><span>Membership</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <form id="profileDeleteForm" class="pt-4 border-t border-[#d8d1e9]">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
                     <label class="text-xs text-[#7b768d] font-medium">Type <strong>DELETE</strong> to confirm</label>

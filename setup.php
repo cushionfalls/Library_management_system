@@ -1,106 +1,198 @@
 <?php
 /**
- * Database Setup Script
- * Run this file once to set up the database with all tables
+ * Library Management System - Comprehensive Setup Script
+ * This script initializes the database, creates tables, and seeds initial data.
  */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 require_once __DIR__ . '/config/config.php';
 
-echo "=== Library Management System - Database Setup ===\n\n";
+echo "<h1>LMS Setup Utility</h1>";
+echo "<p>Initializing system...</p>";
 
-// Create database connection
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, '', DB_PORT);
+// 1. Connect to MySQL without database selection
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS);
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("<p style='color:red'>Connection failed: " . $conn->connect_error . "</p>");
 }
 
-echo "1. Creating database '" . DB_NAME . "'...\n";
-$create_db = "CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`";
-if ($conn->query($create_db) === TRUE) {
-    echo "   ✓ Database created/exists\n";
-} else {
-    die("   ✗ Error creating database: " . $conn->error);
+echo "<p style='color:green'>Successfully connected to MySQL server.</p>";
+
+// 2. Create Database if not exists
+$dbName = DB_NAME;
+if (!$conn->query("CREATE DATABASE IF NOT EXISTS `$dbName`")) {
+    die("<p style='color:red'>Error creating database: " . $conn->error . "</p>");
 }
 
-// Select database
-$conn->select_db(DB_NAME);
+echo "<p style='color:green'>Database `$dbName` is ready.</p>";
 
-echo "\n2. Reading SQL schema...\n";
-$sql_file = __DIR__ . '/db.sql';
-if (!file_exists($sql_file)) {
-    die("   ✗ Error: db.sql file not found");
-}
+// 3. Select the database
+$conn->select_db($dbName);
 
-$sql_content = file_get_contents($sql_file);
-echo "   ✓ Schema file loaded\n";
+// 4. Create Tables
+$tables = [
+    "Users" => "CREATE TABLE IF NOT EXISTS `Users` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `first_name` varchar(100) NOT NULL,
+        `last_name` varchar(100) NOT NULL,
+        `email` varchar(255) NOT NULL UNIQUE,
+        `password` varchar(255) NOT NULL,
+        `role` enum('ADMIN','LIBRARIAN','USER') NOT NULL DEFAULT 'USER',
+        `dob` datetime DEFAULT NULL,
+        `phone_number` varchar(15) DEFAULT NULL,
+        `profile_image` varchar(500) DEFAULT NULL,
+        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+        `is_verified` tinyint(1) NOT NULL DEFAULT 0,
+        `verified_at` datetime DEFAULT NULL,
+        `wallet` int(11) NOT NULL DEFAULT 0,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-echo "\n3. Executing SQL statements...\n";
-$statements = array_filter(array_map('trim', explode(';', $sql_content)), 'strlen');
-$count = 0;
+    "Books" => "CREATE TABLE IF NOT EXISTS `Books` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `isbn` varchar(20) NOT NULL UNIQUE,
+        `name` varchar(255) NOT NULL,
+        `description` text DEFAULT NULL,
+        `publisher` varchar(255) DEFAULT NULL,
+        `published_at` datetime DEFAULT NULL,
+        `language` varchar(50) DEFAULT 'English',
+        `genre` enum('FANTASY','SCIENCE_FICTION','MYSTERY','ROMANCE','THRILLER','NON_FICTION','BIOGRAPHY','HISTORY','OTHERS') DEFAULT 'OTHERS',
+        `number_of_copies` int(11) NOT NULL DEFAULT 1,
+        `price` int(11) NOT NULL DEFAULT 0,
+        `online_rent_price` int(11) DEFAULT 0,
+        `online_buy_price` int(11) DEFAULT 0,
+        `cover_image` varchar(500) DEFAULT NULL,
+        `online_copy_pdf` varchar(500) DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-foreach ($statements as $statement) {
-    if (empty($statement)) continue;
+    "Authors" => "CREATE TABLE IF NOT EXISTS `Authors` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `first_name` varchar(100) NOT NULL,
+        `last_name` varchar(100) NOT NULL,
+        `bio` text DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-    if ($conn->query($statement) === TRUE) {
-        $count++;
-    } else {
-        echo "   ✗ Error: " . $conn->error . "\n";
-    }
-}
+    "BookAuthors" => "CREATE TABLE IF NOT EXISTS `BookAuthors` (
+        `book_id` int(11) NOT NULL,
+        `author_id` int(11) NOT NULL,
+        PRIMARY KEY (`book_id`,`author_id`),
+        KEY `author_id` (`author_id`),
+        CONSTRAINT `bookauthors_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `bookauthors_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `Authors` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-echo "   ✓ Executed " . $count . " SQL statements\n";
+    "BookTransactions" => "CREATE TABLE IF NOT EXISTS `BookTransactions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `book_id` int(11) NOT NULL,
+        `user_id` int(11) NOT NULL,
+        `transaction_type` enum('RENT','INHAND','ONLINE') NOT NULL,
+        `amount_paid` int(11) NOT NULL DEFAULT 0,
+        `due_date` datetime DEFAULT NULL,
+        `returned_at` datetime DEFAULT NULL,
+        `is_returned` tinyint(1) NOT NULL DEFAULT 0,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `book_id` (`book_id`),
+        KEY `user_id` (`user_id`),
+        CONSTRAINT `booktransactions_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `booktransactions_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-echo "\n4. Creating directories...\n";
-$dirs = [
-    __DIR__ . '/logs',
-    __DIR__ . '/public/uploads',
-    __DIR__ . '/public/uploads/images',
-    __DIR__ . '/public/uploads/profiles',
-    __DIR__ . '/public/uploads/pdfs'
+    "WalletTransactions" => "CREATE TABLE IF NOT EXISTS `WalletTransactions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `amount` int(11) NOT NULL,
+        `type` enum('CREDIT','DEBIT') NOT NULL,
+        `reason` enum('TOP_UP','BOOK_RENT','BOOK_BUY','FINE_PAYMENT','REFUND','MEMBERSHIP') NOT NULL,
+        `external_ref` varchar(255) DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        CONSTRAINT `wallettransactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "Sessions" => "CREATE TABLE IF NOT EXISTS `Sessions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `session_id` varchar(255) NOT NULL,
+        `device_info` varchar(255) DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `valid_till` datetime NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "OTP" => "CREATE TABLE IF NOT EXISTS `OTP` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `email` varchar(255) NOT NULL,
+        `otp` varchar(10) NOT NULL,
+        `expires_at` datetime NOT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "BookReviews" => "CREATE TABLE IF NOT EXISTS `BookReviews` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `book_id` int(11) NOT NULL,
+        `user_id` int(11) NOT NULL,
+        `rating` int(11) NOT NULL,
+        `review` text DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `book_id` (`book_id`),
+        KEY `user_id` (`user_id`),
+        CONSTRAINT `bookreviews_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `bookreviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
 ];
 
-foreach ($dirs as $dir) {
-    if (!is_dir($dir)) {
-        if (mkdir($dir, 0755, true)) {
-            echo "   ✓ Created: $dir\n";
-        } else {
-            echo "   ✗ Failed to create: $dir\n";
-        }
+foreach ($tables as $name => $sql) {
+    if ($conn->query($sql)) {
+        echo "<p style='color:green'>Table `$name` checked/created.</p>";
     } else {
-        echo "   ✓ Exists: $dir\n";
+        echo "<p style='color:red'>Error creating table `$name`: " . $conn->error . "</p>";
     }
 }
 
-echo "\n5. Creating default admin user...\n";
-$admin_email = 'admin@librarymanagement.com';
-$admin_password = password_hash('admin123', PASSWORD_BCRYPT, ['cost' => 12]);
+// 5. Ensure missing columns (Migrations)
+echo "<h3>Running migrations...</h3>";
 
-$stmt = $conn->prepare("INSERT IGNORE INTO Users (first_name, last_name, email, password, role, is_verified, verified_at) VALUES (?, ?, ?, ?, 'ADMIN', 1, NOW())");
-$first = 'System';
-$last = 'Administrator';
-$role = 'ADMIN';
-
-$stmt->bind_param('ssss', $first, $last, $admin_email, $admin_password);
-if ($stmt->execute()) {
-    echo "   ✓ Admin user created\n";
-    echo "   Email: $admin_email\n";
-    echo "   Password: admin123\n";
-    echo "   NOTE: Change this password after first login!\n";
-} else {
-    echo "   ✗ Error creating admin user: " . $stmt->error . "\n";
+// Add external_ref if it was missed in WalletTransactions
+$check = $conn->query("SHOW COLUMNS FROM `WalletTransactions` LIKE 'external_ref'");
+if ($check->num_rows === 0) {
+    if ($conn->query("ALTER TABLE `WalletTransactions` ADD COLUMN `external_ref` varchar(255) DEFAULT NULL AFTER `reason`")) {
+        echo "<p style='color:green'>Added `external_ref` to `WalletTransactions`.</p>";
+    }
 }
 
+// 6. Seed Admin User
+echo "<h3>Seeding data...</h3>";
+$adminEmail = 'admin@lms.com';
+$checkAdmin = $conn->query("SELECT id FROM Users WHERE email = '$adminEmail'");
+if ($checkAdmin->num_rows === 0) {
+    $pass = password_hash('Admin@123', PASSWORD_BCRYPT, ['cost' => 12]);
+    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, wallet) 
+            VALUES ('System', 'Admin', '$adminEmail', '$pass', 'ADMIN', 1, 1, NOW(), 5000)";
+    if ($conn->query($sql)) {
+        echo "<p style='color:green'>Admin user created (admin@lms.com / Admin@123).</p>";
+    }
+} else {
+    echo "<p>Admin user already exists.</p>";
+}
+
+echo "<h2>Setup Complete!</h2>";
+echo "<p><a href='index.php' style='display:inline-block; padding:10px 20px; background:#3800bf; color:white; text-decoration:none; border-radius:5px;'>Go to Homepage</a></p>";
+
 $conn->close();
-
-echo "\n" . str_repeat("=", 45) . "\n";
-echo "✓ Database setup completed successfully!\n\n";
-echo "Next steps:\n";
-echo "1. Update config/config.php with your email credentials\n";
-echo "2. Login to http://localhost/library_management_system/index.php\n";
-echo "3. Email: admin@librarymanagement.com\n";
-echo "4. Password: admin123\n";
-echo "5. Change password immediately after login\n";
-echo "\n" . str_repeat("=", 45) . "\n";
-?>
-

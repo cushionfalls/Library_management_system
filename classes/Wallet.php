@@ -4,9 +4,13 @@ require_once __DIR__ . '/Database.php';
 
 class Wallet {
     private $db;
-    const TOPUP_MAX_AMOUNT = 10000;
-    const TX_MAX_LIMIT = 10000;
-    const SPEND_MAX_AMOUNT = 100000;
+
+    // Convention: ALL amounts in the Wallet system are stored and processed as CENTS (integers).
+    // Conversions to dollars only happen in the display layer (JS formatUsdFromCents or PHP number_format).
+
+    const TOPUP_MAX_AMOUNT = 100000; // cents ($1,000.00)
+    const TX_MAX_LIMIT     = 10000;
+    const SPEND_MAX_AMOUNT = 10000000; // cents ($100,000.00)
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
@@ -21,15 +25,11 @@ class Wallet {
         return (int)($row['wallet'] ?? 0);
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
+    /** @return array<int, array<string, mixed>> */
     public function getTransactions($userId, $limit = 20, $offset = 0) {
         $userId = (int)$userId;
-        $limit = (int)$limit;
-        $offset = (int)$offset;
-        $limit = max(1, min(self::TX_MAX_LIMIT, $limit));
-        $offset = max(0, $offset);
+        $limit  = max(1, min(self::TX_MAX_LIMIT, (int)$limit));
+        $offset = max(0, (int)$offset);
 
         $stmt = $this->db->prepare(
             "SELECT id, amount, type, reason, created_at
@@ -40,26 +40,37 @@ class Wallet {
         );
         $stmt->bind_param('iii', $userId, $limit, $offset);
         $stmt->execute();
-        $res = $stmt->get_result();
+        $res  = $stmt->get_result();
         $rows = [];
         while ($r = $res->fetch_assoc()) {
-            $r['id'] = (int)$r['id'];
+            $r['id']     = (int)$r['id'];
             $r['amount'] = (int)$r['amount'];
-            $rows[] = $r;
+            $rows[]      = $r;
         }
         return $rows;
     }
 
-    public function topUp($userId, $amount, $method = 'OTHER') {
+    public function hasExternalRef($userId, string $externalRef): bool {
+        $userId = (int)$userId;
+        $externalRef = trim($externalRef);
+        if ($externalRef === '') return false;
+
+        $stmt = $this->db->prepare("SELECT 1 FROM WalletTransactions WHERE user_id = ? AND external_ref = ? LIMIT 1");
+        if (!$stmt) return false;
+        $stmt->bind_param('is', $userId, $externalRef);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        return (bool)$row;
+    }
+
+    public function topUp($userId, $amount, $method = 'OTHER', string $externalRef = '') {
         $userId = (int)$userId;
         $amount = (int)$amount;
         $method = (string)$method;
-        if ($amount <= 0) {
-            return ['success' => false, 'message' => 'Amount must be greater than 0'];
-        }
-        if ($amount > self::TOPUP_MAX_AMOUNT) {
-            return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::TOPUP_MAX_AMOUNT];
-        }
+        $externalRef = trim($externalRef);
+
+        if ($amount <= 0)                         return ['success' => false, 'message' => 'Amount must be greater than 0'];
+        if ($amount > self::TOPUP_MAX_AMOUNT)     return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::TOPUP_MAX_AMOUNT];
 
         $this->db->begin_transaction();
         try {
@@ -70,25 +81,48 @@ class Wallet {
                 return ['success' => false, 'message' => 'Failed to update wallet'];
             }
 
-            $type = 'CREDIT';
+            $type   = 'CREDIT';
             $reason = 'TOP_UP';
-            $stmt2 = $this->db->prepare(
-                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at)
-                 VALUES (?, ?, ?, ?, NOW())"
-            );
-            $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
-            if (!$stmt2->execute()) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'Failed to log transaction'];
+            if ($externalRef !== '') {
+                $stmt2 = $this->db->prepare(
+                    "INSERT INTO WalletTransactions (user_id, amount, type, reason, external_ref, created_at)
+                     VALUES (?, ?, ?, ?, ?, NOW())"
+                );
+                if ($stmt2) {
+                    $stmt2->bind_param('iisss', $userId, $amount, $type, $reason, $externalRef);
+                    if (!$stmt2->execute()) {
+                        $this->db->rollback();
+                        return ['success' => false, 'message' => 'Failed to log transaction'];
+                    }
+                } else {
+                    // Backward compatible if column doesn't exist
+                    $stmt2 = $this->db->prepare(
+                        "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at) VALUES (?, ?, ?, ?, NOW())"
+                    );
+                    $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
+                    if (!$stmt2->execute()) {
+                        $this->db->rollback();
+                        return ['success' => false, 'message' => 'Failed to log transaction'];
+                    }
+                }
+            } else {
+                $stmt2  = $this->db->prepare(
+                    "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at) VALUES (?, ?, ?, ?, NOW())"
+                );
+                $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
+                if (!$stmt2->execute()) {
+                    $this->db->rollback();
+                    return ['success' => false, 'message' => 'Failed to log transaction'];
+                }
             }
 
             $this->db->commit();
             return [
-                'success' => true,
-                'message' => 'Top up successful',
-                'balance' => $this->getBalance($userId),
+                'success'        => true,
+                'message'        => 'Top up successful',
+                'balance'        => $this->getBalance($userId),
                 'transaction_id' => (int)$this->db->insert_id,
-                'method' => $method
+                'method'         => $method,
             ];
         } catch (Exception $e) {
             $this->db->rollback();
@@ -96,27 +130,18 @@ class Wallet {
         }
     }
 
-    /**
-     * Debit funds from wallet and log transaction.
-     * @param string $reason One of WalletTransactions.reason enum values
-     */
     public function spend($userId, $amount, $reason = 'OTHER') {
         $userId = (int)$userId;
         $amount = (int)$amount;
         $reason = (string)$reason;
-        if ($amount <= 0) {
-            return ['success' => false, 'message' => 'Amount must be greater than 0'];
-        }
-        if ($amount > self::SPEND_MAX_AMOUNT) {
-            return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::SPEND_MAX_AMOUNT];
-        }
+
+        if ($amount <= 0)                          return ['success' => false, 'message' => 'Amount must be greater than 0'];
+        if ($amount > self::SPEND_MAX_AMOUNT)      return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::SPEND_MAX_AMOUNT];
 
         $this->db->begin_transaction();
         try {
             $stmt = $this->db->prepare(
-                "UPDATE Users
-                 SET wallet = wallet - ?, updated_at = NOW()
-                 WHERE id = ? AND wallet >= ?"
+                "UPDATE Users SET wallet = wallet - ?, updated_at = NOW() WHERE id = ? AND wallet >= ?"
             );
             $stmt->bind_param('iii', $amount, $userId, $amount);
             if (!$stmt->execute() || $stmt->affected_rows <= 0) {
@@ -124,10 +149,9 @@ class Wallet {
                 return ['success' => false, 'message' => 'Insufficient wallet balance'];
             }
 
-            $type = 'DEBIT';
+            $type  = 'DEBIT';
             $stmt2 = $this->db->prepare(
-                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at)
-                 VALUES (?, ?, ?, ?, NOW())"
+                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at) VALUES (?, ?, ?, ?, NOW())"
             );
             $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
             if (!$stmt2->execute()) {
@@ -137,10 +161,10 @@ class Wallet {
 
             $this->db->commit();
             return [
-                'success' => true,
-                'message' => 'Payment successful',
-                'balance' => $this->getBalance($userId),
-                'transaction_id' => (int)$this->db->insert_id
+                'success'        => true,
+                'message'        => 'Payment successful',
+                'balance'        => $this->getBalance($userId),
+                'transaction_id' => (int)$this->db->insert_id,
             ];
         } catch (Exception $e) {
             $this->db->rollback();
@@ -151,12 +175,9 @@ class Wallet {
     public function refund($userId, $amount) {
         $userId = (int)$userId;
         $amount = (int)$amount;
-        if ($amount <= 0) {
-            return ['success' => false, 'message' => 'Amount must be greater than 0'];
-        }
-        if ($amount > self::TOPUP_MAX_AMOUNT) {
-            return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::TOPUP_MAX_AMOUNT];
-        }
+
+        if ($amount <= 0)                     return ['success' => false, 'message' => 'Amount must be greater than 0'];
+        if ($amount > self::TOPUP_MAX_AMOUNT) return ['success' => false, 'message' => 'Amount exceeds limit of ' . self::TOPUP_MAX_AMOUNT];
 
         $this->db->begin_transaction();
         try {
@@ -167,11 +188,10 @@ class Wallet {
                 return ['success' => false, 'message' => 'Failed to refund wallet'];
             }
 
-            $type = 'CREDIT';
+            $type   = 'CREDIT';
             $reason = 'REFUND';
-            $stmt2 = $this->db->prepare(
-                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at)
-                 VALUES (?, ?, ?, ?, NOW())"
+            $stmt2  = $this->db->prepare(
+                "INSERT INTO WalletTransactions (user_id, amount, type, reason, created_at) VALUES (?, ?, ?, ?, NOW())"
             );
             $stmt2->bind_param('iiss', $userId, $amount, $type, $reason);
             if (!$stmt2->execute()) {
@@ -181,10 +201,10 @@ class Wallet {
 
             $this->db->commit();
             return [
-                'success' => true,
-                'message' => 'Refund successful',
-                'balance' => $this->getBalance($userId),
-                'transaction_id' => (int)$this->db->insert_id
+                'success'        => true,
+                'message'        => 'Refund successful',
+                'balance'        => $this->getBalance($userId),
+                'transaction_id' => (int)$this->db->insert_id,
             ];
         } catch (Exception $e) {
             $this->db->rollback();
@@ -193,22 +213,21 @@ class Wallet {
     }
 
     public function getAllTransactions($limit = 50, $offset = 0, $filterUserId = null) {
-        $limit = (int)$limit;
-        $offset = (int)$offset;
-        $limit = max(1, min(self::TX_MAX_LIMIT, $limit));
-        $offset = max(0, $offset);
+        $limit  = max(1, min(self::TX_MAX_LIMIT, (int)$limit));
+        $offset = max(0, (int)$offset);
 
-        $where = '';
-        $types = '';
+        $where  = '';
+        $types  = '';
         $params = [];
 
         if ($filterUserId !== null && $filterUserId !== '') {
-            $where = "WHERE wt.user_id = ?";
-            $types = 'i';
+            $where    = "WHERE wt.user_id = ?";
+            $types    = 'i';
             $params[] = (int)$filterUserId;
         }
 
-        $sql = "SELECT wt.id, wt.user_id, u.first_name, u.last_name, u.email, wt.amount, wt.type, wt.reason, wt.created_at
+        $sql = "SELECT wt.id, wt.user_id, u.first_name, u.last_name, u.email,
+                       wt.amount, wt.type, wt.reason, wt.created_at
                 FROM WalletTransactions wt
                 INNER JOIN Users u ON u.id = wt.user_id
                 $where
@@ -226,12 +245,11 @@ class Wallet {
 
         $rows = [];
         while ($r = $res->fetch_assoc()) {
-            $r['id'] = (int)$r['id'];
+            $r['id']      = (int)$r['id'];
             $r['user_id'] = (int)$r['user_id'];
-            $r['amount'] = (int)$r['amount'];
-            $rows[] = $r;
+            $r['amount']  = (int)$r['amount'];
+            $rows[]       = $r;
         }
         return $rows;
     }
 }
-

@@ -132,6 +132,17 @@ class Membership {
             if ($active) {
                 $extendExistingId = (int)$active['id'];
                 $baseEndSql = "GREATEST(ends_at, NOW())";
+
+                $currentPlanId = (int)($active['plan_id'] ?? 0);
+                $currentPrice = (int)($active['price'] ?? 0);
+                if ($currentPlanId === $planId) {
+                    $this->db->rollback();
+                    return ['success' => false, 'message' => 'You already have this membership active'];
+                }
+                if ($price < $currentPrice) {
+                    $this->db->rollback();
+                    return ['success' => false, 'message' => 'Downgrading membership is not allowed'];
+                }
             }
 
             // Wallet debit (inside same DB transaction).

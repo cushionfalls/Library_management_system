@@ -22,3 +22,26 @@ Stack trace:
 #0 C:\xampp\htdocs\Library_management_system\setup.php(45): mysqli->query('CREATE TABLE `U...')
 #1 {main}
   thrown in C:\xampp\htdocs\Library_management_system\setup.php on line 45
+[03-May-2026 03:29:03 Europe/Berlin] PHP Warning:  mysqli::__construct(): Error while reading greeting packet. PID=10088 in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:29:03 Europe/Berlin] PHP Warning:  mysqli::__construct(): Error while reading greeting packet. PID=10088 in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:29:03 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2006): MySQL server has gone away in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:29:03 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2006): MySQL server has gone away in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:30:06 Europe/Berlin] PHP Warning:  mysqli::__construct(): Error while reading greeting packet. PID=10088 in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:30:06 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2006): MySQL server has gone away in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:40:24 Europe/Berlin] PHP Warning:  mysqli::__construct(): Error while reading greeting packet. PID=14988 in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:40:24 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2006): MySQL server has gone away in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:40:24 Europe/Berlin] PHP Fatal error:  Maximum execution time of 120 seconds exceeded in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:49:42 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2002): No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:50:39 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2002): No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 03:51:49 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/2002): No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 04:26:46 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown database 'final' in C:\xampp\htdocs\Library_management_system\classes\Database.php:20
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\classes\Database.php(20): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'final', 3306)
+#1 C:\xampp\htdocs\Library_management_system\classes\Database.php(9): Database->connect()
+#2 C:\xampp\htdocs\Library_management_system\classes\Database.php(14): Database->__construct()
+#3 C:\xampp\htdocs\Library_management_system\classes\Session.php(9): Database::getInstance()
+#4 C:\xampp\htdocs\Library_management_system\public\index.php(6): Session->__construct()
+#5 C:\xampp\htdocs\Library_management_system\index.php(2): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[03-May-2026 05:11:51 Europe/Berlin] PHP Warning:  Undefined array key "online_buy_price" in C:\xampp\htdocs\Library_management_system\classes\BrowseCatalog.php on line 319

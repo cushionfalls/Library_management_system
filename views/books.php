@@ -95,10 +95,6 @@ tailwind.config = {
             <option value="ALL">Genre: All Categories</option>
         </select>
 
-        <button id="browseAvailableToggle" type="button" class="flex items-center gap-3 bg-surface-container-low px-6 py-3 rounded-lg hover:bg-surface-container-high transition-colors">
-            <span class="text-sm font-semibold text-on-surface">Available Now</span>
-            <span id="browseAvailableSwitch" class="browse-switch is-on" aria-hidden="true"></span>
-        </button>
 
         <select id="browseSortSelect" class="bg-surface-container-low px-6 py-3 rounded-lg text-sm font-semibold text-on-surface border-none focus:ring-2 focus:ring-primary/40">
             <option value="recent">Recently Added</option>
@@ -158,26 +154,23 @@ tailwind.config = {
                     <p class="text-on-surface-variant leading-relaxed text-base md:text-lg" id="bookDetailSynopsis"></p>
                 </section>
 
-                <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-5 rounded-2xl bg-surface-container-high border border-transparent">
-                        <span class="material-symbols-outlined text-primary mb-3 block">calendar_today</span>
-                        <h4 class="font-bold mb-1">Rent</h4>
-                        <p class="text-xs text-on-surface-variant mb-4">Online rental access</p>
-                        <span class="text-primary font-bold" id="bookDetailRentPrice">N/A</span>
-                    </div>
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 rounded-2xl bg-primary-container text-on-primary shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined mb-3 block">shopping_bag</span>
-                        <h4 class="font-bold mb-1 text-white">Buy In-hand</h4>
-                        <p class="text-xs text-on-primary-container mb-4">Physical copy price</p>
-                        <span class="font-bold text-white" id="bookDetailBuyPrice">N/A</span>
+                        <h4 class="font-bold mb-1 text-white">Buy Online</h4>
+                        <p class="text-xs text-on-primary-container mb-4">Own this digital EPUB</p>
+                        <span class="font-bold text-white" id="bookDetailOnlinePrice">N/A</span>
+                        <button id="bookDetailBuyOnlineBtn" type="button" class="mt-4 w-full py-2.5 bg-white text-primary rounded-xl font-bold text-sm">Buy with Wallet</button>
                     </div>
                     <div class="p-5 rounded-2xl bg-surface-container-high border border-transparent">
-                        <span class="material-symbols-outlined text-primary mb-3 block">language</span>
-                        <h4 class="font-bold mb-1">Buy Online</h4>
-                        <p class="text-xs text-on-surface-variant mb-4">Digital copy</p>
-                        <span class="text-primary font-bold" id="bookDetailOnlinePrice">N/A</span>
+                        <span class="material-symbols-outlined text-primary mb-3 block">verified_user</span>
+                        <h4 class="font-bold mb-1">Use Membership</h4>
+                        <p class="text-xs text-on-surface-variant mb-4">Add to My Books with active membership</p>
+                        <button id="bookDetailMembershipAccessBtn" type="button" class="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-sm">Grant Access</button>
+                        <a href="<?php echo APP_ROUTE; ?>?page=membership" class="mt-3 inline-block text-xs text-primary font-semibold hover:underline">Manage membership</a>
                     </div>
                 </section>
+                <p class="text-xs text-on-surface-variant -mt-6">Purchased or membership books can be read in-browser via EPUB reader from My Books. Downloads are disabled.</p>
 
                 <section>
                     <div class="flex justify-between items-center mb-5">
@@ -190,13 +183,14 @@ tailwind.config = {
                         <input type="hidden" id="bookReviewId" name="review_id" value="" />
                         <div class="flex items-center gap-4 mb-4">
                             <span class="text-sm font-medium text-on-surface text-left">Your Rating:</span>
-                            <select id="bookReviewRating" name="rating" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-sm">
-                                <option value="5">5 Stars</option>
-                                <option value="4">4 Stars</option>
-                                <option value="3">3 Stars</option>
-                                <option value="2">2 Stars</option>
-                                <option value="1">1 Star</option>
-                            </select>
+                            <div class="flex items-center gap-1 cursor-pointer" id="bookReviewStars">
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="1">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="2">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="3">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="4">star</span>
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;" data-rating="5">star</span>
+                            </div>
+                            <input type="hidden" id="bookReviewRating" name="rating" value="5" />
                         </div>
                         <textarea id="bookReviewText" name="review" class="w-full bg-surface-container-low border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 h-24 resize-none mb-4" placeholder="Share your thoughts on this title..."></textarea>
                         <button id="bookReviewCancelEdit" class="w-full py-3 mb-3 border border-outline-variant text-on-surface font-bold rounded-xl text-sm transition-all hover:bg-surface-container-low hidden" type="button">
@@ -219,5 +213,6 @@ window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
 window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
 window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
 window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
+window.MY_BOOKS_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=my-books';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/books.js"></script>

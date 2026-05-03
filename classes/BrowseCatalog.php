@@ -15,16 +15,11 @@ class BrowseCatalog {
         $perPage = max(1, min(24, (int)($params['per_page'] ?? 12)));
         $search = trim((string)($params['search'] ?? ''));
         $genre = strtoupper(trim((string)($params['genre'] ?? '')));
-        $availableOnly = (int)($params['available_only'] ?? 1) === 1;
         $sort = trim((string)($params['sort'] ?? 'recent'));
 
         $where = [];
         $bindTypes = '';
         $bindValues = [];
-
-        if ($availableOnly) {
-            $where[] = 'b.number_of_copies > 0';
-        }
 
         if ($search !== '') {
             $where[] = '(b.name LIKE ? OR b.publisher LIKE ? OR b.isbn LIKE ? OR EXISTS (
@@ -76,6 +71,7 @@ class BrowseCatalog {
                 b.language,
                 b.number_of_copies,
                 b.price,
+                b.online_buy_price,
                 b.cover_image,
                 b.created_at,
                 COALESCE(ROUND(AVG(br.rating), 1), 0) AS rating,
@@ -320,6 +316,7 @@ class BrowseCatalog {
             'language' => (string)($row['language'] ?? 'English'),
             'number_of_copies' => (int)($row['number_of_copies'] ?? 0),
             'price' => (int)($row['price'] ?? 0),
+            'online_buy_price' => $row['online_buy_price'] !== null ? (int)$row['online_buy_price'] : null,
             'cover_image_url' => $cover,
             'rating' => (float)($row['rating'] ?? 0),
             'authors' => (string)($row['authors'] ?? ''),

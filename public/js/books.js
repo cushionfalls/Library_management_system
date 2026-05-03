@@ -4,7 +4,6 @@
         perPage: 12,
         search: '',
         genre: 'ALL',
-        availableOnly: true,
         sort: 'recent',
         view: 'grid',
         totalPages: 1,
@@ -23,11 +22,8 @@
             .replaceAll("'", '&#039;');
     }
 
-    function formatCurrency(value) {
-        if (value == null || value === '') return 'N/A';
-        const amount = Number(value || 0);
-        return '₹' + new Intl.NumberFormat('en-IN').format(amount);
-    }
+    // We use the global formatUsdFromCents(cents) from main.js
+    // which correctly divides by 100 and formats as USD.
 
     function formatDate(value) {
         if (!value) return '';
@@ -60,7 +56,6 @@
                 per_page: state.perPage,
                 search: state.search,
                 genre: state.genre,
-                available_only: state.availableOnly ? 1 : 0,
                 sort: state.sort
             }), { cache: 'no-store' });
 
@@ -108,8 +103,8 @@
         grid.innerHTML = items.map((book) => {
             const cover = esc(book.cover_image_url || fallbackCover());
             return `
-                <article class="group flex flex-col cursor-pointer">
-                    <div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-5 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(56,0,191,0.15)]">
+                <article class="group flex flex-col cursor-pointer" data-book-id="${book.id}">
+                    <div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-5 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(56,0,191,0.15)]" data-book-id="${book.id}">
                         <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" />
                         <div class="absolute top-4 left-4">
                             <span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full uppercase tracking-widest backdrop-blur-md bg-opacity-80">${esc(book.genre_label)}</span>
@@ -118,11 +113,10 @@
                     <div class="flex items-center gap-1 mb-2">
                         <span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings:'FILL' 1;">star</span>
                         <span class="text-sm font-bold text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
-                        <span class="text-xs text-on-surface-variant ml-auto">${book.number_of_copies > 0 ? 'Available' : 'Out of stock'}</span>
                     </div>
-                    <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors">${esc(book.name)}</h3>
+                    <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors" data-book-id="${book.id}">${esc(book.name)}</h3>
                     <p class="text-sm text-on-surface-variant font-medium mb-2">${esc(book.author_display)}</p>
-                    <p class="text-sm font-semibold text-primary mb-4">${formatCurrency(book.price)}</p>
+                    <p class="text-sm font-semibold text-primary mb-4">${formatUsdFromCents(book.price > 0 ? book.price : (book.online_buy_price || 0))}</p>
                     <a class="text-primary text-sm font-bold hover:underline decoration-2 underline-offset-4 inline-flex items-center gap-1" href="${window.BROWSE_PAGE_URL}&book=${encodeURIComponent(book.id)}" data-book-id="${book.id}">
                         View Details <span class="material-symbols-outlined text-xs">arrow_forward</span>
                     </a>
@@ -148,13 +142,12 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-lg font-bold text-on-surface">${esc(book.name)}</h3>
-                            <span class="text-primary font-bold whitespace-nowrap">${formatCurrency(book.price)}</span>
+                            <span class="text-primary font-bold whitespace-nowrap">${formatUsdFromCents(book.price > 0 ? book.price : (book.online_buy_price || 0))}</span>
                         </div>
                         <p class="text-sm text-on-surface-variant mt-1">${esc(book.author_display)} • ${esc(book.genre_label)}</p>
                         <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">${esc(book.description || 'No description available.')}</p>
                         <div class="flex items-center gap-4 mt-3 text-xs text-on-surface-variant">
                             <span>Rating: ${esc(Number(book.rating || 0).toFixed(1))}</span>
-                            <span>Copies: ${esc(book.number_of_copies)}</span>
                         </div>
                     </div>
                     <div class="sm:self-center">
@@ -258,12 +251,42 @@
             const publisherValue = String(book.publisher_display || book.publisher || catalogItem.publisher_display || catalogItem.publisher || '').trim();
             document.getElementById('bookDetailPublisher').textContent = 'Publisher: ' + (publisherValue || 'Unknown Publisher');
             document.getElementById('bookDetailSynopsis').textContent = book.synopsis || 'No synopsis available.';
-            document.getElementById('bookDetailRentPrice').textContent = formatCurrency(book.online_rent_price);
-            document.getElementById('bookDetailBuyPrice').textContent = formatCurrency(book.price);
-            document.getElementById('bookDetailOnlinePrice').textContent = formatCurrency(book.online_buy_price);
+            document.getElementById('bookDetailOnlinePrice').textContent = formatUsdFromCents(book.online_buy_price);
             document.getElementById('bookDetailReviewsCount').textContent = (book.total_reviews || 0) + ' reviews';
             document.getElementById('bookReviewBookId').value = String(book.id || '');
             state.currentBookId = Number(book.id || 0);
+            const buyBtn = document.getElementById('bookDetailBuyOnlineBtn');
+            const membershipBtn = document.getElementById('bookDetailMembershipAccessBtn');
+            const accessType = String(book.user_access && book.user_access.access_type ? book.user_access.access_type : '').toUpperCase();
+            const alreadyOwned = accessType === 'OWNED';
+            const alreadyMembership = accessType === 'MEMBERSHIP';
+            if (buyBtn) {
+                if (alreadyOwned) {
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = 'Go to My Books';
+                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    buyBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
+                } else {
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = 'Buy with Wallet';
+                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    buyBtn.onclick = null; // will be handled by default listener
+                }
+            }
+            if (membershipBtn) {
+                const alreadyHasAccess = alreadyOwned || alreadyMembership;
+                if (alreadyHasAccess) {
+                    membershipBtn.disabled = false;
+                    membershipBtn.textContent = 'Go to My Books';
+                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    membershipBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
+                } else {
+                    membershipBtn.disabled = false;
+                    membershipBtn.textContent = 'Grant Access';
+                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    membershipBtn.onclick = null; // will be handled by default listener
+                }
+            }
 
             renderReviews(book.reviews || []);
             configureReviewForm();
@@ -291,7 +314,7 @@
                 const fill = i < Number(review.rating || 0) ? "style=\"font-variation-settings:'FILL' 1;\"" : '';
                 return `<span class="material-symbols-outlined text-xs text-primary" ${fill}>star</span>`;
             }).join('');
-            const avatar = esc(review.profile_image_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80');
+            const avatar = esc(review.profile_image_url || 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
             const ownerActions = ownReview
                 ? `<div class="mt-3 flex gap-3">
                         <button type="button" class="text-xs font-semibold text-primary hover:underline" data-review-action="edit" data-review-id="${esc(review.id)}" data-review-rating="${esc(review.rating)}" data-review-text="${esc(review.review || '')}">Edit</button>
@@ -346,10 +369,56 @@
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
 
         if (reviewIdInput) reviewIdInput.value = '';
-        if (ratingInput) ratingInput.value = '5';
+        if (ratingInput) {
+            ratingInput.value = '5';
+            updateReviewStars(5);
+        }
         if (textInput) textInput.value = '';
         if (submitBtn) submitBtn.textContent = 'Submit Review';
         if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+    }
+
+    function updateReviewStars(val) {
+        const starContainer = document.getElementById('bookReviewStars');
+        if (!starContainer) return;
+        const stars = starContainer.querySelectorAll('[data-rating]');
+        stars.forEach(star => {
+            const r = Number(star.getAttribute('data-rating'));
+            if (r <= val) {
+                star.style.fontVariationSettings = "'FILL' 1";
+                star.classList.remove('text-outline');
+                star.classList.add('text-primary');
+            } else {
+                star.style.fontVariationSettings = "'FILL' 0";
+                star.classList.remove('text-primary');
+                star.classList.add('text-outline');
+            }
+        });
+    }
+
+    function initReviewStars() {
+        const starContainer = document.getElementById('bookReviewStars');
+        const ratingInput = document.getElementById('bookReviewRating');
+        if (!starContainer || !ratingInput) return;
+
+        let currentRating = Number(ratingInput.value) || 5;
+        updateReviewStars(currentRating);
+
+        const stars = starContainer.querySelectorAll('[data-rating]');
+        stars.forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                updateReviewStars(Number(star.getAttribute('data-rating')));
+            });
+            star.addEventListener('click', () => {
+                currentRating = Number(star.getAttribute('data-rating'));
+                ratingInput.value = currentRating;
+                updateReviewStars(currentRating);
+            });
+        });
+
+        starContainer.addEventListener('mouseleave', () => {
+            updateReviewStars(currentRating);
+        });
     }
 
     async function submitReview(event) {
@@ -409,8 +478,6 @@
         const searchInput = document.getElementById('browseSearchInput');
         const genreSelect = document.getElementById('browseGenreSelect');
         const sortSelect = document.getElementById('browseSortSelect');
-        const availableBtn = document.getElementById('browseAvailableToggle');
-        const availableSwitch = document.getElementById('browseAvailableSwitch');
         const gridBtn = document.getElementById('browseGridBtn');
         const listBtn = document.getElementById('browseListBtn');
         const closeBtn = document.getElementById('bookDetailCloseBtn');
@@ -428,27 +495,53 @@
 
         if (genreSelect) genreSelect.addEventListener('change', () => { state.genre = genreSelect.value || 'ALL'; state.page = 1; loadCatalog(); });
         if (sortSelect) sortSelect.addEventListener('change', () => { state.sort = sortSelect.value || 'recent'; state.page = 1; loadCatalog(); });
-        if (availableBtn && availableSwitch) {
-            availableBtn.addEventListener('click', () => {
-                state.availableOnly = !state.availableOnly;
-                availableSwitch.classList.toggle('is-on', state.availableOnly);
-                state.page = 1;
-                loadCatalog();
-            });
-        }
         if (gridBtn) gridBtn.addEventListener('click', () => { state.view = 'grid'; applyView(); });
         if (listBtn) listBtn.addEventListener('click', () => { state.view = 'list'; applyView(); });
         if (closeBtn) closeBtn.addEventListener('click', closeBookDetail);
         if (backdrop) backdrop.addEventListener('click', closeBookDetail);
         if (reviewForm) reviewForm.addEventListener('submit', submitReview);
+        const buyOnlineBtn = document.getElementById('bookDetailBuyOnlineBtn');
+        const membershipBtn = document.getElementById('bookDetailMembershipAccessBtn');
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
+        if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
+            if (buyOnlineBtn.textContent === 'Go to My Books') return;
+            if (!state.currentBookId) return;
+            const body = new URLSearchParams();
+            body.set('book_id', String(state.currentBookId));
+            const response = await fetch(apiUrl('purchase-online'), { method: 'POST', body });
+            const result = await response.json().catch(() => null);
+            if (!result || !result.success) {
+                window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
+                return;
+            }
+            window.showToast?.(result.message || 'Book purchased', 'success');
+            if (window.MY_BOOKS_PAGE_URL) {
+                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            }
+        });
+        if (membershipBtn) membershipBtn.addEventListener('click', async () => {
+            if (membershipBtn.textContent === 'Go to My Books') return;
+            if (!state.currentBookId) return;
+            const body = new URLSearchParams();
+            body.set('book_id', String(state.currentBookId));
+            const response = await fetch(apiUrl('unlock-with-membership'), { method: 'POST', body });
+            const result = await response.json().catch(() => null);
+            if (!result || !result.success) {
+                window.showToast?.((result && result.message) || 'Unable to grant access', 'error');
+                return;
+            }
+            window.showToast?.(result.message || 'Book added to your library', 'success');
+            if (window.MY_BOOKS_PAGE_URL) {
+                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            }
+        });
 
         document.addEventListener('click', (event) => {
-            const link = event.target.closest('a[data-book-id]');
-            if (!link) return;
+            const trigger = event.target.closest('[data-book-id]');
+            if (!trigger) return;
             event.preventDefault();
-            const bookId = Number(link.getAttribute('data-book-id') || 0);
+            const bookId = Number(trigger.getAttribute('data-book-id') || 0);
             if (bookId > 0) openBookDetail(bookId);
         });
 
@@ -468,7 +561,10 @@
                     const submitBtn = document.querySelector('#bookReviewForm button[type="submit"]');
                     const cancelEditBtnInner = document.getElementById('bookReviewCancelEdit');
                     if (reviewIdInput) reviewIdInput.value = String(reviewId);
-                    if (ratingInput) ratingInput.value = String(btn.getAttribute('data-review-rating') || '5');
+                    if (ratingInput) {
+                        ratingInput.value = String(btn.getAttribute('data-review-rating') || '5');
+                        updateReviewStars(Number(ratingInput.value));
+                    }
                     if (textInput) {
                         textInput.value = String(btn.getAttribute('data-review-text') || '');
                         textInput.focus();
@@ -494,6 +590,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('browseCatalogGrid')) return;
         bindEvents();
+        initReviewStars();
         loadCatalog().then(openFromUrlIfAny);
     });
 })();

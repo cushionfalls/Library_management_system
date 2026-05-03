@@ -85,7 +85,7 @@ tailwind.config = {
                             <span class="text-primary font-bold" id="membershipCurrentPlan">Not Activated</span>
                         </p>
                         <p class="text-sm text-outline mt-1" id="membershipNextBilling">Activate a plan to unlock benefits.</p>
-                        <p class="text-sm text-outline mt-1">Wallet balance: <span class="font-bold text-on-surface" id="membershipWalletBalance">₹0</span></p>
+                        <p class="text-sm text-outline mt-1">Wallet balance: <span class="font-bold text-on-surface" id="membershipWalletBalance">$0.00</span></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -141,6 +141,18 @@ tailwind.config = {
         </div>
         <div class="flex justify-end gap-2 pt-5">
             <button type="button" class="btn btn-ghost" onclick="document.getElementById('membershipHistoryModal').close()">Close</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<dialog id="membershipConfirmModal" class="modal">
+    <div class="modal-box max-w-sm bg-white">
+        <h3 class="font-bold text-lg mb-2">Confirm Purchase</h3>
+        <p class="text-sm text-on-surface-variant mb-6" id="membershipConfirmText">Are you sure you want to purchase this membership?</p>
+        <div class="flex justify-end gap-3">
+            <button type="button" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" onclick="document.getElementById('membershipConfirmModal').close()">Cancel</button>
+            <button type="button" id="membershipConfirmBtn" class="px-4 py-2 text-sm font-semibold bg-primary text-white hover:opacity-90 rounded-lg transition-opacity">Confirm</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop"><button>close</button></form>

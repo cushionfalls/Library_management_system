@@ -60,8 +60,6 @@ class ProfileManager {
             $queries = [
                 ["DELETE FROM WalletTransactions WHERE user_id = ?", 'i', $userId],
                 ["DELETE FROM BookReviews WHERE user_id = ?", 'i', $userId],
-                ["DELETE FROM Fines WHERE user_id = ?", 'i', $userId],
-                ["DELETE FROM Fines WHERE book_transaction_id IN (SELECT id FROM BookTransactions WHERE user_id = ?)", 'i', $userId],
                 ["DELETE FROM BookTransactions WHERE user_id = ?", 'i', $userId],
                 ["DELETE FROM Sessions WHERE user_id = ?", 'i', $userId]
             ];

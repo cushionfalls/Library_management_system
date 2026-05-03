@@ -13,7 +13,7 @@ if (isset($_GET['page']) && $_GET['page'] !== '') {
 }
 
 // Check authentication for protected routes
-$protected_pages = ['dashboard', 'books', 'wallet', 'membership', 'fines', 'profile', 'my-books', 'book-detail', 'admin'];
+$protected_pages = ['dashboard', 'books', 'wallet', 'membership', 'profile', 'my-books', 'book-detail', 'admin'];
 
 if (in_array($current_page, $protected_pages)) {
     if (!$session->isLoggedIn()) {
@@ -53,40 +53,18 @@ if (!function_exists('nav_profile_image_url')) {
 
 if (!function_exists('nav_user_initials_svg')) {
     function nav_user_initials_svg($navUser, $sessionName) {
-        $a = '';
-        $b = '';
-        if ($navUser) {
-            $a = mb_strtoupper(mb_substr(trim((string)($navUser['first_name'] ?? '')), 0, 1));
-            $b = mb_strtoupper(mb_substr(trim((string)($navUser['last_name'] ?? '')), 0, 1));
-        }
-        $initials = $a . $b;
-        if ($initials === '') {
-            $name = trim((string)($sessionName ?? 'User'));
-            $parts = preg_split('/\s+/u', $name, 3, PREG_SPLIT_NO_EMPTY);
-            if (count($parts) >= 2) {
-                $initials = mb_strtoupper(mb_substr($parts[0], 0, 1)) . mb_strtoupper(mb_substr($parts[1], 0, 1));
-            } else {
-                $initials = mb_strtoupper(mb_substr($name, 0, 2));
-            }
-        }
-        if (mb_strlen($initials) < 1) {
-            $initials = 'U';
-        }
-        $esc = htmlspecialchars(mb_substr($initials, 0, 2), ENT_QUOTES, 'UTF-8');
         $fill = '#4F1BF1';
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" class="rounded-full shrink-0 shadow-sm" role="img" aria-label="Profile"><circle cx="18" cy="18" r="18" fill="' . $fill . '"/><text x="18" y="22" text-anchor="middle" fill="#ffffff" font-family="Manrope, system-ui, sans-serif" font-size="11" font-weight="700">' . $esc . '</text></svg>';
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" class="rounded-full shrink-0 shadow-sm bg-[#ece5fa] text-[#4f1bf1]" role="img" aria-label="Profile"><path fill="currentColor" d="M18 19.5c3.04 0 5.5-2.46 5.5-5.5s-2.46-5.5-5.5-5.5-5.5 2.46-5.5 5.5 2.46 5.5 5.5 5.5zM18 22c-3.67 0-11 1.84-11 5.5V29h22v-1.5c0-3.66-7.33-5.5-11-5.5z"/></svg>';
     }
 }
 
-$admin_nav_pages = ['admin', 'manage-books', 'manage-authors', 'manage-users', 'transactions', 'overdue-books'];
 $navActive = [
     'dashboard' => $current_page === 'dashboard',
     'books' => $current_page === 'books',
     'my-books' => $current_page === 'my-books',
     'wallet' => $current_page === 'wallet',
     'membership' => $current_page === 'membership',
-    'fines' => $current_page === 'fines',
-    'admin' => in_array($current_page, $admin_nav_pages, true),
+    'admin' => in_array($current_page, $admin_pages, true),
 ];
 ?>
 <!DOCTYPE html>
@@ -144,26 +122,15 @@ $navActive = [
         .nav-lumina-link { font-family: 'Manrope', system-ui, sans-serif; }
     </style>
 </head>
-<body class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'fines' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
+<body class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
     <!-- Navigation -->
     <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <div class="flex items-center gap-4 lg:gap-10 flex-1 min-w-0">
-                <a href="<?php echo APP_ROUTE; ?>" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
+                <a href="<?php echo APP_ROUTE; ?>?page=dashboard" class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[#4F1BF1] text-2xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
                     <span class="text-lg font-bold tracking-tight font-['Manrope'] hidden sm:inline"><?php echo htmlspecialchars(APP_NAME); ?></span>
                 </a>
-                <div class="relative flex-1 max-w-md min-w-0">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#787588]/60 text-[20px] pointer-events-none">search</span>
-                    <input
-                        type="text"
-                        id="navbarSearchInput"
-                        class="w-full pl-11 pr-4 py-2 bg-[#f7f1ff] rounded-lg border border-[#c9c4da]/50 focus:border-[#4F1BF1] focus:ring-4 focus:ring-[#4F1BF1]/10 transition-all text-sm placeholder:text-[#787588]/60 font-medium text-[#1c1a25]"
-                        placeholder="Search books..."
-                        autocomplete="off"
-                    />
-                    <div id="navbarSearchResults" class="hidden absolute left-0 right-0 mt-2 z-[60]"></div>
-                </div>
             </div>
 
             <?php if ($session->isLoggedIn()): ?>
@@ -181,7 +148,6 @@ $navActive = [
                     echo $lum(APP_ROUTE . '?page=my-books', 'My Books', $navActive['my-books']);
                     echo $lum(APP_ROUTE . '?page=wallet', 'Wallet', $navActive['wallet']);
                     echo $lum(APP_ROUTE . '?page=membership', 'Membership', $navActive['membership']);
-                    echo $lum(APP_ROUTE . '?page=fines', 'Fines', $navActive['fines']);
                     if ($session->isAdmin() || $session->isLibrarian()) {
                         echo $lum(APP_ROUTE . '?page=admin', 'Admin', $navActive['admin']);
                     }
@@ -197,7 +163,6 @@ $navActive = [
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=my-books">My Books</a></li>
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=wallet">Wallet</a></li>
                             <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=membership">Membership</a></li>
-                            <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=fines">Fines</a></li>
                             <?php if ($session->isAdmin() || $session->isLibrarian()): ?>
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin">Admin</a></li>
                             <?php endif; ?>

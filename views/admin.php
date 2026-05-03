@@ -14,20 +14,12 @@
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminTotalBooks">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
-            <p class="text-sm font-semibold text-[#474557] mb-1">Overdue Books</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminOverdueBooks">0</h3>
-        </div>
-        <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
-            <p class="text-sm font-semibold text-[#474557] mb-1">Unpaid Fines</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminPendingFines">0</h3>
-        </div>
-        <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Active Rentals</p>
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminActiveRentals">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Total Income</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminWalletCreditsToday">₹0</h3>
+            <h3 class="text-3xl font-black text-[#3800bf]" id="adminWalletCreditsToday">$0.00</h3>
         </div>
     </section>
 
@@ -35,7 +27,6 @@
         <button class="admin-tab-btn px-8 py-2.5 rounded-full bg-[#3800bf] text-white text-sm font-semibold shadow-lg shadow-[#3800bf]/20" data-tab="books">Books</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="users">Users</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="transactions">Transactions</button>
-        <button class="admin-tab-btn px-8 py-2.5 rounded-full text-[#474557] text-sm font-semibold hover:bg-[#e5e0f0] transition-colors" data-tab="overdue">Overdue</button>
     </section>
 
     <?php require __DIR__ . '/partials/admin_search_bar.php'; ?>
@@ -102,10 +93,24 @@
     </section>
 
     <section id="adminSectionTransactions" class="admin-tab-panel hidden bg-white rounded-2xl shadow-xl shadow-[#5a30fb]/5 p-8 border border-[#c9c4da]/20">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Transactions</h2>
-            <p class="text-[#474557]">Review activity, due dates, and payment details.</p>
-        </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Transactions</h2>
+                    <p class="text-[#474557]">Review activity, due dates, and payment details.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-[#f1ebfb] p-1 rounded-xl flex items-center gap-1">
+                        <button class="admin-tx-filter-btn px-4 py-2 rounded-lg bg-[#3800bf] text-white text-xs font-bold transition-all" data-filter="all">All</button>
+                        <button class="admin-tx-filter-btn px-4 py-2 rounded-lg text-[#474557] text-xs font-bold hover:bg-[#e5e0f0] transition-all" data-filter="BOOK_BUY">Purchased</button>
+                        <button class="admin-tx-filter-btn px-4 py-2 rounded-lg text-[#474557] text-xs font-bold hover:bg-[#e5e0f0] transition-all" data-filter="MEMBERSHIP">Membership</button>
+                        <button class="admin-tx-filter-btn px-4 py-2 rounded-lg text-[#474557] text-xs font-bold hover:bg-[#e5e0f0] transition-all" data-filter="TOP_UP">Top Up</button>
+                    </div>
+                    <button class="bg-[#3800bf] hover:bg-[#4f1bf1] text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 text-sm" id="adminExportTransactionsBtn">
+                        <span class="material-symbols-outlined text-[18px]">download</span>
+                        Export CSV
+                    </button>
+                </div>
+            </div>
         <div class="overflow-x-auto">
             <table class="w-full border-collapse">
                 <thead>
@@ -114,8 +119,6 @@
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">User</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Type</th>
                         <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Amount</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Due Date</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Status</th>
                     </tr>
                 </thead>
                 <tbody id="adminTransactionsBody" class="divide-y divide-[#c9c4da]/20">
@@ -125,27 +128,6 @@
         </div>
     </section>
 
-    <section id="adminSectionOverdue" class="admin-tab-panel hidden bg-white rounded-2xl shadow-xl shadow-[#5a30fb]/5 p-8 border border-[#c9c4da]/20">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Overdue books</h2>
-            <p class="text-[#474557]">Track books that have crossed due dates.</p>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="text-left border-b border-[#c9c4da]/30">
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Book</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">User</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Due Date</th>
-                        <th class="pb-4 pt-0 font-bold text-[#474557] uppercase text-xs tracking-wider px-4">Rented On</th>
-                    </tr>
-                </thead>
-                <tbody id="adminOverdueBody" class="divide-y divide-[#c9c4da]/20">
-                    <tr><td colspan="4" class="px-4 py-6 text-center text-[#474557]">Loading overdue books...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
 </div>
 
 <dialog id="adminBookModal" class="modal">
@@ -182,13 +164,13 @@
                         </section>
 
                         <section class="space-y-4">
-                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy PDF</label>
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy EPUB</label>
                             <div class="p-6 bg-[#f7f1ff] rounded-xl border border-[#d7d2e7] flex flex-col items-center text-center">
-                                <span class="material-symbols-outlined text-3xl text-[#575d7c] mb-3">picture_as_pdf</span>
+                                <span class="material-symbols-outlined text-3xl text-[#575d7c] mb-3">menu_book</span>
                                 <span class="text-sm font-medium text-[#1c1a25] mb-4" id="adminBookPdfFilename">No file selected</span>
                                 <label class="w-full py-2.5 px-4 bg-[#ebe6f5] text-[#3800bf] font-semibold rounded-lg hover:bg-[#e5e0f0] transition-colors text-sm cursor-pointer">
                                     Choose File
-                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".pdf" />
+                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub,.pdf" />
                                 </label>
                             </div>
                         </section>
@@ -254,23 +236,11 @@
                             </div>
 
                             <div class="pt-4 border-t border-[#ece8f7]">
-                                <h3 class="text-sm font-semibold text-[#3800bf] uppercase tracking-widest mb-4">Inventory &amp; Pricing</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <h3 class="text-sm font-semibold text-[#3800bf] uppercase tracking-widest mb-4">Pricing</h3>
+                                <div class="grid grid-cols-1 gap-4">
                                     <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Copies</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookCopies" name="number_of_copies" min="0" type="number" value="1"/>
-                                    </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Price (NPR)</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookPrice" name="price" min="0" placeholder="0" type="number" value="0"/>
-                                    </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Rent (NPR)</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineRentPrice" name="online_rent_price" min="0" placeholder="0" type="number"/>
-                                    </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-xs font-bold text-[#595c5d]">Buy (NPR)</label>
-                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineBuyPrice" name="online_buy_price" min="0" placeholder="0" type="number"/>
+                                        <label class="text-xs font-bold text-[#595c5d]">Buy Online (USD)</label>
+                                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminBookOnlineBuyPrice" name="online_buy_price" min="0" step="0.01" placeholder="0.00" type="number"/>
                                     </div>
                                 </div>
                             </div>

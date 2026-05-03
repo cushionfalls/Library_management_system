@@ -5,14 +5,17 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../classes/BrowseCatalog.php';
+require_once __DIR__ . '/../classes/DigitalLibrary.php';
 require_once __DIR__ . '/../classes/Session.php';
 
 class BooksController {
     private $catalog;
+    private $library;
     private $session;
 
     public function __construct() {
         $this->catalog = new BrowseCatalog();
+        $this->library = new DigitalLibrary();
         $this->session = new Session();
     }
 
@@ -26,7 +29,6 @@ class BooksController {
                         'per_page' => $_GET['per_page'] ?? 12,
                         'search' => $_GET['search'] ?? '',
                         'genre' => $_GET['genre'] ?? 'ALL',
-                        'available_only' => $_GET['available_only'] ?? 1,
                         'sort' => $_GET['sort'] ?? 'recent'
                     ])
                 ];
@@ -44,6 +46,12 @@ class BooksController {
                 $book = $this->catalog->getBookDetail($_GET['book_id'] ?? 0);
                 if (!$book) {
                     return ['success' => false, 'message' => 'Book not found'];
+                }
+                if ($this->session->isLoggedIn()) {
+                    $access = $this->library->getAccessForUserBook($this->session->getUserId(), (int)$book['id']);
+                    $book['user_access'] = $access;
+                } else {
+                    $book['user_access'] = null;
                 }
                 return ['success' => true, 'data' => $book];
 
@@ -86,6 +94,66 @@ class BooksController {
                     $_POST['review_id'] ?? 0,
                     $this->session->getUserId()
                 );
+
+            case 'purchase-online':
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    return ['success' => false, 'message' => 'Invalid request method'];
+                }
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login to buy books'];
+                }
+                return $this->library->purchaseOnlineBook(
+                    $this->session->getUserId(),
+                    $_POST['book_id'] ?? 0
+                );
+
+            case 'unlock-with-membership':
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    return ['success' => false, 'message' => 'Invalid request method'];
+                }
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login to use membership access'];
+                }
+                return $this->library->unlockWithMembership(
+                    $this->session->getUserId(),
+                    $_POST['book_id'] ?? 0
+                );
+
+            case 'my-books':
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login first'];
+                }
+                return [
+                    'success' => true,
+                    'books' => $this->library->getMyBooks($this->session->getUserId())
+                ];
+
+            case 'save-progress':
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    return ['success' => false, 'message' => 'Invalid request method'];
+                }
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login first'];
+                }
+                return $this->library->saveProgress(
+                    $this->session->getUserId(),
+                    $_POST['book_id'] ?? 0,
+                    $_POST['progress_percent'] ?? 0,
+                    $_POST['current_location'] ?? ''
+                );
+
+            case 'reader-state':
+                if (!$this->session->isLoggedIn()) {
+                    return ['success' => false, 'message' => 'Please login first'];
+                }
+                $state = $this->library->getReaderState(
+                    $this->session->getUserId(),
+                    $_GET['book_id'] ?? 0
+                );
+                if ($state === null) {
+                    return ['success' => false, 'message' => 'Access denied'];
+                }
+                return ['success' => true, 'state' => $state];
 
             default:
                 return ['error' => 'Invalid action'];

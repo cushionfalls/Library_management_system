@@ -176,14 +176,6 @@ class User {
             $stmt->bind_param('i', $id);
             $stmt->execute();
 
-            $stmt = $this->db->prepare("DELETE FROM Fines WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Fines WHERE book_transaction_id IN (SELECT id FROM BookTransactions WHERE user_id = ?)");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
             $stmt = $this->db->prepare("DELETE FROM BookTransactions WHERE user_id = ?");
             $stmt->bind_param('i', $id);
             $stmt->execute();
