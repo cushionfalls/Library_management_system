@@ -20,7 +20,7 @@ class AdminDashboard {
     public function getRecentUsers($limit = 8) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "SELECT id, first_name, last_name, email, role, is_active, created_at
+            "SELECT id, first_name, last_name, email, role, is_active, phone_number, dob, profile_image, created_at
              FROM Users
              ORDER BY created_at DESC
              LIMIT ?"
@@ -264,13 +264,16 @@ class AdminDashboard {
         return ['success' => true, 'message' => 'Book deleted successfully'];
     }
 
-    public function updateUser($id, $firstName, $lastName, $email, $role, $isActive) {
+    public function updateUser($id, $firstName, $lastName, $email, $role, $isActive, $phoneNumber = '', $dob = '', $profileImage = null) {
         $id = (int)$id;
         $firstName = trim((string)$firstName);
         $lastName = trim((string)$lastName);
         $email = trim((string)$email);
         $role = strtoupper(trim((string)$role));
         $isActive = (int)$isActive === 1 ? 1 : 0;
+        $phoneNumber = trim((string)$phoneNumber);
+        $dobNormalized = $this->normalizeOptionalDate($dob);
+        $profileImage = trim((string)$profileImage);
 
         if ($id <= 0) {
             return ['success' => false, 'message' => 'Invalid user id'];
@@ -296,10 +299,12 @@ class AdminDashboard {
 
         $stmt = $this->db->prepare(
             "UPDATE Users
-             SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, updated_at = NOW()
+             SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, phone_number = ?, dob = ?, profile_image = ?, updated_at = NOW()
              WHERE id = ?"
         );
-        $stmt->bind_param('ssssii', $firstName, $lastName, $email, $role, $isActive, $id);
+        $phoneOrNull = ($phoneNumber === '') ? null : $phoneNumber;
+        $profileImageOrNull = ($profileImage === '') ? null : $profileImage;
+        $stmt->bind_param('ssssisssi', $firstName, $lastName, $email, $role, $isActive, $phoneOrNull, $dobNormalized, $profileImageOrNull, $id);
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to update user'];
         }
@@ -311,13 +316,16 @@ class AdminDashboard {
         return ['success' => true, 'message' => 'User updated successfully'];
     }
 
-    public function createUser($firstName, $lastName, $email, $password, $role, $isActive) {
+    public function createUser($firstName, $lastName, $email, $password, $role, $isActive, $phoneNumber = '', $dob = '', $profileImage = null) {
         $firstName = trim((string)$firstName);
         $lastName = trim((string)$lastName);
         $email = trim((string)$email);
         $password = (string)$password;
         $role = strtoupper(trim((string)$role));
         $isActive = (int)$isActive === 1 ? 1 : 0;
+        $phoneNumber = trim((string)$phoneNumber);
+        $dobNormalized = $this->normalizeOptionalDate($dob);
+        $profileImage = trim((string)$profileImage);
 
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '') {
             return ['success' => false, 'message' => 'First name, last name, email and password are required'];
@@ -343,10 +351,12 @@ class AdminDashboard {
 
         $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $stmt = $this->db->prepare(
-            "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at)
-             VALUES (?, ?, ?, ?, ?, ?, 1, NOW())"
+            "INSERT INTO Users (first_name, last_name, email, password, role, is_active, phone_number, dob, profile_image, is_verified, verified_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())"
         );
-        $stmt->bind_param('sssssi', $firstName, $lastName, $email, $passwordHash, $role, $isActive);
+        $phoneOrNull = ($phoneNumber === '') ? null : $phoneNumber;
+        $profileImageOrNull = ($profileImage === '') ? null : $profileImage;
+        $stmt->bind_param('sssssisss', $firstName, $lastName, $email, $passwordHash, $role, $isActive, $phoneOrNull, $dobNormalized, $profileImageOrNull);
 
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to create user'];
@@ -497,6 +507,18 @@ class AdminDashboard {
         }
 
         return date('Y-m-d H:i:s', $time);
+    }
+
+    private function normalizeOptionalDate($value) {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return null;
+        }
+        $time = strtotime($value);
+        if ($time === false) {
+            return null;
+        }
+        return date('Y-m-d', $time);
     }
 
     private function syncBookAuthor($bookId, $authorFullName) {

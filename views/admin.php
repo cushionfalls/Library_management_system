@@ -263,12 +263,13 @@
 </dialog>
 
 <dialog id="adminUserModal" class="modal">
-    <div class="modal-box max-w-3xl p-0 bg-white border border-[#d7d2e7] shadow-2xl overflow-hidden">
-        <form id="adminUserForm" class="max-h-[88vh] flex flex-col">
+    <div class="modal-box max-w-6xl p-0 bg-white border border-[#d7d2e7] shadow-2xl overflow-hidden">
+        <form id="adminUserForm" class="max-h-[92vh] flex flex-col">
             <input type="hidden" id="adminUserId" name="id" />
-            <header class="flex justify-between items-center px-8 pt-7 pb-5 border-b border-[#ece8f7]">
+            <input type="hidden" id="adminUserExistingProfileImage" name="existing_profile_image" />
+            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7]">
                 <div>
-                    <h3 class="text-2xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
+                    <h3 class="text-3xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
                     <p class="text-[#595c5d] text-sm mt-1" id="adminUserModalSubtitle">Create a user account for this branch.</p>
                 </div>
                 <button type="button" id="adminUserCloseBtn" class="text-[#595c5d] hover:bg-[#f1ebfb] p-2 rounded-full transition-colors">
@@ -276,44 +277,76 @@
                 </button>
             </header>
 
-            <div class="flex-1 overflow-y-auto px-8 py-7 space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">First Name</label>
-                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserFirstName" name="first_name" required />
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Last Name</label>
-                        <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserLastName" name="last_name" required />
-                    </div>
-                </div>
+            <div class="flex-1 overflow-y-auto px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <aside class="lg:col-span-4 space-y-8">
+                        <section class="space-y-4">
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Profile Picture</label>
+                            <div class="group relative aspect-square w-full max-w-[320px] mx-auto bg-[#f1ebfb] rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-[#c9c4da] hover:border-[#5a30fb] transition-all">
+                                <img id="adminUserProfilePreview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Profile preview" />
+                                <div id="adminUserProfilePlaceholder" class="flex flex-col items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-[#3800bf] mb-2">account_circle</span>
+                                    <span class="text-sm font-medium text-[#3800bf]">Upload Photo</span>
+                                </div>
+                                <input class="absolute inset-0 opacity-0 cursor-pointer" id="adminUserProfileImage" name="profile_image" type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,image/*" />
+                            </div>
+                            <p class="text-xs text-[#595c5d] text-center">Supported: JPG, PNG, GIF, WEBP. Max 5MB.</p>
+                        </section>
+                    </aside>
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-bold text-[#1c1a25]">Email</label>
-                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserEmail" name="email" type="email" required />
-                </div>
+                    <main class="lg:col-span-8">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">First Name</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserFirstName" name="first_name" required />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Last Name</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserLastName" name="last_name" required />
+                                </div>
+                            </div>
 
-                <div id="adminUserPasswordBlock" class="space-y-1.5">
-                    <label class="text-sm font-bold text-[#1c1a25]">Password</label>
-                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserPassword" name="password" type="password" minlength="6" />
-                    <p class="text-xs text-[#595c5d]">Minimum 6 characters.</p>
-                </div>
+                            <div class="space-y-1.5">
+                                <label class="text-sm font-bold text-[#1c1a25]">Email</label>
+                                <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserEmail" name="email" type="email" required />
+                            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Role</label>
-                        <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserRole" name="role" required>
-                            <option value="USER">USER</option>
-                            <option value="LIBRARIAN">LIBRARIAN</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-bold text-[#1c1a25]">Status</label>
-                        <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserStatus" name="is_active" required>
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Phone Number</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserPhone" name="phone_number" type="tel" placeholder="98XXXXXXXX" />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Date of Birth</label>
+                                    <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserDob" name="dob" type="date" />
+                                </div>
+                            </div>
+
+                            <div id="adminUserPasswordBlock" class="space-y-1.5">
+                                <label class="text-sm font-bold text-[#1c1a25]">Password</label>
+                                <input class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserPassword" name="password" type="password" minlength="6" />
+                                <p class="text-xs text-[#595c5d]">Minimum 6 characters.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Role</label>
+                                    <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserRole" name="role" required>
+                                        <option value="USER">USER</option>
+                                        <option value="LIBRARIAN">LIBRARIAN</option>
+                                        <option value="ADMIN">ADMIN</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-[#1c1a25]">Status</label>
+                                    <select class="w-full bg-[#ebe6f5] border-none rounded-lg focus:ring-2 focus:ring-[#5a30fb]/40 text-sm py-3" id="adminUserStatus" name="is_active" required>
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
