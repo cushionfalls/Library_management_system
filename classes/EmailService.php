@@ -215,6 +215,48 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendBookPurchaseConfirmation($recipientEmail, $recipientName, $bookName, $amountPaidCents, $walletBalanceCents) {
+        $subject = 'Purchase Confirmation - ' . $bookName;
+        $amountPaid = '$' . number_format(((int)$amountPaidCents) / 100, 2);
+        $walletBalance = '$' . number_format(((int)$walletBalanceCents) / 100, 2);
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #1f8b4c; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+                .content { padding: 20px; background-color: #f9f9f9; margin-top: 10px; }
+                .details { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background: #fff; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Book Purchase Confirmed</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello " . htmlspecialchars($recipientName) . ",</p>
+                    <p>Your digital book purchase has been completed successfully.</p>
+                    <div class='details'>
+                        <p><strong>Book:</strong> " . htmlspecialchars($bookName) . "</p>
+                        <p><strong>Amount Paid:</strong> " . htmlspecialchars($amountPaid) . "</p>
+                        <p><strong>Wallet Balance:</strong> " . htmlspecialchars($walletBalance) . "</p>
+                    </div>
+                    <p>You can start reading the book now from your My Books section.</p>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . "</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     public function sendFineNotification($recipientEmail, $recipientName, $bookName, $fineAmount) {
         $subject = 'Fine Notification - Overdue Book: ' . $bookName;
 

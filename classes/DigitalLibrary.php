@@ -2,6 +2,7 @@
 require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Wallet.php';
 require_once __DIR__ . '/Membership.php';
+require_once __DIR__ . '/EmailService.php';
 
 class DigitalLibrary {
     private $db;
@@ -63,10 +64,12 @@ class DigitalLibrary {
 
             $this->db->commit();
             $wallet = new Wallet();
+            $walletBalance = $wallet->getBalance($userId);
+            $this->sendPurchaseNotification($userId, $book, $price, $walletBalance);
             return [
                 'success' => true,
                 'message' => 'Book purchased successfully',
-                'wallet_balance' => $wallet->getBalance($userId),
+                'wallet_balance' => $walletBalance,
             ];
         } catch (Exception $e) {
             $this->db->rollback();
@@ -216,8 +219,15 @@ class DigitalLibrary {
     }
 
     private function getBookForDigitalAccess($bookId) {
-        $stmt = $this->db->prepare("SELECT id, online_buy_price, online_copy_pdf FROM Books WHERE id = ? LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, name, online_buy_price, online_copy_pdf FROM Books WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $bookId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    private function getUserContact($userId) {
+        $stmt = $this->db->prepare("SELECT id, first_name, last_name, email FROM Users WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $userId);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
@@ -228,6 +238,33 @@ class DigitalLibrary {
         if (stripos($raw, 'http://') === 0 || stripos($raw, 'https://') === 0) return $raw;
         if ($raw[0] === '/') return APP_URL . $raw;
         return APP_URL . '/' . ltrim($raw, '/');
+    }
+
+    private function sendPurchaseNotification($userId, array $book, $amountPaidCents, $walletBalanceCents) {
+        $user = $this->getUserContact((int)$userId);
+        if (!$user || empty($user['email'])) {
+            return;
+        }
+
+        $recipientName = trim(((string)($user['first_name'] ?? '')) . ' ' . ((string)($user['last_name'] ?? '')));
+        if ($recipientName === '') {
+            $recipientName = (string)($user['first_name'] ?? 'Reader');
+        }
+
+        $bookName = (string)($book['name'] ?? 'Your Book');
+
+        try {
+            $emailService = new EmailService();
+            $emailService->sendBookPurchaseConfirmation(
+                (string)$user['email'],
+                $recipientName,
+                $bookName,
+                (int)$amountPaidCents,
+                (int)$walletBalanceCents
+            );
+        } catch (Exception $e) {
+            error_log('Purchase confirmation email failed: ' . $e->getMessage());
+        }
     }
 
     private function ensureSchema() {
