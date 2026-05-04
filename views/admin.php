@@ -68,7 +68,7 @@
                 <h2 class="text-2xl font-bold tracking-tight text-[#1c1a25] font-['Manrope']">Users</h2>
                 <p class="text-[#474557]">Manage users, roles, and account status.</p>
             </div>
-            <button class="bg-[#3800bf] hover:bg-[#4f1bf1] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 text-sm" id="adminAddUserBtn">
+            <button class="bg-[#3800bf] hover:bg-[#4f1bf1] text-white px-6 py-3 rounded-xl font-bold items-center gap-2 transition-all active:scale-95 text-sm <?php echo $session->isLibrarian() ? 'hidden' : 'flex'; ?>" id="adminAddUserBtn">
                 <span class="material-symbols-outlined text-[18px]">person_add</span>
                 Add User
             </button>
@@ -137,21 +137,21 @@
             <input type="hidden" id="adminBookExistingCoverImage" name="existing_cover_image" />
             <input type="hidden" id="adminBookExistingOnlinePdf" name="existing_online_copy_pdf" />
 
-            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7]">
+            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7] bg-white sticky top-0 z-20">
                 <div>
-                    <h3 class="text-3xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminBookModalTitle">Add New Entry</h3>
-                    
+                    <h3 class="text-2xl font-black tracking-tight text-[#3800bf] font-['Manrope']" id="adminBookModalTitle">Add New Entry</h3>
                 </div>
-                <button type="button" id="adminBookCloseBtn" class="text-[#595c5d] hover:bg-[#f1ebfb] p-2 rounded-full transition-colors">
-                    <span class="material-symbols-outlined text-3xl">close</span>
-                </button>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="adminBookCancelBtn" class="px-5 py-2 text-sm font-bold text-[#595c5d] hover:text-[#1c1a25] transition-colors">Cancel</button>
+                    <button type="submit" id="adminBookSaveBtn" class="px-7 py-2.5 bg-[#3800bf] text-white font-bold rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all text-sm">Save Book</button>
+                </div>
             </header>
 
             <div class="flex-1 overflow-y-auto px-8 py-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     <aside class="lg:col-span-4 space-y-8">
                         <section class="space-y-4">
-                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Cover Image</label>
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Cover Image <span class="text-[#3800bf] font-bold">*</span></label>
                             <div class="group relative aspect-[3/4] w-full bg-[#f1ebfb] rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-[#c9c4da] hover:border-[#5a30fb] transition-all">
                                 <img id="adminBookCoverPreview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Book cover preview" />
                                 <div id="adminBookCoverPlaceholder" class="flex flex-col items-center justify-center">
@@ -164,7 +164,7 @@
                         </section>
 
                         <section class="space-y-4">
-                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy EPUB</label>
+                            <label class="block text-sm font-semibold text-[#595c5d] uppercase tracking-wider">Online Copy EPUB <span class="text-[#3800bf] font-bold">*</span></label>
                             <div class="p-6 bg-[#f7f1ff] rounded-xl border border-[#d7d2e7] flex flex-col items-center text-center">
                                 <span class="material-symbols-outlined text-3xl text-[#575d7c] mb-3">menu_book</span>
                                 <span class="text-sm font-medium text-[#1c1a25] mb-4" id="adminBookPdfFilename">No file selected</span>
@@ -249,14 +249,7 @@
                 </div>
             </div>
 
-            <footer class="bg-[#f7f1ff] px-8 py-6 flex items-center justify-end gap-4 border-t border-[#ece8f7]">
-                <button class="px-6 py-3 text-sm font-bold text-[#595c5d] hover:text-[#1c1a25] transition-colors" type="button" id="adminBookCancelBtn">
-                    Cancel
-                </button>
-                <button class="px-10 py-3 bg-gradient-to-r from-[#3800bf] to-[#4f1bf1] text-white font-bold rounded-xl shadow-lg hover:shadow-[#5a30fb]/20 hover:scale-[1.02] active:scale-[0.98] transition-all" type="submit" id="adminBookSaveBtn">
-                    Add Book
-                </button>
-            </footer>
+
         </form>
     </div>
     <form method="dialog" class="modal-backdrop"><button aria-label="Close">close</button></form>
@@ -267,14 +260,15 @@
         <form id="adminUserForm" class="max-h-[92vh] flex flex-col">
             <input type="hidden" id="adminUserId" name="id" />
             <input type="hidden" id="adminUserExistingProfileImage" name="existing_profile_image" />
-            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7]">
+            <header class="flex justify-between items-center px-8 pt-8 pb-6 border-b border-[#ece8f7] bg-white sticky top-0 z-20">
                 <div>
-                    <h3 class="text-3xl font-extrabold tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
-                    <p class="text-[#595c5d] text-sm mt-1" id="adminUserModalSubtitle">Create a user account for this branch.</p>
+                    <h3 class="text-2xl font-black tracking-tight text-[#3800bf] font-['Manrope']" id="adminUserModalTitle">Add New Member</h3>
+                    <p class="text-[#595c5d] text-xs mt-0.5" id="adminUserModalSubtitle">Create a user account for this branch.</p>
                 </div>
-                <button type="button" id="adminUserCloseBtn" class="text-[#595c5d] hover:bg-[#f1ebfb] p-2 rounded-full transition-colors">
-                    <span class="material-symbols-outlined text-3xl">close</span>
-                </button>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="adminUserCancelBtn" class="px-5 py-2 text-sm font-bold text-[#595c5d] hover:text-[#1c1a25] transition-colors">Cancel</button>
+                    <button type="submit" id="adminUserSaveBtn" class="px-7 py-2.5 bg-[#3800bf] text-white font-bold rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all text-sm">Create User</button>
+                </div>
             </header>
 
             <div class="flex-1 overflow-y-auto px-8 py-8">
@@ -351,10 +345,7 @@
                 </div>
             </div>
 
-            <footer class="bg-[#f7f1ff] px-8 py-5 flex items-center justify-end gap-4 border-t border-[#ece8f7]">
-                <button type="button" class="px-6 py-3 text-sm font-bold text-[#595c5d] hover:text-[#1c1a25] transition-colors" id="adminUserCancelBtn">Cancel</button>
-                <button type="submit" class="px-10 py-3 bg-gradient-to-r from-[#3800bf] to-[#4f1bf1] text-white font-bold rounded-xl shadow-lg hover:shadow-[#5a30fb]/20 hover:scale-[1.02] active:scale-[0.98] transition-all" id="adminUserSaveBtn">Create User</button>
-            </footer>
+
         </form>
     </div>
     <form method="dialog" class="modal-backdrop"><button aria-label="Close">close</button></form>
@@ -363,6 +354,8 @@
 <script>
 window.ADMIN_API_URL = '<?php echo APP_URL; ?>/controllers/admin.php';
 window.ADMIN_SEARCH_API_URL = '<?php echo APP_URL; ?>/controllers/adminsearchs.php';
+window.IS_LIBRARIAN = <?php echo $session->isLibrarian() ? 'true' : 'false'; ?>;
+window.IS_ADMIN = <?php echo $session->isAdmin() ? 'true' : 'false'; ?>;
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/admin.js"></script>
 <script src="<?php echo APP_URL; ?>/public/js/adminsearch.js"></script>

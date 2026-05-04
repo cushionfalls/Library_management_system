@@ -105,7 +105,7 @@ tailwind.config = {
         </select>
     </section>
 
-    <section id="browseCatalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12"></section>
+    <section id="browseCatalogGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 sm:gap-x-6 gap-y-8 sm:gap-y-10"></section>
     <section id="browseCatalogList" class="hidden space-y-4"></section>
 
     <section class="mt-16 flex justify-center items-center gap-4" id="browsePagination"></section>
@@ -131,8 +131,8 @@ tailwind.config = {
                     </div>
                 </div>
                 <div class="flex-1 text-center p-4 bg-surface-container-lowest rounded-2xl">
-                    <span class="block text-xs uppercase tracking-widest text-outline mb-1">Copies</span>
-                    <span class="font-bold text-on-surface" id="bookDetailCopies">0</span>
+                    <span class="block text-xs uppercase tracking-widest text-outline mb-1">Language</span>
+                    <span class="font-bold text-on-surface" id="bookDetailLanguage">English</span>
                 </div>
             </div>
         </div>
@@ -154,7 +154,7 @@ tailwind.config = {
                     <p class="text-on-surface-variant leading-relaxed text-base md:text-lg" id="bookDetailSynopsis"></p>
                 </section>
 
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="bookDetailAccessSection" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 rounded-2xl bg-primary-container text-on-primary shadow-lg shadow-primary/20">
                         <span class="material-symbols-outlined mb-3 block">shopping_bag</span>
                         <h4 class="font-bold mb-1 text-white">Buy Online</h4>
@@ -169,7 +169,16 @@ tailwind.config = {
                         <button id="bookDetailMembershipAccessBtn" type="button" class="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-sm">Grant Access</button>
                         <a href="<?php echo APP_ROUTE; ?>?page=membership" class="mt-3 inline-block text-xs text-primary font-semibold hover:underline">Manage membership</a>
                     </div>
-                </section>
+                </div>
+
+                <div id="bookDetailOwnedSection" class="hidden">
+                    <div class="p-6 rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 flex flex-col items-center text-center">
+                        <span class="material-symbols-outlined mb-3 text-4xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        <h4 class="font-bold mb-1 text-xl">Already Owned</h4>
+                        <p class="text-xs text-white/80 mb-6" id="bookDetailOwnedText">You have full access to this book in your library.</p>
+                        <button id="bookDetailGoToMyBooksBtn" type="button" class="w-full py-3 bg-white text-primary rounded-xl font-bold text-sm shadow-md hover:scale-[1.02] transition-transform active:scale-[0.98]">Go to My Books</button>
+                    </div>
+                </div>
                 <p class="text-xs text-on-surface-variant -mt-6">Purchased or membership books can be read in-browser via EPUB reader from My Books. Downloads are disabled.</p>
 
                 <section>

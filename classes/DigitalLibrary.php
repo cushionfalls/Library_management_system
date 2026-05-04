@@ -27,9 +27,6 @@ class DigitalLibrary {
             return ['success' => false, 'message' => 'Digital copy is not available'];
         }
         $price = (int)($book['online_buy_price'] ?? 0);
-        if ($price <= 0) {
-            return ['success' => false, 'message' => 'This book is not available for online purchase'];
-        }
 
         if ($this->hasOwnedAccess($userId, $bookId)) {
             return ['success' => false, 'message' => 'You already own this book'];
@@ -37,11 +34,13 @@ class DigitalLibrary {
 
         $this->db->begin_transaction();
         try {
-            $stmtW = $this->db->prepare("UPDATE Users SET wallet = wallet - ?, updated_at = NOW() WHERE id = ? AND wallet >= ?");
-            $stmtW->bind_param('iii', $price, $userId, $price);
-            if (!$stmtW->execute() || $stmtW->affected_rows <= 0) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'Insufficient wallet balance'];
+            if ($price > 0) {
+                $stmtW = $this->db->prepare("UPDATE Users SET wallet = wallet - ?, updated_at = NOW() WHERE id = ? AND wallet >= ?");
+                $stmtW->bind_param('iii', $price, $userId, $price);
+                if (!$stmtW->execute() || $stmtW->affected_rows <= 0) {
+                    $this->db->rollback();
+                    return ['success' => false, 'message' => 'Insufficient wallet balance'];
+                }
             }
 
             $type = 'DEBIT';

@@ -101,6 +101,9 @@ class AdminController {
             case 'book-by-isbn':
                 return $this->lookupBookByIsbn($_GET['isbn'] ?? '');
             case 'create-user':
+                if (!$this->session->isAdmin()) {
+                    return ['success' => false, 'message' => 'Forbidden: Only admins can create users'];
+                }
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }
@@ -120,6 +123,9 @@ class AdminController {
                     $userProfileImage['profile_image']
                 );
             case 'update-user':
+                if (!$this->session->isAdmin()) {
+                    return ['success' => false, 'message' => 'Forbidden: Only admins can update users'];
+                }
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }
@@ -139,6 +145,9 @@ class AdminController {
                     $userProfileImage['profile_image']
                 );
             case 'delete-user':
+                if (!$this->session->isAdmin()) {
+                    return ['success' => false, 'message' => 'Forbidden: Only admins can delete users'];
+                }
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }
