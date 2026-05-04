@@ -46,7 +46,7 @@ class EmailService {
                     <p>If you did not request this OTP, please ignore this email.</p>
                 </div>
                 <div class='footer'>
-                    <p>" . APP_NAME . " - Digital Library Management System</p>
+                    <p>" . APP_NAME . " - Digital Paper Library</p>
                     <p>&copy; 2026. All rights reserved.</p>
                 </div>
             </div>
@@ -84,7 +84,7 @@ class EmailService {
                     <p>If you did not request this, please ignore this email.</p>
                 </div>
                 <div class='footer'>
-                    <p>" . APP_NAME . " - Digital Library Management System</p>
+                    <p>" . APP_NAME . " - Digital Paper Library</p>
                     <p>&copy; 2026. All rights reserved.</p>
                 </div>
             </div>
@@ -123,7 +123,7 @@ class EmailService {
                     <p>If you did not request this OTP, you can ignore this email.</p>
                 </div>
                 <div class='footer'>
-                    <p>" . APP_NAME . " - Digital Library Management System</p>
+                    <p>" . APP_NAME . " - Digital Paper Library</p>
                     <p>&copy; 2026. All rights reserved.</p>
                 </div>
             </div>
@@ -166,7 +166,7 @@ class EmailService {
                     <p>Happy Reading!</p>
                 </div>
                 <div class='footer'>
-                    <p>" . APP_NAME . " - Digital Library Management System</p>
+                    <p>" . APP_NAME . " - Digital Paper Library</p>
                 </div>
             </div>
         </body>

@@ -55,14 +55,14 @@
     function populateCategories(books) {
         const filter = document.getElementById('myBooksCategoryFilter');
         if (!filter) return;
-        
+
         const genres = new Set();
         books.forEach(b => {
             if (b.genre && b.genre.trim() !== '') {
                 genres.add(b.genre.toUpperCase());
             }
         });
-        
+
         let html = '<option value="ALL">All Categories</option>';
         Array.from(genres).sort().forEach(g => {
             const label = g.charAt(0) + g.slice(1).toLowerCase().replace(/_/g, ' ');
@@ -73,8 +73,8 @@
     }
 
     function applyFilter() {
-        const filtered = currentCategory === 'ALL' 
-            ? allBooks 
+        const filtered = currentCategory === 'ALL'
+            ? allBooks
             : allBooks.filter(b => (b.genre || '').toUpperCase() === currentCategory);
         renderBooks(filtered);
     }
@@ -157,58 +157,85 @@
         container.innerHTML = '';
 
         if (currentRendition && currentRendition.destroy) {
-            try { currentRendition.destroy(); } catch (_) {}
+            try { currentRendition.destroy(); } catch (_) { }
             currentRendition = null;
         }
 
         modal.showModal();
-        const epub = ePub(book.epub_url);
-        const rendition = epub.renderTo('myBooksReaderContainer', { width: '100%', height: '100%' });
-        currentRendition = rendition;
+        
+        // Slight delay to ensure the dialog layout is complete before ePub measures the container
+        setTimeout(() => {
+            const epub = ePub(book.epub_url);
+            const rendition = epub.renderTo('myBooksReaderContainer', { 
+                width: '100%', 
+                height: '100%',
+                spread: 'none',
+                manager: 'continuous',
+                flow: 'paginated'
+            });
+            currentRendition = rendition;
 
-        const stateRes = await fetch(apiUrl('reader-state', { book_id: id }), { cache: 'no-store' });
-        const stateData = await stateRes.json().catch(() => null);
-        const savedRaw = stateData?.state?.current_location || book.current_location || '';
-        const savedLocation = parseLocation(savedRaw);
+            const stateRes = fetch(apiUrl('reader-state', { book_id: id }), { cache: 'no-store' })
+                .then(res => res.json())
+                .then(stateData => {
+                    const savedRaw = stateData?.state?.current_location || book.current_location || '';
+                    const savedLocation = parseLocation(savedRaw);
 
-        if (String(book.epub_url).toLowerCase().endsWith('.pdf')) {
-            container.innerHTML = `<iframe src="${esc(book.epub_url)}#toolbar=0&navpanes=0" style="width:100%;height:100%;border:0;" title="PDF reader"></iframe>`;
-            return;
-        }
+                    if (String(book.epub_url).toLowerCase().endsWith('.pdf')) {
+                        container.innerHTML = `<iframe src="${esc(book.epub_url)}#toolbar=0&navpanes=0" style="width:100%;height:100%;border:0;" title="PDF reader"></iframe>`;
+                        return;
+                    }
 
-        rendition.display(savedLocation.cfi || undefined);
+                    // Validate CFI string to prevent EPUB.js from crashing and bricking navigation
+                    let startCfi = savedLocation.cfi;
+                    if (startCfi && !startCfi.startsWith('epubcfi(')) {
+                        startCfi = undefined;
+                    }
 
-        epub.ready.then(() => {
-            return epub.locations.generate(1600);
-        }).then(() => {
-            const loc = rendition.currentLocation();
-            if (loc && loc.start) {
-                const cur = epub.locations.locationFromCfi(loc.start.cfi);
-                const tot = epub.locations.total;
-                document.getElementById('myBooksReaderPageInfo').textContent = `Page ${cur} of ${tot}`;
-            }
-        });
+                    rendition.display(startCfi || undefined);
 
-        rendition.on('relocated', (location) => {
-            let percentage = location?.start?.percentage != null ? Math.round(location.start.percentage * 100) : 0;
-            let pageLabel = '';
-            
-            if (epub.locations && epub.locations.length() > 0) {
-                const currentPage = epub.locations.locationFromCfi(location.start.cfi);
-                const totalPages = epub.locations.total;
-                percentage = Math.round(epub.locations.percentageFromCfi(location.start.cfi) * 100);
-                pageLabel = `Page ${currentPage} of ${totalPages}`;
-                document.getElementById('myBooksReaderPageInfo').textContent = pageLabel;
+                    rendition.on('keyup', (event) => {
+                        const code = event.keyCode || event.which;
+                        if (code === 37) rendition.prev();
+                        if (code === 39) rendition.next();
+                    });
 
-                const marker = JSON.stringify({
-                    cfi: location?.start?.cfi || '',
-                    page: pageLabel || 'Start'
-                });
-                queueSaveProgress(id, Math.min(100, Math.max(0, percentage)), marker);
-            } else {
-                document.getElementById('myBooksReaderPageInfo').textContent = 'Calculating pages...';
-            }
-        });
+                    epub.ready.then(() => {
+                        return epub.locations.generate(1600);
+                    }).then(() => {
+                        const loc = rendition.currentLocation();
+                        if (loc && loc.start) {
+                            const cur = epub.locations.locationFromCfi(loc.start.cfi);
+                            const tot = epub.locations.total;
+                            document.getElementById('myBooksReaderPageInfo').textContent = `Page ${cur} of ${tot}`;
+                        }
+                    });
+
+                    rendition.on('relocated', (location) => {
+                        let percentage = location?.start?.percentage != null ? Math.round(location.start.percentage * 100) : 0;
+                        let pageLabel = '';
+                        
+                        if (epub.locations && epub.locations.length() > 0) {
+                            const currentPage = epub.locations.locationFromCfi(location.start.cfi);
+                            const totalPages = epub.locations.total;
+                            percentage = Math.round(epub.locations.percentageFromCfi(location.start.cfi) * 100);
+                            pageLabel = `Page ${currentPage} of ${totalPages}`;
+                            document.getElementById('myBooksReaderPageInfo').textContent = pageLabel;
+
+                            const marker = JSON.stringify({
+                                cfi: location?.start?.cfi || '',
+                                page: pageLabel || 'Start'
+                            });
+                            queueSaveProgress(id, Math.min(100, Math.max(0, percentage)), marker);
+                        } else {
+                            document.getElementById('myBooksReaderPageInfo').textContent = 'Calculating pages...';
+                        }
+                    });
+                })
+                .catch(() => null);
+        }, 50);
+
+
     }
 
     function queueSaveProgress(bookId, progress, marker) {

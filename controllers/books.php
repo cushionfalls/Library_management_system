@@ -62,9 +62,15 @@ class BooksController {
                 if (!$this->session->isLoggedIn()) {
                     return ['success' => false, 'message' => 'Please login to submit a review'];
                 }
+                $bookId = (int)($_POST['book_id'] ?? 0);
+                $userId = $this->session->getUserId();
+                $access = $this->library->getAccessForUserBook($userId, $bookId);
+                if (!$access) {
+                    return ['success' => false, 'message' => 'You must own or have membership access to this book to review it'];
+                }
                 return $this->catalog->createReview(
-                    $_POST['book_id'] ?? 0,
-                    $this->session->getUserId(),
+                    $bookId,
+                    $userId,
                     $_POST['rating'] ?? 0,
                     $_POST['review'] ?? ''
                 );

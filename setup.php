@@ -1,6 +1,6 @@
 <?php
 /**
- * Library Management System - Comprehensive Setup Script
+ * Paper Library - Comprehensive Setup Script
  * This script initializes the database, creates tables, and seeds initial data.
  */
 
@@ -155,6 +155,51 @@ $tables = [
         KEY `user_id` (`user_id`),
         CONSTRAINT `bookreviews_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE,
         CONSTRAINT `bookreviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "MembershipPlans" => "CREATE TABLE IF NOT EXISTS `MembershipPlans` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `slug` varchar(50) NOT NULL UNIQUE,
+        `name` varchar(100) NOT NULL,
+        `duration_days` int(11) NOT NULL DEFAULT 30,
+        `price` int(11) NOT NULL DEFAULT 0,
+        `is_active` tinyint(1) NOT NULL DEFAULT 1,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "UserMemberships" => "CREATE TABLE IF NOT EXISTS `UserMemberships` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `plan_id` int(11) NOT NULL,
+        `status` enum('ACTIVE','EXPIRED','CANCELLED') NOT NULL DEFAULT 'ACTIVE',
+        `starts_at` datetime NOT NULL,
+        `ends_at` datetime NOT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        KEY `plan_id` (`plan_id`),
+        CONSTRAINT `usermemberships_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `usermemberships_ibfk_2` FOREIGN KEY (`plan_id`) REFERENCES `MembershipPlans` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "MembershipPurchases" => "CREATE TABLE IF NOT EXISTS `MembershipPurchases` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `membership_id` int(11) NOT NULL,
+        `plan_id` int(11) NOT NULL,
+        `amount` int(11) NOT NULL DEFAULT 0,
+        `wallet_transaction_id` int(11) DEFAULT NULL,
+        `purchased_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        KEY `membership_id` (`membership_id`),
+        KEY `plan_id` (`plan_id`),
+        CONSTRAINT `membershippurchases_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `membershippurchases_ibfk_2` FOREIGN KEY (`membership_id`) REFERENCES `UserMemberships` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `membershippurchases_ibfk_3` FOREIGN KEY (`plan_id`) REFERENCES `MembershipPlans` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
 ];
 
@@ -177,6 +222,25 @@ if ($check->num_rows === 0) {
     }
 }
 
+// Seed default MembershipPlans if table is empty
+$checkPlans = $conn->query("SELECT COUNT(*) AS cnt FROM `MembershipPlans`");
+$planCount = $checkPlans ? (int)$checkPlans->fetch_assoc()['cnt'] : 0;
+if ($planCount === 0) {
+    $defaultPlans = [
+        "('basic',   'Basic',    30,  500, 1)",
+        "('standard','Standard', 90,  1200, 1)",
+        "('premium', 'Premium',  365, 3500, 1)",
+    ];
+    $insertPlans = "INSERT INTO `MembershipPlans` (slug, name, duration_days, price, is_active) VALUES " . implode(',', $defaultPlans);
+    if ($conn->query($insertPlans)) {
+        echo "<p style='color:green'>Default membership plans seeded.</p>";
+    } else {
+        echo "<p style='color:red'>Error seeding membership plans: " . $conn->error . "</p>";
+    }
+} else {
+    echo "<p>Membership plans already exist ($planCount found).</p>";
+}
+
 // 6. Seed Admin User
 echo "<h3>Seeding data...</h3>";
 $adminEmail = 'admin@lms.com';
@@ -184,7 +248,7 @@ $checkAdmin = $conn->query("SELECT id FROM Users WHERE email = '$adminEmail'");
 if ($checkAdmin->num_rows === 0) {
     $pass = password_hash('Admin@123', PASSWORD_BCRYPT, ['cost' => 12]);
     $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, wallet) 
-            VALUES ('System', 'Admin', '$adminEmail', '$pass', 'ADMIN', 1, 1, NOW(), 5000)";
+            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW(), 5000)";
     if ($conn->query($sql)) {
         echo "<p style='color:green'>Admin user created (admin@lms.com / Admin@123).</p>";
     }
