@@ -45,3 +45,35 @@ Stack trace:
 #6 {main}
   thrown in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
 [03-May-2026 05:11:51 Europe/Berlin] PHP Warning:  Undefined array key "online_buy_price" in C:\xampp\htdocs\Library_management_system\classes\BrowseCatalog.php on line 319
+[04-May-2026 08:27:26 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.usermemberships' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Membership.php:57
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(57): mysqli->prepare('SELECT um.id, u...')
+#1 C:\yoo\htdocs\Library_management_system\views\profile.php(22): Membership->getActiveMembership(2)
+#2 C:\yoo\htdocs\Library_management_system\public\index.php(214): include('C:\\yoo\\htdocs\\L...')
+#3 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#4 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Membership.php on line 57
+[04-May-2026 08:29:10 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.usermemberships' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Membership.php:57
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(57): mysqli->prepare('SELECT um.id, u...')
+#1 C:\yoo\htdocs\Library_management_system\views\profile.php(22): Membership->getActiveMembership(1)
+#2 C:\yoo\htdocs\Library_management_system\public\index.php(214): include('C:\\yoo\\htdocs\\L...')
+#3 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#4 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Membership.php on line 57
+[04-May-2026 08:29:37 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.usermemberships' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Membership.php:57
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(57): mysqli->prepare('SELECT um.id, u...')
+#1 C:\yoo\htdocs\Library_management_system\views\profile.php(22): Membership->getActiveMembership(1)
+#2 C:\yoo\htdocs\Library_management_system\public\index.php(214): include('C:\\yoo\\htdocs\\L...')
+#3 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#4 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Membership.php on line 57
+[04-May-2026 08:29:48 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.usermemberships' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Membership.php:57
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(57): mysqli->prepare('SELECT um.id, u...')
+#1 C:\yoo\htdocs\Library_management_system\views\profile.php(22): Membership->getActiveMembership(1)
+#2 C:\yoo\htdocs\Library_management_system\public\index.php(214): include('C:\\yoo\\htdocs\\L...')
+#3 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#4 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Membership.php on line 57

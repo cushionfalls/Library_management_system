@@ -1,54 +1,189 @@
-<div class="space-y-8">
+<script id="tailwind-dashboard-lumina">
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                "on-primary-fixed": "#190064",
+                "tertiary-fixed": "#ffdbd1",
+                "on-primary": "#ffffff",
+                "on-error": "#ffffff",
+                "on-secondary-fixed-variant": "#3f4563",
+                "secondary-fixed-dim": "#bfc5e8",
+                "on-surface": "#1c1a25",
+                "primary-container": "#4f1bf1",
+                "tertiary-container": "#9c2a00",
+                "tertiary": "#741d00",
+                "primary": "#3800bf",
+                "on-primary-fixed-variant": "#4200da",
+                "surface-dim": "#ddd8e7",
+                "on-primary-container": "#cac1ff",
+                "secondary": "#575d7c",
+                "on-tertiary-fixed-variant": "#862300",
+                "primary-fixed-dim": "#c8bfff",
+                "outline": "#787588",
+                "on-tertiary-container": "#ffb6a1",
+                "surface-container-lowest": "#ffffff",
+                "surface-tint": "#5a30fb",
+                "inverse-on-surface": "#f4eefe",
+                "on-secondary": "#ffffff",
+                "outline-variant": "#c9c4da",
+                "error-container": "#ffdad6",
+                "on-background": "#1c1a25",
+                "on-tertiary": "#ffffff",
+                "surface-bright": "#fdf8ff",
+                "on-error-container": "#93000a",
+                "inverse-primary": "#c8bfff",
+                "on-secondary-container": "#595f7e",
+                "surface-container-high": "#ebe6f5",
+                "surface-container-low": "#f7f1ff",
+                "surface-container-highest": "#e5e0f0",
+                "error": "#ba1a1a",
+                "surface": "#fdf8ff",
+                "on-tertiary-fixed": "#3a0a00",
+                "background": "#fdf8ff",
+                "tertiary-fixed-dim": "#ffb59f",
+                "on-surface-variant": "#474557",
+                "inverse-surface": "#312f3a",
+                "surface-variant": "#e5e0f0",
+                "on-secondary-fixed": "#131a35",
+                "primary-fixed": "#e5deff",
+                "secondary-fixed": "#dde1ff",
+                "surface-container": "#f1ebfb",
+                "secondary-container": "#d6dbff"
+            },
+            fontFamily: {
+                "headline": ["Manrope"],
+                "display": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+            }
+        }
+    }
+};
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    h1, h2, h3, .brand-logo { font-family: 'Manrope', system-ui, sans-serif; }
+</style>
+
+<div class="w-full space-y-12">
+
+    <!-- Hero Section -->
     <section>
-        <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']">Dashboard</h1>
-        <p class="text-on-surface-variant">Track your books, membership, and reading activity.</p>
-    </section>
-
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-surface-container-low rounded-xl p-6">
-            <p class="text-xs uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Wallet</p>
-            <h3 id="walletBalance" class="text-3xl font-black text-primary">$0.00</h3>
-        </div>
-        <div class="bg-surface-container-low rounded-xl p-6">
-            <p class="text-xs uppercase tracking-widest text-on-surface-variant font-semibold mb-2">My Books</p>
-            <h3 id="myBooksCount" class="text-3xl font-black text-primary">0</h3>
-        </div>
-        <div class="bg-surface-container-low rounded-xl p-6">
-            <p class="text-xs uppercase tracking-widest text-on-surface-variant font-semibold mb-2">Membership</p>
-            <h3 id="membershipStatus" class="text-2xl font-black text-primary">Not Active</h3>
-            <p id="membershipUntil" class="text-xs text-on-surface-variant mt-2"></p>
-        </div>
-    </section>
-
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 bg-white border border-outline-variant/20 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold">Recent Books</h2>
-                <a href="<?php echo APP_ROUTE; ?>?page=my-books" class="text-primary text-sm font-semibold hover:underline">Go to My Books</a>
+        <div class="relative overflow-hidden bg-primary rounded-[2rem] p-10 md:p-14 text-on-primary shadow-2xl flex flex-col md:flex-row justify-between items-center">
+            <!-- decorative rings -->
+            <div class="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+                <svg fill="none" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="200" cy="200" r="180" stroke="white" stroke-width="2"></circle>
+                    <circle cx="200" cy="200" r="140" stroke="white" stroke-width="1"></circle>
+                    <circle cx="200" cy="200" r="100" stroke="white" stroke-width="0.5"></circle>
+                </svg>
             </div>
-            <div id="dashboardBooksList" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+
+            <div class="z-10 text-center md:text-left mb-8 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter mb-3 font-headline">Welcome back, <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Reader'); ?>!</h1>
+                <p class="text-on-primary-container text-opacity-90 max-w-lg text-lg font-medium">
+                    Dive into your next adventure. Your library is waiting for you.
+                </p>
+            </div>
+
+            <div class="z-10 flex flex-col sm:flex-row gap-4">
+                <a href="<?php echo APP_ROUTE; ?>?page=books" class="bg-primary-container text-on-primary px-8 py-4 rounded-xl font-bold text-lg hover:brightness-110 active:scale-95 transition-all shadow-lg flex items-center gap-3">
+                    <span class="material-symbols-outlined">explore</span>
+                    Browse Catalog
+                </a>
+            </div>
         </div>
-        <div class="bg-tertiary-fixed rounded-xl p-6 relative overflow-hidden">
-            <span class="material-symbols-outlined absolute -right-2 -bottom-2 text-7xl opacity-10 rotate-12 pointer-events-none">format_quote</span>
-            <h3 class="font-bold text-sm uppercase tracking-widest mb-3 text-on-tertiary-fixed">Quote</h3>
-            <p class="text-on-tertiary-fixed font-bold italic" id="quoteText">Loading quote…</p>
-            <p class="text-on-tertiary-fixed-variant text-xs mt-2 font-medium" id="quoteAuthor"></p>
+    </section>
+
+    <!-- Stats Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="<?php echo APP_ROUTE; ?>?page=wallet" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
+            <div>
+                <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span> Wallet
+                </p>
+                <h3 id="walletBalance" class="text-3xl font-black text-primary">$0.00</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
+        <a href="<?php echo APP_ROUTE; ?>?page=my-books" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
+            <div>
+                <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-primary">auto_stories</span> My Books
+                </p>
+                <h3 id="myBooksCount" class="text-3xl font-black text-primary">0</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
+        <a href="<?php echo APP_ROUTE; ?>?page=membership" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
+            <div>
+                <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-primary">card_membership</span> Membership
+                </p>
+                <h3 id="membershipStatus" class="text-2xl font-black text-primary mb-1">Not Active</h3>
+                <p id="membershipUntil" class="text-xs text-on-surface-variant font-medium"></p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
+    </section>
+
+    <!-- Bottom Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-white border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-extrabold font-headline">Recent Books</h2>
+                <a href="<?php echo APP_ROUTE; ?>?page=my-books" class="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+                    View All <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </a>
+            </div>
+            <div id="dashboardBooksList" class="grid grid-cols-2 md:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Quote Card -->
+            <div class="bg-tertiary-container rounded-2xl p-8 relative overflow-hidden shadow-sm">
+                <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] opacity-10 rotate-12 pointer-events-none text-on-tertiary-container">format_quote</span>
+                <h3 class="font-bold text-sm uppercase tracking-widest mb-6 text-on-tertiary-container flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">lightbulb</span> Daily Inspiration
+                </h3>
+                <p class="text-on-tertiary-container font-medium italic text-lg leading-relaxed mb-4" id="quoteText">Loading quote…</p>
+                <p class="text-tertiary-fixed-dim text-sm font-bold" id="quoteAuthor"></p>
+            </div>
+
+            <!-- Quick Action Card -->
+            <div class="bg-secondary-container rounded-2xl p-8 relative overflow-hidden shadow-sm">
+                <div class="relative z-10">
+                    <h3 class="font-bold text-xl mb-2 text-on-secondary-container font-headline">Need more books?</h3>
+                    <p class="text-on-secondary-container/80 text-sm mb-6">Browse new books</p>
+                    <a href="<?php echo APP_ROUTE; ?>?page=books" class="inline-flex items-center justify-center w-full bg-on-secondary-container text-secondary-container px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                        View Books
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 </div>
 
 <script>
-
 async function loadQuote() {
     const textEl = document.getElementById('quoteText');
     const authorEl = document.getElementById('quoteAuthor');
     if (!textEl || !authorEl) return;
 
     try {
-        const res = await fetch('<?php echo APP_URL; ?>/public/api/quote.php', { cache: 'no-store' });
+        const res = await fetch('https://dummyjson.com/quotes/random', { cache: 'no-store' });
         const data = await res.json();
-        const q = data.q || '';
-        const a = data.a || '';
+        const q = data.quote || '';
+        const a = data.author || '';
         if (q) {
             textEl.textContent = '"' + q + '"';
             authorEl.textContent = a ? '— ' + a : '';
@@ -77,14 +212,14 @@ async function loadDashboard() {
     const booksList = document.getElementById('dashboardBooksList');
     if (booksList) {
         if (!books.length) {
-            booksList.innerHTML = '<p class="text-sm text-on-surface-variant col-span-full">No books in your library yet.</p>';
+            booksList.innerHTML = '<div class="col-span-full py-8 text-center text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-3 text-outline/50">auto_stories</span><p class="font-medium">No books in your library yet.</p></div>';
         } else {
             booksList.innerHTML = books.slice(0, 6).map((b) => `
                 <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group">
-                    <div class="aspect-[3/4] rounded-lg overflow-hidden mb-2 bg-surface-container">
-                        <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${window.escapeHtml(b.name || 'Book')}">
+                    <div class="aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm border border-outline-variant/10 bg-surface-container">
+                        <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${window.escapeHtml(b.name || 'Book')}">
                     </div>
-                    <p class="text-xs font-semibold truncate">${window.escapeHtml(b.name || 'Book')}</p>
+                    <p class="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">${window.escapeHtml(b.name || 'Book')}</p>
                 </a>
             `).join('');
         }
