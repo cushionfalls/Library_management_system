@@ -100,19 +100,19 @@
         current.innerHTML = books.slice(0, 2).map((book) => {
             const progress = Number(book.progress_percent || 0);
             return `
-                <div class="bg-surface-container-low rounded-xl p-8 flex gap-8 items-center">
-                    <a href="index.php?page=books&book=${book.book_id}" class="w-28 h-44 rounded-lg overflow-hidden shadow-xl shrink-0 block">
+                <div class="bg-surface-container-low rounded-xl p-4 sm:p-8 flex gap-4 sm:gap-8 items-center">
+                    <a href="index.php?page=books&book=${book.book_id}" class="w-24 sm:w-28 h-36 sm:h-44 rounded-lg overflow-hidden shadow-xl shrink-0 block">
                         <img class="w-full h-full object-cover" src="${esc(book.cover_image_url || '')}" alt="${esc(book.name)}" />
                     </a>
                     <div class="flex-1">
-                        <span class="px-3 py-1 bg-primary-container text-white text-[10px] font-bold rounded-full uppercase tracking-widest mb-3 inline-block">${esc(book.access_type)}</span>
-                        <h3 class="text-2xl font-black text-on-surface mb-1">${esc(book.name)}</h3>
-                        <p class="text-on-surface-variant mb-5 font-medium">${esc(book.authors)}</p>
+                        <span class="px-3 py-1 bg-primary-container text-white text-[10px] font-bold rounded-full uppercase tracking-widest mb-2 sm:mb-3 inline-block">${esc(book.access_type)}</span>
+                        <h3 class="text-xl sm:text-2xl font-black text-on-surface mb-1">${esc(book.name)}</h3>
+                        <p class="text-on-surface-variant mb-3 sm:mb-5 font-medium text-sm sm:text-base">${esc(book.authors)}</p>
                         <div class="space-y-2">
                             <div class="flex justify-between text-xs font-bold text-primary"><span>PROGRESS</span><span>${progressLabel(progress)}</span></div>
                             <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" style="width:${Math.max(0, Math.min(100, progress))}%;"></div></div>
                         </div>
-                        <button class="mt-5 px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm" data-open-reader="${book.book_id}">Read</button>
+                        <button class="mt-4 sm:mt-5 px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm" data-open-reader="${book.book_id}">Read</button>
                         <a class="mt-2 inline-block text-xs text-on-surface-variant hover:text-primary" href="index.php?page=books&book=${book.book_id}">View Description</a>
                     </div>
                 </div>`;

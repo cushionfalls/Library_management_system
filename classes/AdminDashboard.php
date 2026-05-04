@@ -153,7 +153,8 @@ class AdminDashboard {
         );
 
         if (!$insert->execute()) {
-            return ['success' => false, 'message' => 'Failed to create book'];
+            $error = $this->db->error;
+            return ['success' => false, 'message' => 'Failed to create book: ' . ($error ?: 'Database error')];
         }
         $this->syncBookAuthor((int)$insert->insert_id, $author);
 
@@ -229,7 +230,8 @@ class AdminDashboard {
             $id
         );
         if (!$stmt->execute()) {
-            return ['success' => false, 'message' => 'Failed to update book'];
+            $error = $this->db->error;
+            return ['success' => false, 'message' => 'Failed to update book: ' . ($error ?: 'Database error')];
         }
         $this->syncBookAuthor($id, $author);
 
@@ -242,26 +244,51 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'Invalid book id'];
         }
 
+        // Check active physical transactions
         $check = $this->db->prepare(
             "SELECT id FROM BookTransactions WHERE book_id = ? AND is_returned = 0 LIMIT 1"
         );
         $check->bind_param('i', $id);
         $check->execute();
         if ($check->get_result()->num_rows > 0) {
-            return ['success' => false, 'message' => 'Book has active transactions and cannot be deleted'];
+            return ['success' => false, 'message' => "Cannot delete the book because some users currently have it rented out."];
         }
 
-        $stmt = $this->db->prepare("DELETE FROM Books WHERE id = ?");
-        $stmt->bind_param('i', $id);
-        if (!$stmt->execute()) {
-            return ['success' => false, 'message' => 'Failed to delete book'];
+        // Check if any users own this digital book or have it in their library via membership
+        $checkAccess = $this->db->prepare(
+            "SELECT id FROM UserBookAccess WHERE book_id = ? LIMIT 1"
+        );
+        $checkAccess->bind_param('i', $id);
+        $checkAccess->execute();
+        if ($checkAccess->get_result()->num_rows > 0) {
+            return ['success' => false, 'message' => "Cannot delete the book because it is already in users' libraries (purchased or accessed via membership)."];
         }
 
-        if ($stmt->affected_rows <= 0) {
-            return ['success' => false, 'message' => 'Book not found'];
-        }
+        $this->db->begin_transaction();
+        try {
+            // Delete from BookAuthors first to avoid foreign key failure
+            $delAuthors = $this->db->prepare("DELETE FROM BookAuthors WHERE book_id = ?");
+            $delAuthors->bind_param('i', $id);
+            $delAuthors->execute();
 
-        return ['success' => true, 'message' => 'Book deleted successfully'];
+            $stmt = $this->db->prepare("DELETE FROM Books WHERE id = ?");
+            $stmt->bind_param('i', $id);
+            if (!$stmt->execute()) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Failed to delete book due to a database error.'];
+            }
+
+            if ($stmt->affected_rows <= 0) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Book not found'];
+            }
+
+            $this->db->commit();
+            return ['success' => true, 'message' => 'Book deleted successfully'];
+        } catch (Exception $e) {
+            $this->db->rollback();
+            return ['success' => false, 'message' => 'Failed to delete the book. Please try again.'];
+        }
     }
 
     public function updateUser($id, $firstName, $lastName, $email, $role, $isActive, $phoneNumber = '', $dob = '', $profileImage = null) {
@@ -459,7 +486,7 @@ class AdminDashboard {
         $result = $this->db->query(
             "SELECT COALESCE(SUM(amount), 0) AS total
              FROM WalletTransactions
-             WHERE type = 'CREDIT' AND DATE(created_at) = CURDATE()"
+             WHERE type = 'CREDIT'"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);

@@ -74,19 +74,25 @@ function renderUsers(users) {
         return;
     }
 
-    body.innerHTML = users.map((u) => `
-        <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-            <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(u.email)}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(u.role)}</td>
-            <td class="px-8 py-6 text-sm text-[#2c2f30]">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
-            <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(u.created_at)}</td>
-            <td class="px-8 py-6 text-right">
-                <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
-                <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>
-            </td>
-        </tr>
-    `).join('');
+    body.innerHTML = users.map((u) => {
+        const actionButtons = window.IS_ADMIN 
+            ? `<button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
+               <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>`
+            : '<span class="text-xs text-[#595c5d] font-medium italic">View Only</span>';
+
+        return `
+            <tr class="hover:bg-[#eef1f2]/20 transition-colors">
+                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(u.email)}</td>
+                <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(u.role)}</td>
+                <td class="px-8 py-6 text-sm text-[#2c2f30]">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
+                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(u.created_at)}</td>
+                <td class="px-8 py-6 text-right">
+                    ${actionButtons}
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderTransactions(transactions) {
@@ -283,6 +289,24 @@ async function saveBook(event) {
     const formData = new FormData(form);
     const id = String(formData.get('id') || '').trim();
     const action = id ? 'update-book' : 'create-book';
+
+    let rawPrice = String(formData.get('online_buy_price') || '').replace(/[^0-9.]/g, '');
+    let priceCents = Math.round(Number(rawPrice || 0) * 100);
+    formData.set('online_buy_price', priceCents);
+
+    const pdfInput = document.getElementById('adminBookOnlinePdf');
+    const existingPdfEl = document.getElementById('adminBookExistingOnlinePdf');
+    if (!id && (!pdfInput.files || pdfInput.files.length === 0) && (!existingPdfEl || !existingPdfEl.value)) {
+        adminToast('Electronic copy (EPUB/PDF) is mandatory for new books', 'error');
+        return;
+    }
+
+    const coverInput = document.getElementById('adminBookCoverImage');
+    const existingCoverEl = document.getElementById('adminBookExistingCoverImage');
+    if (!id && (!coverInput.files || coverInput.files.length === 0) && (!existingCoverEl || !existingCoverEl.value)) {
+        adminToast('Cover image is mandatory for new books', 'error');
+        return;
+    }
 
     if (formData.has('online_buy_price') && formData.get('online_buy_price')) {
         formData.set('online_buy_price', Math.round(Number(formData.get('online_buy_price')) * 100));

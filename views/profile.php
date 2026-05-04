@@ -21,6 +21,15 @@ require_once __DIR__ . '/../classes/Membership.php';
 $membershipModel = new Membership();
 $activeMem = $membershipModel->getActiveMembership($profileUser['id']);
 $memPlan = $activeMem ? $activeMem['plan_name'] : 'None';
+$daysLeft = 0;
+if ($activeMem && !empty($activeMem['ends_at'])) {
+    $now = new DateTime();
+    $end = new DateTime($activeMem['ends_at']);
+    if ($end > $now) {
+        $interval = $now->diff($end);
+        $daysLeft = $interval->days;
+    }
+}
 ?>
 
 <style>
@@ -150,10 +159,13 @@ $memPlan = $activeMem ? $activeMem['plan_name'] : 'None';
 
             <div class="bg-[#3800bf] text-white rounded-xl p-8 relative overflow-hidden">
                 <div class="relative z-10">
-                    <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">Account Health</p>
+                    <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">Membership Status</p>
                     <div class="flex items-center gap-4 mb-6"><div class="h-3 w-3 <?php echo $statusDot; ?> rounded-full animate-pulse"></div><span class="font-['Manrope'] font-bold text-2xl tracking-tight">Status: <?php echo htmlspecialchars($statusLabel); ?></span></div>
                     <div class="space-y-4">
                         <div class="flex justify-between items-center text-sm"><span class="opacity-70">Membership</span><span class="font-bold"><?php echo htmlspecialchars($memPlan); ?></span></div>
+                        <?php if ($activeMem): ?>
+                            <div class="flex justify-between items-center text-sm"><span class="opacity-70">Days Remaining</span><span class="font-bold"><?php echo (int)$daysLeft; ?> days</span></div>
+                        <?php endif; ?>
                         <div class="flex justify-between items-center text-sm"><span class="opacity-70">Loyalty Points</span><span class="font-bold"><?php echo htmlspecialchars((string)$loyaltyPoints); ?></span></div>
                     </div>
                 </div>

@@ -38,8 +38,46 @@
         return (window.BROWSE_API_URL || '') + '?' + qp.toString();
     }
 
+    function setBookParam(id) {
+        const url = new URL(window.location.href);
+        if (id) {
+            url.searchParams.set('book', id);
+        } else {
+            url.searchParams.delete('book');
+        }
+        window.history.pushState({ bookId: id }, '', url.toString());
+    }
+
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
+    }
+
+    async function handleBuyNow(bookId) {
+        if (!bookId) return;
+        if (!window.BROWSE_IS_LOGGED_IN) {
+            window.showToast?.('Please login to buy books', 'warning');
+            return;
+        }
+        
+        const body = new URLSearchParams();
+        body.set('book_id', String(bookId));
+        
+        try {
+            const response = await fetch(apiUrl('purchase-online'), { method: 'POST', body });
+            const result = await response.json().catch(() => null);
+            
+            if (!result || !result.success) {
+                window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
+                return;
+            }
+            
+            window.showToast?.(result.message || 'Book purchased', 'success');
+            if (window.MY_BOOKS_PAGE_URL) {
+                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            }
+        } catch (error) {
+            window.showToast?.('An error occurred during purchase', 'error');
+        }
     }
 
     async function loadCatalog() {
@@ -102,24 +140,37 @@
 
         grid.innerHTML = items.map((book) => {
             const cover = esc(book.cover_image_url || fallbackCover());
+            const priceCents = Number(book.price > 0 ? book.price : (book.online_buy_price || 0));
+            const priceDisplay = priceCents > 0 ? formatUsdFromCents(priceCents) : 'FREE';
+
             return `
-                <article class="group flex flex-col cursor-pointer" data-book-id="${book.id}">
-                    <div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-5 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(56,0,191,0.15)]" data-book-id="${book.id}">
-                        <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" />
-                        <div class="absolute top-4 left-4">
-                            <span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full uppercase tracking-widest backdrop-blur-md bg-opacity-80">${esc(book.genre_label)}</span>
+                <article class="group flex flex-col" data-book-id="${book.id}">
+                    <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_12px_24px_-8px_rgba(56,0,191,0.2)] cursor-pointer" data-book-id="${book.id}" data-action="details">
+                        <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" loading="lazy" />
+                        <div class="absolute top-2 left-2 flex flex-col gap-1">
+                            <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${esc(book.genre_label)}</span>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                             <div class="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
+                                <span class="material-symbols-outlined text-amber-500 text-[10px]" style="font-variation-settings:'FILL' 1;">star</span>
+                                <span class="text-[10px] font-black text-[#1c1a25]">${esc(Number(book.rating || 0).toFixed(1))}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1 mb-2">
-                        <span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings:'FILL' 1;">star</span>
-                        <span class="text-sm font-bold text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
+                    <div class="px-1 flex flex-col flex-1">
+                        <h3 class="text-sm font-bold text-on-surface leading-tight mb-0.5 group-hover:text-primary transition-colors line-clamp-2 cursor-pointer" data-book-id="${book.id}" data-action="details">${esc(book.name)}</h3>
+                        <p class="text-[11px] text-on-surface-variant font-medium mb-1 truncate">${esc(book.author_display)}</p>
+                        <p class="text-xs font-bold text-primary mb-3">${priceDisplay}</p>
+                        
+                        <div class="mt-auto flex gap-1.5">
+                            ${book.user_access_type ? `
+                                <button class="flex-1 py-2 text-[9px] font-black bg-success-container text-on-success-container rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" onclick="window.location.href='${window.MY_BOOKS_PAGE_URL}'">Already Owned</button>
+                            ` : `
+                                <button class="flex-1 py-2 text-[9px] font-black bg-primary text-white rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" data-action="buy" data-book-id="${book.id}">Buy Now</button>
+                            `}
+                            <button class="flex-1 py-2 text-[9px] font-black bg-[#f0ecf8] text-[#3800bf] rounded-md hover:bg-[#e4dff3] transition-colors uppercase tracking-tighter" data-action="details" data-book-id="${book.id}">Details</button>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-bold text-on-surface leading-tight mb-1 group-hover:text-primary transition-colors" data-book-id="${book.id}">${esc(book.name)}</h3>
-                    <p class="text-sm text-on-surface-variant font-medium mb-2">${esc(book.author_display)}</p>
-                    <p class="text-sm font-semibold text-primary mb-4">${formatUsdFromCents(book.price > 0 ? book.price : (book.online_buy_price || 0))}</p>
-                    <a class="text-primary text-sm font-bold hover:underline decoration-2 underline-offset-4 inline-flex items-center gap-1" href="${window.BROWSE_PAGE_URL}&book=${encodeURIComponent(book.id)}" data-book-id="${book.id}">
-                        View Details <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                    </a>
                 </article>
             `;
         }).join('');
@@ -243,7 +294,7 @@
             const book = result.data;
             document.getElementById('bookDetailCover').src = book.cover_image_url || fallbackCover();
             document.getElementById('bookDetailRating').textContent = Number(book.rating || 0).toFixed(1);
-            document.getElementById('bookDetailCopies').textContent = String(book.number_of_copies || 0);
+            document.getElementById('bookDetailLanguage').textContent = book.language || 'English';
             document.getElementById('bookDetailTagGenre').textContent = book.genre_label || 'Genre';
             document.getElementById('bookDetailTitle').textContent = book.name || 'Untitled';
             document.getElementById('bookDetailAuthor').textContent = 'by ' + (book.author_display || 'Unknown Author');
@@ -256,35 +307,43 @@
             document.getElementById('bookReviewBookId').value = String(book.id || '');
             state.currentBookId = Number(book.id || 0);
             const buyBtn = document.getElementById('bookDetailBuyOnlineBtn');
+            const buyPriceEl = document.getElementById('bookDetailOnlinePrice');
             const membershipBtn = document.getElementById('bookDetailMembershipAccessBtn');
             const accessType = String(book.user_access && book.user_access.access_type ? book.user_access.access_type : '').toUpperCase();
             const alreadyOwned = accessType === 'OWNED';
             const alreadyMembership = accessType === 'MEMBERSHIP';
-            if (buyBtn) {
-                if (alreadyOwned) {
-                    buyBtn.disabled = false;
-                    buyBtn.textContent = 'Go to My Books';
-                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                    buyBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
-                } else {
-                    buyBtn.disabled = false;
-                    buyBtn.textContent = 'Buy with Wallet';
-                    buyBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                    buyBtn.onclick = null; // will be handled by default listener
+            const alreadyHasAccess = alreadyOwned || alreadyMembership;
+            const accessSection = document.getElementById('bookDetailAccessSection');
+            const ownedSection = document.getElementById('bookDetailOwnedSection');
+            const ownedText = document.getElementById('bookDetailOwnedText');
+            const goToMyBooksBtn = document.getElementById('bookDetailGoToMyBooksBtn');
+
+            if (alreadyHasAccess) {
+                if (accessSection) accessSection.classList.add('hidden');
+                if (ownedSection) {
+                    ownedSection.classList.remove('hidden');
+                    if (ownedText) {
+                        ownedText.textContent = alreadyOwned 
+                            ? 'You have full ownership of this book.' 
+                            : 'This book is unlocked via your active membership.';
+                    }
+                    if (goToMyBooksBtn) {
+                        goToMyBooksBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
+                    }
                 }
-            }
-            if (membershipBtn) {
-                const alreadyHasAccess = alreadyOwned || alreadyMembership;
-                if (alreadyHasAccess) {
-                    membershipBtn.disabled = false;
-                    membershipBtn.textContent = 'Go to My Books';
-                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                    membershipBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
-                } else {
-                    membershipBtn.disabled = false;
+            } else {
+                if (ownedSection) ownedSection.classList.add('hidden');
+                if (accessSection) accessSection.classList.remove('hidden');
+                
+                if (buyBtn && buyPriceEl) {
+                    buyBtn.textContent = 'Buy with Wallet';
+                    buyBtn.classList.replace('bg-white/90', 'bg-white');
+                    buyBtn.onclick = null;
+                    buyPriceEl.textContent = formatUsdFromCents(book.online_buy_price);
+                }
+                if (membershipBtn) {
                     membershipBtn.textContent = 'Grant Access';
-                    membershipBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-                    membershipBtn.onclick = null; // will be handled by default listener
+                    membershipBtn.onclick = null;
                 }
             }
 
@@ -506,19 +565,7 @@
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
         if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
             if (buyOnlineBtn.textContent === 'Go to My Books') return;
-            if (!state.currentBookId) return;
-            const body = new URLSearchParams();
-            body.set('book_id', String(state.currentBookId));
-            const response = await fetch(apiUrl('purchase-online'), { method: 'POST', body });
-            const result = await response.json().catch(() => null);
-            if (!result || !result.success) {
-                window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
-                return;
-            }
-            window.showToast?.(result.message || 'Book purchased', 'success');
-            if (window.MY_BOOKS_PAGE_URL) {
-                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
-            }
+            handleBuyNow(state.currentBookId);
         });
         if (membershipBtn) membershipBtn.addEventListener('click', async () => {
             if (membershipBtn.textContent === 'Go to My Books') return;
@@ -540,9 +587,21 @@
         document.addEventListener('click', (event) => {
             const trigger = event.target.closest('[data-book-id]');
             if (!trigger) return;
-            event.preventDefault();
+
+            const action = trigger.getAttribute('data-action') || 'details';
             const bookId = Number(trigger.getAttribute('data-book-id') || 0);
-            if (bookId > 0) openBookDetail(bookId);
+            if (bookId <= 0) return;
+
+            event.preventDefault();
+
+            if (action === 'buy') {
+                state.currentBookId = bookId;
+                // Trigger the existing buy logic by simulating a click on the hidden buy button 
+                // or just call the logic directly. Let's call it directly.
+                handleBuyNow(bookId);
+            } else {
+                openBookDetail(bookId);
+            }
         });
 
         const reviewList = document.getElementById('bookDetailReviewsList');

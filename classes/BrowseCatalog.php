@@ -16,6 +16,7 @@ class BrowseCatalog {
         $search = trim((string)($params['search'] ?? ''));
         $genre = strtoupper(trim((string)($params['genre'] ?? '')));
         $sort = trim((string)($params['sort'] ?? 'recent'));
+        $userId = (int)($params['user_id'] ?? 0);
 
         $where = [];
         $bindTypes = '';
@@ -60,6 +61,13 @@ class BrowseCatalog {
         $countRow = $countStmt->get_result()->fetch_assoc();
         $total = (int)($countRow['total'] ?? 0);
 
+        $selectAccess = '';
+        $joinAccess = '';
+        if ($userId > 0) {
+            $selectAccess = ", uba.access_type AS user_access_type";
+            $joinAccess = "LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = " . (int)$userId;
+        }
+
         $sql = "
             SELECT
                 b.id,
@@ -76,10 +84,12 @@ class BrowseCatalog {
                 b.created_at,
                 COALESCE(ROUND(AVG(br.rating), 1), 0) AS rating,
                 COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors
+                {$selectAccess}
             FROM Books b
             LEFT JOIN BookReviews br ON br.book_id = b.id
             LEFT JOIN BookAuthors ba ON ba.book_id = b.id
             LEFT JOIN Authors a ON a.id = ba.author_id
+            {$joinAccess}
             {$whereSql}
             GROUP BY b.id
             {$orderSql}
@@ -319,9 +329,9 @@ class BrowseCatalog {
             'online_buy_price' => $row['online_buy_price'] !== null ? (int)$row['online_buy_price'] : null,
             'cover_image_url' => $cover,
             'rating' => (float)($row['rating'] ?? 0),
-            'authors' => (string)($row['authors'] ?? ''),
             'author_display' => trim((string)($row['authors'] ?? '')) !== '' ? (string)$row['authors'] : 'Unknown Author',
-            'created_at' => (string)($row['created_at'] ?? '')
+            'created_at' => (string)($row['created_at'] ?? ''),
+            'user_access_type' => $row['user_access_type'] ?? null
         ];
     }
 
