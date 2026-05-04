@@ -336,15 +336,36 @@ function openUserModal(user = null, preferredRole = 'USER') {
     const passwordBlockEl = document.getElementById('adminUserPasswordBlock');
     const passwordEl = document.getElementById('adminUserPassword');
     const roleEl = document.getElementById('adminUserRole');
+    const existingProfileImageEl = document.getElementById('adminUserExistingProfileImage');
+    const profileInputEl = document.getElementById('adminUserProfileImage');
+    const profilePreviewEl = document.getElementById('adminUserProfilePreview');
+    const profilePlaceholderEl = document.getElementById('adminUserProfilePlaceholder');
     const adminRoleOption = roleEl ? roleEl.querySelector('option[value="ADMIN"]') : null;
+    const setProfileImage = (url) => {
+        const finalUrl = adminAssetUrl(url);
+        if (!profilePreviewEl || !profilePlaceholderEl) return;
+        if (!finalUrl) {
+            profilePreviewEl.removeAttribute('src');
+            profilePreviewEl.classList.add('hidden');
+            profilePlaceholderEl.classList.remove('hidden');
+            return;
+        }
+        profilePreviewEl.src = finalUrl;
+        profilePreviewEl.classList.remove('hidden');
+        profilePlaceholderEl.classList.add('hidden');
+    };
 
     if (user) {
         idEl.value = user.id || '';
         document.getElementById('adminUserFirstName').value = user.first_name || '';
         document.getElementById('adminUserLastName').value = user.last_name || '';
         document.getElementById('adminUserEmail').value = user.email || '';
+        document.getElementById('adminUserPhone').value = user.phone_number || '';
+        document.getElementById('adminUserDob').value = user.dob ? String(user.dob).slice(0, 10) : '';
         document.getElementById('adminUserRole').value = user.role || 'USER';
         document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
+        if (existingProfileImageEl) existingProfileImageEl.value = user.profile_image || '';
+        setProfileImage(user.profile_image || '');
         if (titleEl) titleEl.textContent = 'Edit Member';
         if (subtitleEl) subtitleEl.textContent = 'Update user information and access role.';
         if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
@@ -359,8 +380,12 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserFirstName').value = '';
         document.getElementById('adminUserLastName').value = '';
         document.getElementById('adminUserEmail').value = '';
+        document.getElementById('adminUserPhone').value = '';
+        document.getElementById('adminUserDob').value = '';
         document.getElementById('adminUserRole').value = preferredRole === 'LIBRARIAN' ? 'LIBRARIAN' : 'USER';
         document.getElementById('adminUserStatus').value = '1';
+        if (existingProfileImageEl) existingProfileImageEl.value = '';
+        setProfileImage('');
         if (titleEl) titleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Add New Librarian' : 'Add New User';
         if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
         if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
@@ -371,6 +396,7 @@ function openUserModal(user = null, preferredRole = 'USER') {
             passwordEl.required = true;
         }
     }
+    if (profileInputEl) profileInputEl.value = '';
 
     modal.showModal();
 }
@@ -388,7 +414,7 @@ async function saveUser(event) {
 
     const result = await adminFetch(action, {
         method: 'POST',
-        body: new URLSearchParams(formData)
+        body: formData
     });
 
     if (!result || !result.success) {
@@ -437,6 +463,9 @@ function bindAdminEvents() {
     const coverPlaceholder = document.getElementById('adminBookCoverPlaceholder');
     const pdfInput = document.getElementById('adminBookOnlinePdf');
     const pdfFilename = document.getElementById('adminBookPdfFilename');
+    const userProfileInput = document.getElementById('adminUserProfileImage');
+    const userProfilePreview = document.getElementById('adminUserProfilePreview');
+    const userProfilePlaceholder = document.getElementById('adminUserProfilePlaceholder');
 
     if (addBtn) addBtn.addEventListener('click', () => openBookModal(null));
     if (addUserBtn) addUserBtn.addEventListener('click', () => openUserModal(null, 'USER'));
@@ -460,6 +489,17 @@ function bindAdminEvents() {
         pdfInput.addEventListener('change', () => {
             const file = pdfInput.files && pdfInput.files[0];
             pdfFilename.textContent = file ? file.name : 'No file selected';
+        });
+    }
+
+    if (userProfileInput && userProfilePreview && userProfilePlaceholder) {
+        userProfileInput.addEventListener('change', () => {
+            const file = userProfileInput.files && userProfileInput.files[0];
+            if (!file) return;
+            const src = URL.createObjectURL(file);
+            userProfilePreview.src = src;
+            userProfilePreview.classList.remove('hidden');
+            userProfilePlaceholder.classList.add('hidden');
         });
     }
 

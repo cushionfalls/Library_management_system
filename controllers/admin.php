@@ -104,17 +104,28 @@ class AdminController {
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }
+                $userProfileImage = $this->processUserProfileUpload($_POST['existing_profile_image'] ?? null);
+                if (!$userProfileImage['success']) {
+                    return $userProfileImage;
+                }
                 return $this->service->createUser(
                     $_POST['first_name'] ?? '',
                     $_POST['last_name'] ?? '',
                     $_POST['email'] ?? '',
                     $_POST['password'] ?? '',
                     $_POST['role'] ?? 'USER',
-                    $_POST['is_active'] ?? 1
+                    $_POST['is_active'] ?? 1,
+                    $_POST['phone_number'] ?? '',
+                    $_POST['dob'] ?? '',
+                    $userProfileImage['profile_image']
                 );
             case 'update-user':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
+                }
+                $userProfileImage = $this->processUserProfileUpload($_POST['existing_profile_image'] ?? null);
+                if (!$userProfileImage['success']) {
+                    return $userProfileImage;
                 }
                 return $this->service->updateUser(
                     $_POST['id'] ?? 0,
@@ -122,7 +133,10 @@ class AdminController {
                     $_POST['last_name'] ?? '',
                     $_POST['email'] ?? '',
                     $_POST['role'] ?? 'USER',
-                    $_POST['is_active'] ?? 0
+                    $_POST['is_active'] ?? 0,
+                    $_POST['phone_number'] ?? '',
+                    $_POST['dob'] ?? '',
+                    $userProfileImage['profile_image']
                 );
             case 'delete-user':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -231,6 +245,26 @@ class AdminController {
             return null;
         }
         return $path;
+    }
+
+    private function processUserProfileUpload($existingProfileImage) {
+        $profileImagePath = $this->normalizeAssetPath($existingProfileImage);
+        if (!empty($_FILES['profile_image']['name'])) {
+            $profileUpload = $this->storeUpload(
+                $_FILES['profile_image'],
+                __DIR__ . '/../public/uploads/profiles',
+                'profile-',
+                ALLOWED_IMAGE_TYPES
+            );
+            if (!$profileUpload['success']) {
+                return $profileUpload;
+            }
+            $profileImagePath = '/public/uploads/profiles/' . $profileUpload['filename'];
+        }
+        return [
+            'success' => true,
+            'profile_image' => $profileImagePath
+        ];
     }
 
     private function lookupBookByIsbn($isbn) {
