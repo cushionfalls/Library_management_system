@@ -4,6 +4,7 @@ require_once __DIR__ . '/Database.php';
 
 class Session {
     private $db;
+    private static $started = false;
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
@@ -11,6 +12,9 @@ class Session {
     }
 
     public function start() {
+        if (self::$started) {
+            return;
+        }
         if (session_status() === PHP_SESSION_NONE) {
             session_set_cookie_params([
                 'lifetime' => SESSION_TIMEOUT,
@@ -21,6 +25,7 @@ class Session {
             ]);
             session_start();
         }
+        self::$started = true;
     }
 
     public function set($key, $value) {
