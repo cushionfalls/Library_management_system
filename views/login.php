@@ -132,10 +132,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         const messageDiv = document.getElementById('loginMessage');
 
         if (result.success) {
-            messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
-            setTimeout(() => {
-                window.location.href = '<?php echo APP_ROUTE; ?>?page=dashboard';
-            }, 1500);
+            window.location.href = '<?php echo APP_ROUTE; ?>?page=dashboard';
         } else {
             if (result.unverified_email && result.email) {
                 messageDiv.innerHTML = `

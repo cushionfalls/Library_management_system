@@ -16,6 +16,12 @@ class Database {
         return self::$instance;
     }
 
+    private function __clone() {}
+
+    public function __wakeup() {
+        throw new Exception('Cannot unserialize singleton');
+    }
+
     private function connect() {
         $this->conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
@@ -27,6 +33,9 @@ class Database {
     }
 
     public function getConnection() {
+        if (!$this->conn || !@$this->conn->ping()) {
+            $this->connect();
+        }
         return $this->conn;
     }
 
@@ -69,6 +78,7 @@ class Database {
     public function close() {
         if ($this->conn) {
             $this->conn->close();
+            $this->conn = null;
         }
     }
 
