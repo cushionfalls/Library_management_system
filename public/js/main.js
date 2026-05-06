@@ -241,7 +241,7 @@ const SessionStorage = {
 };
 
 // Lazy load images
-function lazyLoadImages() {
+document.addEventListener('DOMContentLoaded', function() {
     const images = document.querySelectorAll('img[data-src]');
     const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -255,8 +255,7 @@ function lazyLoadImages() {
     });
 
     images.forEach(img => imageObserver.observe(img));
-}
-document.addEventListener('DOMContentLoaded', lazyLoadImages);
+});
 
 // Export functions for use in other scripts
 window.formatDate = formatDate;
@@ -272,6 +271,5 @@ window.logout = confirmLogout;
 window.redirect = redirect;
 window.Storage = Storage;
 window.SessionStorage = SessionStorage;
-window.lazyLoadImages = lazyLoadImages;
 
 

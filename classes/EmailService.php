@@ -300,13 +300,12 @@ class EmailService {
                 $transportHost = 'ssl://' . $this->host;
             }
 
-            $socket = @fsockopen($transportHost, (int)$this->port, $errno, $errstr, SMTP_CONNECT_TIMEOUT);
+            $socket = @fsockopen($transportHost, (int)$this->port, $errno, $errstr, 15);
 
             if (!$socket) {
                 error_log("SMTP connect failed: $errno $errstr");
                 return false;
             }
-            stream_set_timeout($socket, SMTP_READ_TIMEOUT);
 
             $read = function() use ($socket) {
                 $response = '';

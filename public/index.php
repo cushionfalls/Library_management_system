@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../classes/Session.php';
 
@@ -101,17 +102,7 @@ $navActive = [
 
         /* Smooth transitions */
         * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-duration: 200ms;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fadeIn {
-            animation: fadeIn 0.4s ease-out forwards;
+            @apply transition-colors duration-200;
         }
 
         /* Button refinements */
