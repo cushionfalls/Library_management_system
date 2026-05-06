@@ -2,7 +2,7 @@
 // Application Configuration
 
 define('APP_NAME', 'Paper Library');
-define('APP_URL', 'http://localhost/library_management_system');
+define('APP_URL', 'http://localhost/Library_management_system');
 /** Single front controller at project root (not public/index.php in the URL). */
 define('APP_ROUTE', APP_URL . '/index.php');
 define('APP_ENV', 'development');
@@ -21,6 +21,8 @@ define('MAIL_USERNAME', 'librarymanagementslibs@gmail.com');
 define('MAIL_PASSWORD', 'jnef oloi tlcl dxrx');     
 define('MAIL_FROM', MAIL_USERNAME);
 define('MAIL_FROM_NAME', 'Paper Library');
+define('SMTP_CONNECT_TIMEOUT', 4);
+define('SMTP_READ_TIMEOUT', 6);
 
 // OTP Configuration
 define('OTP_VALIDITY', 300); // 5 minutes in seconds
