@@ -65,6 +65,10 @@ $navActive = [
     'membership' => $current_page === 'membership',
     'admin' => in_array($current_page, $admin_pages, true),
 ];
+
+// Hide header/footer on guest-facing auth/landing pages
+$guestAuthPages = ['login', 'register', 'forgot_password', 'home'];
+$isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuthPages, true);
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -132,7 +136,8 @@ $navActive = [
     </style>
 </head>
 <body class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
-    <!-- Navigation -->
+    <!-- Navigation: hidden on guest auth/landing pages -->
+    <?php if (!$isGuestAuthPage): ?>
     <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <div class="flex items-center gap-4 lg:gap-10 flex-1 min-w-0">
@@ -197,17 +202,24 @@ $navActive = [
                         </ul>
                     </div>
                 </div>
-            <?php else: ?>
-                <div class="flex items-center justify-end gap-2 shrink-0">
-                    <a href="<?php echo APP_ROUTE; ?>?page=login" class="px-4 py-2 rounded-lg text-sm font-semibold font-['Manrope'] text-[#474557] hover:text-[#4F1BF1] transition-colors">Login</a>
-                    <a href="<?php echo APP_ROUTE; ?>?page=register" class="px-4 py-2 rounded-xl text-sm font-bold font-['Manrope'] text-white bg-[#4F1BF1] hover:brightness-110 transition-all shadow-md">Register</a>
-                </div>
             <?php endif; ?>
         </div>
     </header>
+    <?php endif; ?>
 
     <!-- Main Content -->
-    <main class="min-h-screen">
+    <main class="<?php echo $isGuestAuthPage ? '' : 'min-h-screen'; ?>">
+        <?php if ($isGuestAuthPage): ?>
+            <?php
+            $page = $_GET['page'] ?? 'home';
+            $view_file = __DIR__ . '/../views/' . str_replace(['../', '..\\'], '', $page) . '.php';
+            if (file_exists($view_file)) {
+                include $view_file;
+            } else {
+                include __DIR__ . '/../views/home.php';
+            }
+            ?>
+        <?php else: ?>
         <div class="<?php
             if ($current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'fines' || $current_page === 'profile') {
                 echo 'w-full max-w-screen-2xl mx-auto px-4 sm:px-8 py-10';
@@ -226,9 +238,11 @@ $navActive = [
             }
             ?>
         </div>
+        <?php endif; ?>
     </main>
 
-    <!-- Footer -->
+    <!-- Footer: hidden on guest auth pages (landing page has its own footer) -->
+    <?php if (!$isGuestAuthPage): ?>
     <footer class="bg-surface-container-low border-t border-outline-variant/30 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -250,6 +264,7 @@ $navActive = [
             </div>
         </div>
     </footer>
+    <?php endif; ?>
 
     <dialog id="logoutConfirmModal" class="modal">
         <div class="modal-box max-w-md">

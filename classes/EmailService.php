@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
+if (!defined('SMTP_CONNECT_TIMEOUT')) {
+    define('SMTP_CONNECT_TIMEOUT', 4);
+}
+if (!defined('SMTP_READ_TIMEOUT')) {
+    define('SMTP_READ_TIMEOUT', 6);
+}
+
 class EmailService {
     private $host;
     private $port;
@@ -307,6 +314,7 @@ class EmailService {
                 return false;
             }
             stream_set_timeout($socket, SMTP_READ_TIMEOUT);
+            error_log('SMTP connected to ' . $this->host . ':' . (int)$this->port);
 
             $read = function() use ($socket) {
                 $response = '';

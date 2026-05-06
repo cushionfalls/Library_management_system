@@ -326,7 +326,9 @@ class BrowseCatalog {
             'language' => (string)($row['language'] ?? 'English'),
             'number_of_copies' => (int)($row['number_of_copies'] ?? 0),
             'price' => (int)($row['price'] ?? 0),
-            'online_buy_price' => $row['online_buy_price'] !== null ? (int)$row['online_buy_price'] : null,
+            'online_buy_price' => array_key_exists('online_buy_price', $row) && $row['online_buy_price'] !== null
+                ? (int)$row['online_buy_price']
+                : null,
             'cover_image_url' => $cover,
             'rating' => (float)($row['rating'] ?? 0),
             'author_display' => trim((string)($row['authors'] ?? '')) !== '' ? (string)$row['authors'] : 'Unknown Author',

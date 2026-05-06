@@ -89,7 +89,10 @@ class AuthController {
             $otp_code = $this->otp->generate($email);
 
             if ($otp_code) {
-                $this->email->sendOTP($email, $otp_code, $first_name);
+                $sent = $this->email->sendOTP($email, $otp_code, $first_name);
+                if (!$sent) {
+                    return ['error' => 'Failed to send OTP email. Please try again in a minute.'];
+                }
 
                 // Store user_id and email in session temporarily
                 $this->session->set('temp_user_id', $user_id);
@@ -198,7 +201,10 @@ class AuthController {
         $otp_code = $this->otp->generate($email);
 
         if ($otp_code) {
-            $this->email->sendOTP($email, $otp_code, '');
+            $sent = $this->email->sendOTP($email, $otp_code, '');
+            if (!$sent) {
+                return ['error' => 'Failed to send OTP email. Please try again in a minute.'];
+            }
             return ['success' => true, 'message' => 'OTP sent to ' . $email];
         }
 
@@ -266,7 +272,10 @@ class AuthController {
             return ['error' => 'Failed to send OTP. Please try again'];
         }
 
-        $this->email->sendPasswordResetOTP($email, $otp_code, $firstName);
+        $sent = $this->email->sendPasswordResetOTP($email, $otp_code, $firstName);
+        if (!$sent) {
+            return ['error' => 'Failed to send OTP email. Please try again in a minute'];
+        }
 
         return [
             'success' => true,
