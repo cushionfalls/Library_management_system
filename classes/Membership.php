@@ -220,6 +220,67 @@ class Membership {
     }
 
     /**
+     * Deactivate the currently active membership immediately.
+     *
+     * @return array<string, mixed>
+     */
+    public function deactivateMembership($userId) {
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return ['success' => false, 'message' => 'Invalid user'];
+        }
+
+        $this->db->begin_transaction();
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT id
+                 FROM UserMemberships
+                 WHERE user_id = ? AND status = 'ACTIVE' AND ends_at > NOW()
+                 ORDER BY ends_at DESC, id DESC
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            if (!$stmt) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Server error'];
+            }
+            $stmt->bind_param('i', $userId);
+            $stmt->execute();
+            $active = $stmt->get_result()->fetch_assoc();
+            if (!$active) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'No active membership to deactivate'];
+            }
+
+            $membershipId = (int)$active['id'];
+            $stmtU = $this->db->prepare(
+                "UPDATE UserMemberships
+                 SET ends_at = NOW(), updated_at = NOW()
+                 WHERE id = ? AND user_id = ?"
+            );
+            if (!$stmtU) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Server error'];
+            }
+            $stmtU->bind_param('ii', $membershipId, $userId);
+            if (!$stmtU->execute() || $stmtU->affected_rows <= 0) {
+                $this->db->rollback();
+                return ['success' => false, 'message' => 'Failed to deactivate membership'];
+            }
+
+            $this->db->commit();
+            return [
+                'success' => true,
+                'message' => 'Membership deactivated successfully',
+                'membership' => null,
+            ];
+        } catch (Exception $e) {
+            $this->db->rollback();
+            return ['success' => false, 'message' => 'Failed to deactivate membership'];
+        }
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function getPurchaseHistory($userId, $limit = 50, $offset = 0) {

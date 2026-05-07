@@ -132,17 +132,6 @@ async function resendOTPForEmail(email, messageTargetId = 'registrationMessage')
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
-    const messageDiv = document.getElementById('registrationMessage');
-    const otpModal = document.getElementById('otpModal');
-    const otpMessage = document.getElementById('otpMessage');
-    const otpEmail = (formData.get('email') || '').toString().trim();
-    const submitBtn = this.querySelector('button[type="submit"]');
-
-    if (submitBtn) submitBtn.disabled = true;
-    document.getElementById('otpEmail').value = otpEmail;
-    this.style.display = 'none';
-    otpMessage.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin mr-2"></i>Sending OTP to <strong>' + otpEmail + '</strong>...</div>';
-    otpModal.showModal();
 
     try {
         const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=register', {
@@ -151,16 +140,14 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
 
         const result = await response.json();
+        const messageDiv = document.getElementById('registrationMessage');
 
         if (result.success) {
             document.getElementById('otpEmail').value = result.email;
             messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
-            otpMessage.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
-            const otpInput = document.getElementById('otp');
-            if (otpInput) otpInput.focus();
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('otpModal').showModal();
         } else {
-            otpModal.close();
-            this.style.display = '';
             if (result.unverified_email && result.email) {
                 messageDiv.innerHTML = `
                     <div class="alert alert-warning">
@@ -174,11 +161,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             }
         }
     } catch (error) {
-        otpModal.close();
-        this.style.display = '';
         document.getElementById('registrationMessage').innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle mr-2"></i>An error occurred. Please try again.</div>';
-    } finally {
-        if (submitBtn) submitBtn.disabled = false;
     }
 });
 
