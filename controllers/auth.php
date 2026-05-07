@@ -99,7 +99,7 @@ class AuthController {
 
                 return [
                     'success' => true,
-                    'message' => 'Registration successful. Please verify your email with the OTP sent to ' . $email,
+                    'message' => 'Registration code sent to your email successfully. Please verify your email with the OTP sent to ' . $email,
                     'user_id' => $user_id,
                     'email' => $email
                 ];
@@ -242,7 +242,7 @@ class AuthController {
         $loginResult = $this->user->login($email, $password);
 
         if ($loginResult['success']) {
-            $this->session->login($loginResult['user_id'], $loginResult['role'], $loginResult['name']);
+            $this->session->login($loginResult['user_id'], $loginResult['role'], $loginResult['name'], $loginResult['is_verified'] ?? 0);
             return ['success' => true, 'message' => 'Login successful', 'role' => $loginResult['role']];
         }
 

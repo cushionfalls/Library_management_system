@@ -63,6 +63,9 @@ class BooksController {
                 if (!$this->session->isLoggedIn()) {
                     return ['success' => false, 'message' => 'Please login to submit a review'];
                 }
+                if (!$this->session->isVerified()) {
+                    return ['success' => false, 'message' => 'Please verify your email address to submit reviews'];
+                }
                 $bookId = (int)($_POST['book_id'] ?? 0);
                 $userId = $this->session->getUserId();
                 $access = $this->library->getAccessForUserBook($userId, $bookId);
@@ -109,6 +112,9 @@ class BooksController {
                 if (!$this->session->isLoggedIn()) {
                     return ['success' => false, 'message' => 'Please login to buy books'];
                 }
+                if (!$this->session->isVerified()) {
+                    return ['success' => false, 'message' => 'Please verify your email address to buy books'];
+                }
                 return $this->library->purchaseOnlineBook(
                     $this->session->getUserId(),
                     $_POST['book_id'] ?? 0
@@ -120,6 +126,9 @@ class BooksController {
                 }
                 if (!$this->session->isLoggedIn()) {
                     return ['success' => false, 'message' => 'Please login to use membership access'];
+                }
+                if (!$this->session->isVerified()) {
+                    return ['success' => false, 'message' => 'Please verify your email address to use membership access'];
                 }
                 return $this->library->unlockWithMembership(
                     $this->session->getUserId(),

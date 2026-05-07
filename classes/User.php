@@ -28,7 +28,7 @@ class User {
     }
 
     public function login($email, $password) {
-        $stmt = $this->db->prepare("SELECT id, first_name, password, role, is_active FROM Users WHERE email = ? AND is_active = 1 LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, first_name, password, role, is_active, is_verified FROM Users WHERE email = ? AND is_active = 1 LIMIT 1");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -48,6 +48,7 @@ class User {
             'user_id' => $user['id'],
             'name' => $user['first_name'],
             'role' => $user['role'],
+            'is_verified' => (int)$user['is_verified'],
             'message' => 'Login successful'
         ];
     }

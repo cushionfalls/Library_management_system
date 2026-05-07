@@ -410,6 +410,12 @@
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
             if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+        } else if (!window.BROWSE_IS_VERIFIED) {
+            textarea.disabled = true;
+            textarea.placeholder = 'Please verify your email to submit a review.';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
         } else {
             textarea.disabled = false;
             textarea.placeholder = 'Share your thoughts on this title...';
@@ -484,6 +490,10 @@
         event.preventDefault();
         if (!window.BROWSE_IS_LOGGED_IN) {
             if (window.showToast) window.showToast('Please login to submit a review', 'warning');
+            return;
+        }
+        if (!window.BROWSE_IS_VERIFIED) {
+            if (window.showToast) window.showToast('Please verify your email to submit a review', 'warning');
             return;
         }
         const form = document.getElementById('bookReviewForm');
@@ -570,6 +580,10 @@
         if (membershipBtn) membershipBtn.addEventListener('click', async () => {
             if (membershipBtn.textContent === 'Go to My Books') return;
             if (!state.currentBookId) return;
+            if (!window.BROWSE_IS_VERIFIED) {
+                window.showToast?.('Please verify your email to use membership access', 'warning');
+                return;
+            }
             const body = new URLSearchParams();
             body.set('book_id', String(state.currentBookId));
             const response = await fetch(apiUrl('unlock-with-membership'), { method: 'POST', body });

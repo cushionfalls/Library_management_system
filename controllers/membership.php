@@ -54,6 +54,9 @@ try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 membership_json(['success' => false, 'error' => 'Invalid request method'], 405);
             }
+            if (!$session->isVerified()) {
+                membership_json(['success' => false, 'error' => 'Please verify your email address to purchase membership plans.'], 403);
+            }
             $planId = (int)($_POST['plan_id'] ?? 0);
             if ($planId <= 0) {
                 membership_json(['success' => false, 'error' => 'plan_id is required'], 400);

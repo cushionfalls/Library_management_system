@@ -131,6 +131,11 @@ async function loadPlans(active) {
             const planId = Number(btn.getAttribute('data-plan-id') || 0);
             if (!planId) return;
 
+            if (!window.MEMBERSHIP_IS_VERIFIED) {
+                window.showToast?.('Please verify your email address to purchase membership plans.', 'danger');
+                return;
+            }
+
             const confirmModal = document.getElementById('membershipConfirmModal');
             const confirmBtn = document.getElementById('membershipConfirmBtn');
             if (!confirmModal || !confirmBtn) return;
