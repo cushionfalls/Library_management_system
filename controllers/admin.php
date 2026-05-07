@@ -57,7 +57,6 @@ class AdminController {
                         'published_at' => $_POST['published_at'] ?? '',
                         'language' => $_POST['language'] ?? 'English',
                         'genre' => $_POST['genre'] ?? 'OTHERS',
-                        'online_rent_price' => $_POST['online_rent_price'] ?? null,
                         'online_buy_price' => $_POST['online_buy_price'] ?? null,
                         'cover_image' => $assets['cover_image'],
                         'online_copy_pdf' => $assets['online_copy_pdf']
@@ -87,7 +86,6 @@ class AdminController {
                         'published_at' => $_POST['published_at'] ?? '',
                         'language' => $_POST['language'] ?? 'English',
                         'genre' => $_POST['genre'] ?? 'OTHERS',
-                        'online_rent_price' => $_POST['online_rent_price'] ?? null,
                         'online_buy_price' => $_POST['online_buy_price'] ?? null,
                         'cover_image' => $assets['cover_image'],
                         'online_copy_pdf' => $assets['online_copy_pdf']

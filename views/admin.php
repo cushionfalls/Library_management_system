@@ -14,8 +14,8 @@
             <h3 class="text-3xl font-black text-[#3800bf]" id="adminTotalBooks">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
-            <p class="text-sm font-semibold text-[#474557] mb-1">Active Rentals</p>
-            <h3 class="text-3xl font-black text-[#3800bf]" id="adminActiveRentals">0</h3>
+            <p class="text-sm font-semibold text-[#474557] mb-1">Total Memberships</p>
+            <h3 class="text-3xl font-black text-[#3800bf]" id="adminTotalMemberships">0</h3>
         </div>
         <div class="bg-[#f7f1ff] p-6 rounded-xl hover:bg-[#e5e0f0] transition-all">
             <p class="text-sm font-semibold text-[#474557] mb-1">Total Income</p>

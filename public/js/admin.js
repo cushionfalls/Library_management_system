@@ -33,7 +33,7 @@ async function adminFetch(action, options = {}) {
 function renderOverview(overview) {
     document.getElementById('adminTotalUsers').textContent = overview.total_users ?? 0;
     document.getElementById('adminTotalBooks').textContent = overview.total_books ?? 0;
-    document.getElementById('adminActiveRentals').textContent = overview.active_rentals ?? 0;
+    document.getElementById('adminTotalMemberships').textContent = overview.total_memberships ?? 0;
     document.getElementById('adminWalletCreditsToday').textContent = formatUsdFromCents(overview.wallet_credits_today ?? 0);
 }
     function fallbackCover() {

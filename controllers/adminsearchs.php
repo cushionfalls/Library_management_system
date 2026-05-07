@@ -28,7 +28,7 @@ class AdminSearchController {
             case 'search':
                 $type = $_GET['type'] ?? $_POST['type'] ?? 'books';
                 $q = $_GET['q'] ?? $_POST['q'] ?? '';
-                $allowed = ['books', 'users', 'transactions', 'overdue'];
+                $allowed = ['books', 'users', 'transactions'];
                 if (!in_array(strtolower((string)$type), $allowed, true)) {
                     return ['success' => false, 'error' => 'Invalid search type'];
                 }

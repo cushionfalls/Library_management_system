@@ -165,7 +165,6 @@ class BrowseCatalog {
                 b.language,
                 b.number_of_copies,
                 b.price,
-                b.online_rent_price,
                 b.online_buy_price,
                 b.cover_image,
                 b.online_copy_pdf,
@@ -190,7 +189,6 @@ class BrowseCatalog {
 
         $book = $this->mapBookRow($row);
         $book['published_at'] = (string)($row['published_at'] ?? '');
-        $book['online_rent_price'] = $row['online_rent_price'] !== null ? (int)$row['online_rent_price'] : null;
         $book['online_buy_price'] = $row['online_buy_price'] !== null ? (int)$row['online_buy_price'] : null;
         $book['online_copy_pdf'] = (string)($row['online_copy_pdf'] ?? '');
         $book['total_reviews'] = (int)($row['total_reviews'] ?? 0);

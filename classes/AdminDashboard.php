@@ -12,7 +12,7 @@ class AdminDashboard {
         return [
             'total_users' => $this->countTable('Users'),
             'total_books' => $this->countTable('Books'),
-            'active_rentals' => $this->countActiveRentals(),
+            'total_memberships' => $this->countTotalMemberships(),
             'wallet_credits_today' => $this->sumWalletCreditsToday()
         ];
     }
@@ -33,21 +33,7 @@ class AdminDashboard {
     public function getRecentTransactions($limit = 100) {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
-            "(SELECT bt.id, 
-                    bt.transaction_type AS type, 
-                    bt.amount_paid AS amount, 
-                    bt.due_date, 
-                    bt.created_at, 
-                    bt.is_returned,
-                    b.name AS title,
-                    u.first_name,
-                    u.last_name,
-                    'BOOK' as category
-             FROM BookTransactions bt
-             INNER JOIN Books b ON b.id = bt.book_id
-             INNER JOIN Users u ON u.id = bt.user_id)
-             UNION ALL
-             (SELECT wt.id,
+                    "SELECT wt.id,
                     wt.reason AS type,
                     wt.amount,
                     NULL AS due_date,
@@ -59,7 +45,7 @@ class AdminDashboard {
                     'WALLET' as category
              FROM WalletTransactions wt
              INNER JOIN Users u ON u.id = wt.user_id
-             WHERE wt.reason IN ('TOP_UP', 'MEMBERSHIP', 'BOOK_BUY'))
+             WHERE wt.reason IN ('TOP_UP', 'MEMBERSHIP', 'BOOK_BUY')
              ORDER BY created_at DESC
              LIMIT ?"
         );
@@ -73,7 +59,7 @@ class AdminDashboard {
         $limit = max(1, (int)$limit);
         $stmt = $this->db->prepare(
             "SELECT b.id, b.isbn, b.name, b.description, b.publisher, b.published_at, b.language, b.genre,
-                    b.number_of_copies, b.price, b.online_rent_price, b.online_buy_price,
+                    b.number_of_copies, b.price, b.online_buy_price,
                     b.cover_image, b.online_copy_pdf, b.created_at,
                     COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors
              FROM Books b
@@ -99,7 +85,6 @@ class AdminDashboard {
         $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
         $language = trim((string)($bookData['language'] ?? 'English'));
         $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
-        $onlineRentPrice = $this->normalizeOptionalInt($bookData['online_rent_price'] ?? null);
         $onlineBuyPrice = $this->normalizeOptionalInt($bookData['online_buy_price'] ?? null);
         $coverImage = trim((string)($bookData['cover_image'] ?? ''));
         $onlineCopyPdf = trim((string)($bookData['online_copy_pdf'] ?? ''));
@@ -109,9 +94,6 @@ class AdminDashboard {
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
-        }
-        if ($onlineRentPrice !== null && $onlineRentPrice < 0) {
-            return ['success' => false, 'message' => 'Online rent price must be a valid number'];
         }
         if ($onlineBuyPrice !== null && $onlineBuyPrice < 0) {
             return ['success' => false, 'message' => 'Online buy price must be a valid number'];
@@ -127,16 +109,16 @@ class AdminDashboard {
         $insert = $this->db->prepare(
             "INSERT INTO Books (
                 isbn, name, description, publisher, published_at, language, genre,
-                number_of_copies, price, online_rent_price, online_buy_price, cover_image, online_copy_pdf
+                number_of_copies, price, online_buy_price, cover_image, online_copy_pdf
             )
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $descriptionOrNull = ($description === '') ? null : $description;
         $language = ($language === '') ? 'English' : $language;
         $coverImageOrNull = ($coverImage === '') ? null : $coverImage;
         $onlineCopyPdfOrNull = ($onlineCopyPdf === '') ? null : $onlineCopyPdf;
         $insert->bind_param(
-            'sssssssiiiiss',
+            'sssssssiiiss',
             $isbn,
             $name,
             $descriptionOrNull,
@@ -146,7 +128,6 @@ class AdminDashboard {
             $genre,
             $copies,
             $price,
-            $onlineRentPrice,
             $onlineBuyPrice,
             $coverImageOrNull,
             $onlineCopyPdfOrNull
@@ -173,7 +154,6 @@ class AdminDashboard {
         $publishedAt = $this->normalizeDatetime($bookData['published_at'] ?? null);
         $language = trim((string)($bookData['language'] ?? 'English'));
         $genre = $this->normalizeGenre($bookData['genre'] ?? 'OTHERS');
-        $onlineRentPrice = $this->normalizeOptionalInt($bookData['online_rent_price'] ?? null);
         $onlineBuyPrice = $this->normalizeOptionalInt($bookData['online_buy_price'] ?? null);
         $coverImage = trim((string)($bookData['cover_image'] ?? ''));
         $onlineCopyPdf = trim((string)($bookData['online_copy_pdf'] ?? ''));
@@ -186,9 +166,6 @@ class AdminDashboard {
         }
         if ($copies < 0 || $price < 0) {
             return ['success' => false, 'message' => 'Copies and price must be valid numbers'];
-        }
-        if ($onlineRentPrice !== null && $onlineRentPrice < 0) {
-            return ['success' => false, 'message' => 'Online rent price must be a valid number'];
         }
         if ($onlineBuyPrice !== null && $onlineBuyPrice < 0) {
             return ['success' => false, 'message' => 'Online buy price must be a valid number'];
@@ -204,7 +181,7 @@ class AdminDashboard {
         $stmt = $this->db->prepare(
             "UPDATE Books
              SET isbn = ?, name = ?, description = ?, publisher = ?, published_at = ?, language = ?, genre = ?,
-                 number_of_copies = ?, price = ?, online_rent_price = ?, online_buy_price = ?, cover_image = ?, online_copy_pdf = ?,
+                 number_of_copies = ?, price = ?, online_buy_price = ?, cover_image = ?, online_copy_pdf = ?,
                  updated_at = NOW()
              WHERE id = ?"
         );
@@ -213,7 +190,7 @@ class AdminDashboard {
         $coverImageOrNull = ($coverImage === '') ? null : $coverImage;
         $onlineCopyPdfOrNull = ($onlineCopyPdf === '') ? null : $onlineCopyPdf;
         $stmt->bind_param(
-            'sssssssiiiissi',
+            'sssssssiiissi',
             $isbn,
             $name,
             $descriptionOrNull,
@@ -223,7 +200,6 @@ class AdminDashboard {
             $genre,
             $copies,
             $price,
-            $onlineRentPrice,
             $onlineBuyPrice,
             $coverImageOrNull,
             $onlineCopyPdfOrNull,
@@ -244,7 +220,8 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'Invalid book id'];
         }
 
-        // Check active physical transactions
+        // Skip active physical transactions check as they are obsolete
+        /*
         $check = $this->db->prepare(
             "SELECT id FROM BookTransactions WHERE book_id = ? AND is_returned = 0 LIMIT 1"
         );
@@ -253,6 +230,7 @@ class AdminDashboard {
         if ($check->get_result()->num_rows > 0) {
             return ['success' => false, 'message' => "Cannot delete the book because some users currently have it rented out."];
         }
+        */
 
         // Check if any users own this digital book or have it in their library via membership
         $checkAccess = $this->db->prepare(
@@ -471,11 +449,11 @@ class AdminDashboard {
         return (int)($row['total'] ?? 0);
     }
 
-    private function countActiveRentals() {
+    private function countTotalMemberships() {
         $result = $this->db->query(
             "SELECT COUNT(*) AS total
-             FROM BookTransactions
-             WHERE transaction_type = 'RENT' AND is_returned = 0"
+             FROM WalletTransactions
+             WHERE reason = 'MEMBERSHIP'"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
