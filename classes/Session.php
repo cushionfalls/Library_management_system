@@ -65,6 +65,10 @@ class Session {
         return $_SESSION['user_role'] ?? null;
     }
 
+    public function isVerified() {
+        return (int)($this->get('is_verified', 0)) === 1;
+    }
+
     public function getUserData() {
         if (!$this->isLoggedIn()) return null;
 
@@ -75,10 +79,11 @@ class Session {
         return $stmt->get_result()->fetch_assoc();
     }
 
-    public function login($user_id, $role, $name = '') {
+    public function login($user_id, $role, $name = '', $is_verified = 1) {
         $_SESSION['user_id'] = $user_id;
         $_SESSION['user_role'] = $role;
         $_SESSION['user_name'] = $name;
+        $_SESSION['is_verified'] = (int)$is_verified;
         $_SESSION['login_time'] = time();
 
         // Regenerate session ID for security

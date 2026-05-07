@@ -109,6 +109,9 @@ try {
 
         case 'stripe-create-intent': {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') wallet_json(['success' => false, 'error' => 'POST required'], 405);
+            if (!$session->isVerified()) {
+                wallet_json(['success' => false, 'error' => 'Please verify your email address to top up your wallet.'], 403);
+            }
 
             // Convention: We now expect `amount_cents` as a direct integer from the frontend.
             $amountCents = (int)($_POST['amount_cents'] ?? 0);

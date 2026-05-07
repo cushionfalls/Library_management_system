@@ -100,7 +100,7 @@ class AuthController {
 
                 return [
                     'success' => true,
-                    'message' => 'Registration successful. Please verify your email with the OTP sent to ' . $email,
+                    'message' => 'Registration code sent to your email successfully. Please verify your email with the OTP sent to ' . $email,
                     'user_id' => $user_id,
                     'email' => $email
                 ];
@@ -223,24 +223,10 @@ class AuthController {
             return ['error' => 'Email and password are required'];
         }
 
-        // Check if user is verified
-        $stmt = $this->db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-
-        if ($result && !$result['is_verified']) {
-            return [
-                'error' => 'Email already registered but not verified.',
-                'unverified_email' => true,
-                'email' => $email
-            ];
-        }
-
         $loginResult = $this->user->login($email, $password);
 
         if ($loginResult['success']) {
-            $this->session->login($loginResult['user_id'], $loginResult['role'], $loginResult['name']);
+            $this->session->login($loginResult['user_id'], $loginResult['role'], $loginResult['name'], $loginResult['is_verified'] ?? 0);
             return ['success' => true, 'message' => 'Login successful', 'role' => $loginResult['role']];
         }
 

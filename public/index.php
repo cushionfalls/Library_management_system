@@ -207,6 +207,92 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </header>
     <?php endif; ?>
 
+    <?php if ($session->isLoggedIn() && !$session->isVerified()): ?>
+    <div class="bg-amber-50 border-b border-amber-200 py-3 px-4 sm:px-8">
+        <div class="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-800">
+            <div class="flex items-center gap-2 text-sm font-medium">
+                <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                <span>Your email is not verified. Please verify to unlock all features like buying books and memberships.</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="openGlobalVerificationModal('<?php echo addslashes($navUser['email'] ?? ''); ?>')" class="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-lg hover:bg-amber-700 transition-colors">
+                    Verify Now
+                </button>
+                <button onclick="resendOTPInBanner('<?php echo addslashes($navUser['email'] ?? ''); ?>')" class="text-xs font-bold text-amber-700 hover:underline">
+                    Resend OTP
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+    function openGlobalVerificationModal(email) {
+        if (!email) return;
+        const modal = document.getElementById('globalOtpModal');
+        const emailInput = document.getElementById('globalOtpEmail');
+        if (modal && emailInput) {
+            emailInput.value = email;
+            modal.showModal();
+        }
+    }
+
+    async function handleGlobalOtpSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const messageDiv = document.getElementById('globalOtpMessage');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=verify-otp', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDiv.innerHTML = '<div class="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center gap-3"><i class="fas fa-check-circle"></i>' + (result.message || 'Verified!') + '</div>';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                messageDiv.innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3"><i class="fas fa-exclamation-circle"></i>' + (result.error || 'Verification failed') + '</div>';
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        } catch (error) {
+            messageDiv.innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3"><i class="fas fa-exclamation-circle"></i>An error occurred.</div>';
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    }
+
+    async function resendOTPInBanner(email) {
+        if (!email) return;
+        try {
+            const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=resend-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'email=' + encodeURIComponent(email)
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert(result.message || 'OTP sent successfully');
+                // If the modal is open, update its message too
+                const modalMsg = document.getElementById('globalOtpMessage');
+                if (modalMsg) {
+                    modalMsg.innerHTML = '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-info-circle"></i>' + result.message + '</div>';
+                }
+            } else {
+                alert(result.error || 'Failed to resend OTP');
+            }
+        } catch (error) {
+            alert('An error occurred. Please try again.');
+        }
+    }
+    </script>
+    <?php endif; ?>
+
     <!-- Main Content -->
     <main class="<?php echo $isGuestAuthPage ? '' : 'min-h-screen'; ?>">
         <?php if ($isGuestAuthPage): ?>
@@ -276,6 +362,42 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <dialog id="globalOtpModal" class="modal">
+        <div class="modal-box bg-white rounded-3xl p-10 border border-[#c9c4da]/20 shadow-2xl">
+            <h3 class="text-3xl font-black text-gray-900 mb-2">Verify Email</h3>
+            <p class="text-gray-500 mb-8">An OTP code has been sent to your email. Please enter it below to verify your account.</p>
+            
+            <div id="globalOtpMessage" class="mb-8"></div>
+
+            <form onsubmit="handleGlobalOtpSubmit(event)" class="space-y-8">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3 text-center uppercase tracking-widest">OTP Code</label>
+                    <input type="text" placeholder="0 0 0 0 0 0" class="w-full bg-[#fdf8ff] border border-[#c9c4da]/40 rounded-2xl p-5 text-center text-4xl tracking-[1rem] font-black focus:border-[#4F1BF1] focus:ring-4 focus:ring-[#4F1BF1]/10 outline-none transition-all" name="otp" maxlength="6" required>
+                </div>
+
+                <input type="hidden" id="globalOtpEmail" name="email">
+
+                <button type="submit" class="w-full bg-[#4F1BF1] text-white py-4 rounded-2xl font-bold text-lg hover:bg-[#3b14b8] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#4F1BF1]/25">
+                    Verify OTP
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-gray-600">
+                    Didn't receive the code? 
+                    <button onclick="resendOTPInBanner(document.getElementById('globalOtpEmail').value)" class="font-bold text-[#4F1BF1] hover:underline">Resend OTP</button>
+                </p>
+            </div>
+            
+            <div class="modal-action justify-center mt-8">
+                <button type="button" class="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors" onclick="document.getElementById('globalOtpModal').close()">Cancel</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-black/20 backdrop-blur-sm">
             <button>close</button>
         </form>
     </dialog>
