@@ -9,10 +9,7 @@
         totalPages: 1,
         genresLoaded: false,
         catalogById: {},
-        currentBookId: 0,
-        catalogController: null,
-        detailController: null,
-        isPurchasing: false
+        currentBookId: 0
     };
 
     function esc(value) {
@@ -55,40 +52,11 @@
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
     }
 
-    function setButtonLoading(button, loading, loadingText) {
-        if (!button) return;
-        if (loading) {
-            if (!button.dataset.originalText) {
-                button.dataset.originalText = button.textContent;
-            }
-            button.disabled = true;
-            button.classList.add('opacity-70', 'cursor-not-allowed');
-            button.textContent = loadingText;
-            return;
-        }
-        button.disabled = false;
-        button.classList.remove('opacity-70', 'cursor-not-allowed');
-        if (button.dataset.originalText) {
-            button.textContent = button.dataset.originalText;
-            delete button.dataset.originalText;
-        }
-    }
-
-    async function handleBuyNow(bookId, sourceButton = null) {
+    async function handleBuyNow(bookId) {
         if (!bookId) return;
         if (!window.BROWSE_IS_LOGGED_IN) {
             window.showToast?.('Please login to buy books', 'warning');
             return;
-        }
-        if (state.isPurchasing) return;
-
-        state.isPurchasing = true;
-        window.showToast?.('Confirming payment...', 'info');
-
-        const detailBuyBtn = document.getElementById('bookDetailBuyOnlineBtn');
-        setButtonLoading(sourceButton, true, 'Confirming...');
-        if (detailBuyBtn && detailBuyBtn !== sourceButton) {
-            setButtonLoading(detailBuyBtn, true, 'Confirming...');
         }
         
         const body = new URLSearchParams();
@@ -109,12 +77,6 @@
             }
         } catch (error) {
             window.showToast?.('An error occurred during purchase', 'error');
-        } finally {
-            state.isPurchasing = false;
-            setButtonLoading(sourceButton, false, 'Confirming...');
-            if (detailBuyBtn && detailBuyBtn !== sourceButton) {
-                setButtonLoading(detailBuyBtn, false, 'Confirming...');
-            }
         }
     }
 
@@ -127,17 +89,13 @@
         list.innerHTML = '';
 
         try {
-            if (state.catalogController) {
-                state.catalogController.abort();
-            }
-            state.catalogController = new AbortController();
             const response = await fetch(apiUrl('catalog', {
                 page: state.page,
                 per_page: state.perPage,
                 search: state.search,
                 genre: state.genre,
                 sort: state.sort
-            }), { cache: 'no-store', signal: state.catalogController.signal });
+            }), { cache: 'no-store' });
 
             const result = await response.json();
             if (!result || !result.success || !result.data) throw new Error('Failed to fetch catalog');
@@ -156,10 +114,7 @@
             renderPagination();
             applyView();
         } catch (error) {
-            if (error && error.name === 'AbortError') return;
             grid.innerHTML = '<p class="col-span-full text-center text-red-600">Unable to load books right now.</p>';
-        } finally {
-            state.catalogController = null;
         }
     }
 
@@ -189,9 +144,9 @@
             const priceDisplay = priceCents > 0 ? formatUsdFromCents(priceCents) : 'FREE';
 
             return `
-                <article class="group flex flex-col opacity-0 transition-opacity duration-500" data-book-id="${book.id}" style="animation: fadeIn 0.4s forwards">
+                <article class="group flex flex-col" data-book-id="${book.id}">
                     <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_12px_24px_-8px_rgba(56,0,191,0.2)] cursor-pointer" data-book-id="${book.id}" data-action="details">
-                        <img class="w-full h-full object-cover" alt="${esc(book.name)}" data-src="${cover}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+                        <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" loading="lazy" />
                         <div class="absolute top-2 left-2 flex flex-col gap-1">
                             <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${esc(book.genre_label)}</span>
                         </div>
@@ -219,8 +174,6 @@
                 </article>
             `;
         }).join('');
-
-        window.lazyLoadImages?.();
     }
 
     function renderList(items) {
@@ -331,11 +284,7 @@
         if (!overlay) return;
 
         try {
-            if (state.detailController) {
-                state.detailController.abort();
-            }
-            state.detailController = new AbortController();
-            const response = await fetch(apiUrl('detail', { book_id: bookId }), { cache: 'no-store', signal: state.detailController.signal });
+            const response = await fetch(apiUrl('detail', { book_id: bookId }), { cache: 'no-store' });
             const result = await response.json();
             if (!result || !result.success || !result.data) {
                 if (window.showToast) window.showToast((result && result.message) || 'Book details unavailable', 'error');
@@ -405,10 +354,7 @@
             overlay.classList.add('flex');
             setBookParam(bookId);
         } catch (error) {
-            if (error && error.name === 'AbortError') return;
             if (window.showToast) window.showToast('Failed to open details', 'error');
-        } finally {
-            state.detailController = null;
         }
     }
 
@@ -619,7 +565,7 @@
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
         if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
             if (buyOnlineBtn.textContent === 'Go to My Books') return;
-            handleBuyNow(state.currentBookId, buyOnlineBtn);
+            handleBuyNow(state.currentBookId);
         });
         if (membershipBtn) membershipBtn.addEventListener('click', async () => {
             if (membershipBtn.textContent === 'Go to My Books') return;
@@ -650,7 +596,9 @@
 
             if (action === 'buy') {
                 state.currentBookId = bookId;
-                handleBuyNow(bookId, trigger);
+                // Trigger the existing buy logic by simulating a click on the hidden buy button 
+                // or just call the logic directly. Let's call it directly.
+                handleBuyNow(bookId);
             } else {
                 openBookDetail(bookId);
             }

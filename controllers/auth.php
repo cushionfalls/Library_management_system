@@ -19,14 +19,12 @@ require_once __DIR__ . '/../classes/EmailService.php';
 require_once __DIR__ . '/../classes/Session.php';
 
 class AuthController {
-    private $db;
     private $user;
     private $otp;
     private $email;
     private $session;
 
     public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
         $this->user = new User();
         $this->otp = new OTP();
         $this->email = new EmailService();
@@ -63,7 +61,8 @@ class AuthController {
 
         // Check if email already exists
         if ($this->user->emailExists($email)) {
-            $stmt = $this->db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
+            $db = Database::getInstance()->getConnection();
+            $stmt = $db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
             $stmt->bind_param('s', $email);
             $stmt->execute();
             $existing = $stmt->get_result()->fetch_assoc();
@@ -125,7 +124,8 @@ class AuthController {
         }
 
         // Treat already-verified accounts as success to avoid confusion on duplicate submits.
-        $stmt = $this->db->prepare("SELECT id, first_name, is_verified FROM Users WHERE email = ? LIMIT 1");
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id, first_name, is_verified FROM Users WHERE email = ? LIMIT 1");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $existingUser = $stmt->get_result()->fetch_assoc();
@@ -140,7 +140,7 @@ class AuthController {
 
         if ($this->otp->verify($email, $otp)) {
             // Get user by email
-            $stmt = $this->db->prepare("SELECT id FROM Users WHERE email = ? LIMIT 1");
+            $stmt = $db->prepare("SELECT id FROM Users WHERE email = ? LIMIT 1");
             $stmt->bind_param('s', $email);
             $stmt->execute();
             $result = $stmt->get_result()->fetch_assoc();
@@ -184,7 +184,8 @@ class AuthController {
         }
 
         // Check if email exists and is not verified
-        $stmt = $this->db->prepare("SELECT id, first_name, is_verified FROM Users WHERE email = ? LIMIT 1");
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT id, first_name, is_verified FROM Users WHERE email = ? LIMIT 1");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
@@ -224,7 +225,8 @@ class AuthController {
         }
 
         // Check if user is verified
-        $stmt = $this->db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
@@ -261,7 +263,8 @@ class AuthController {
             return ['error' => 'Email not found'];
         }
 
-        $stmt = $this->db->prepare("SELECT first_name FROM Users WHERE email = ? LIMIT 1");
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT first_name FROM Users WHERE email = ? LIMIT 1");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $userRow = $stmt->get_result()->fetch_assoc();

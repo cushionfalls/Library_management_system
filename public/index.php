@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../classes/Session.php';
 
@@ -84,6 +85,10 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet" type="text/css" />
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- LibBot Chatbot Styles -->
+    <?php if ($session->isLoggedIn()): ?>
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/chatbot.css">
+    <?php endif; ?>
     <style>
         :root {
             --color-primary: 59, 130, 246;
@@ -101,17 +106,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
 
         /* Smooth transitions */
         * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-duration: 200ms;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fadeIn {
-            animation: fadeIn 0.4s ease-out forwards;
+            @apply transition-colors duration-200;
         }
 
         /* Button refinements */
@@ -266,6 +261,11 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </footer>
     <?php endif; ?>
 
+    <?php if ($session->isLoggedIn()): ?>
+    <!-- LibBot Chatbot Component -->
+    <?php include __DIR__ . '/../views/components/chatbot.php'; ?>
+    <?php endif; ?>
+
     <dialog id="logoutConfirmModal" class="modal">
         <div class="modal-box max-w-md">
             <h3 class="font-bold text-lg mb-3">Logout</h3>
@@ -281,5 +281,8 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </dialog>
 
     <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
+    <?php if ($session->isLoggedIn()): ?>
+    <script src="<?php echo APP_URL; ?>/public/js/chatbot.js"></script>
+    <?php endif; ?>
 </body>
 </html>
