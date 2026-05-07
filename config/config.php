@@ -53,8 +53,9 @@ define('SMTP_READ_TIMEOUT', 6);
 
 // Keys
 define('GOOGLE_BOOKS_API_KEY', env('GOOGLE_BOOKS_API_KEY', ''));
-define('GEMINI_API_KEY', env('GEMINI_API_KEY', ''));
-define('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent');
+define('OPENAI_API_KEY', env('OPENAI_API_KEY', ''));
+define('OPENAI_ENDPOINT', 'https://api.openai.com/v1/responses');
+define('OPENAI_MODEL', 'gpt-5.4-mini');
 
 // Stripe
 define('STRIPE_PUBLISHABLE_KEY', env('STRIPE_PUBLISHABLE_KEY', ''));

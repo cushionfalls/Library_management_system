@@ -5,18 +5,18 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../classes/Session.php';
-require_once __DIR__ . '/../classes/GeminiService.php';
+require_once __DIR__ . '/../classes/AiService.php';
 
 class RecommendationController
 {
     private $session;
-    private $gemini;
+    private $ai;
     private $pdo;
 
     public function __construct()
     {
         $this->session = new Session();
-        $this->gemini = new GeminiService();
+        $this->ai = new AiService();
         $this->pdo = $this->buildPdoConnection();
     }
 
@@ -66,28 +66,37 @@ class RecommendationController
             ];
         }
 
-        // Cold-start: if the user has no transaction history yet, do not call Gemini.
-        // Show a friendly empty-state so users understand recommendations become personalized after they borrow/buy.
+        // Cold-start: if the user has no transaction history, ask the AI
+        // for general "newcomer" recommendations from the available catalog.
         if (count($history) === 0) {
+            $promptCatalog = array_slice($available, 0, 40);
+            $coldProfile = $profile;
+            $coldProfile['favorite_genres'] = [];
+            $ai = $this->ai->getBookRecommendations($coldProfile, [], $promptCatalog);
+
+            if (empty($ai['recommendations']) || !is_array($ai['recommendations']) || count($ai['recommendations']) === 0) {
+                $ai = [
+                    'source' => 'popular',
+                    'recommendations' => $this->buildGenreBasedRecommendations($available, [], 6)
+                ];
+            }
+
             return [
                 'success' => true,
-                'data' => [
-                    'source' => 'cold_start',
-                    'recommendations' => []
-                ],
+                'data' => $ai,
                 'meta' => [
                     'user_id' => $userId,
                     'history_count' => 0,
                     'catalog_count' => count($available),
                     'prompt_catalog_limit' => 40
                 ],
-                'message' => 'Buy or unlock at least one book to unlock personalized AI recommendations.'
+                'message' => 'Here are some books we think you might enjoy!'
             ];
         }
 
         // Always constrain to books the user does NOT already own / have access to.
         $promptCatalog = array_slice($available, 0, 40);
-        $ai = $this->gemini->getBookRecommendations($profile, $history, $promptCatalog);
+        $ai = $this->ai->getBookRecommendations($profile, $history, $promptCatalog);
         if (empty($ai['recommendations']) || !is_array($ai['recommendations']) || count($ai['recommendations']) === 0) {
             $ai = [
                 'source' => 'genre_based',
@@ -126,7 +135,7 @@ class RecommendationController
         }
 
         $available = $this->fetchAvailableBooksForUser([], [$book['genre']], 40);
-        $ai = $this->gemini->getSimilarBooks($book['title'], $book['genre'], $available);
+        $ai = $this->ai->getSimilarBooks($book['title'], $book['genre'], $available);
 
         return ['success' => true, 'data' => $ai, 'book' => $book];
     }
@@ -165,7 +174,7 @@ class RecommendationController
             return ['success' => false, 'message' => 'Search query is required'];
         }
         $catalog = $this->fetchAvailableBooksForUser([], [], 40);
-        $ai = $this->gemini->getSearchSuggestions($query, $catalog);
+        $ai = $this->ai->getSearchSuggestions($query, $catalog);
         return ['success' => true, 'data' => $ai];
     }
 
@@ -413,7 +422,14 @@ try {
     echo json_encode($response);
 } catch (Throwable $e) {
     ob_clean();
-    error_log('RecommendationController error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Recommendation service unavailable']);
+    $errorMsg = $e->getMessage();
+    error_log('RecommendationController error: ' . $errorMsg);
+    
+    // Attempt to log more context if it's a JSON parse error
+    if (strpos($errorMsg, 'JSON') !== false) {
+        error_log('Debug context: ' . json_encode($_GET));
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Recommendation service unavailable: ' . $errorMsg]);
 }
 ?>

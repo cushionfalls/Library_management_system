@@ -9,7 +9,14 @@ $session = new Session();
 if (isset($_GET['page']) && $_GET['page'] !== '') {
     $current_page = $_GET['page'];
 } else {
-    $current_page = $session->isLoggedIn() ? 'home' : 'login';
+    $current_page = $session->isLoggedIn() ? 'dashboard' : 'login';
+}
+
+// Redirect logged-in users away from guest-only pages (landing, login, register, etc.)
+$guest_only_pages = ['home', 'login', 'register', 'forgot_password'];
+if ($session->isLoggedIn() && in_array($current_page, $guest_only_pages)) {
+    header('Location: ' . APP_ROUTE . '?page=dashboard');
+    exit;
 }
 
 // Check authentication for protected routes
@@ -26,7 +33,7 @@ if (in_array($current_page, $protected_pages)) {
 $admin_pages = ['admin', 'manage-books', 'manage-authors', 'manage-users', 'transactions', 'overdue-books'];
 if (in_array($current_page, $admin_pages)) {
     if (!$session->isAdmin() && !$session->isLibrarian()) {
-        header('Location: ' . APP_ROUTE . '?page=home');
+        header('Location: ' . APP_ROUTE . '?page=dashboard');
         exit;
     }
 }

@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/../classes/Session.php';
+$session = new Session();
+if ($session->isLoggedIn()) {
+    header('Location: ' . APP_ROUTE . '?page=dashboard');
+    exit;
+}
+?>
 <style>
     :root {
         --primary: #4c1d95;

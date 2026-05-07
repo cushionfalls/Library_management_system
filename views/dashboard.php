@@ -174,25 +174,26 @@ tailwind.config = {
 
     <!-- AI Recommendation Section -->
     <section class="bg-white border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-                <h2 class="text-2xl font-extrabold font-headline">AI Recommendations</h2>
-                <p class="text-sm text-on-surface-variant mt-1">Personalized picks based on your reading profile and borrowing history.</p>
+        <div id="recommendationsPlaceholder" class="py-12 flex flex-col items-center justify-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                <span class="material-symbols-outlined text-3xl">auto_awesome</span>
             </div>
-            <button id="refreshRecommendationsBtn" type="button" class="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-xl font-bold hover:brightness-110 transition-all">
-                <span class="material-symbols-outlined text-lg">refresh</span>
-                Refresh Picks
+            <h3 class="text-lg font-bold text-on-surface">Discover your next favorite book</h3>
+            <p class="text-sm text-on-surface-variant mb-6 max-w-xs">Our AI will analyze your reading patterns to find the perfect matches for you.</p>
+            <button id="getAiRecommendationsBtn" type="button" class="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md">
+                <span class="material-symbols-outlined text-lg">magic_button</span>
+                Get AI Recommendations
             </button>
         </div>
 
-        <div id="recommendationsLoading" class="hidden py-10 text-center">
+        <div id="recommendationsLoading" class="hidden py-16 text-center">
             <span class="loading loading-spinner loading-lg text-primary"></span>
-            <p class="mt-3 text-sm font-medium text-on-surface-variant">Generating recommendations...</p>
+            <p class="mt-4 text-sm font-bold text-on-surface-variant">Generating recommendations...</p>
         </div>
 
         <div id="recommendationsError" class="hidden mb-4 rounded-xl border border-error/30 bg-error-container/30 text-on-error-container px-4 py-3 text-sm font-medium"></div>
 
-        <div id="recommendationsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        <div id="recommendationsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </section>
 </div>
 
@@ -220,46 +221,47 @@ async function loadQuote() {
 }
 
 async function loadDashboard() {
-    const [wallet, myBooks, membership] = await Promise.all([
-        fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null),
-        fetch('<?php echo APP_URL; ?>/controllers/books.php?action=my-books').then(r => r.json()).catch(() => null),
-        fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null),
-    ]);
-
-    if (wallet && wallet.success) {
-        document.getElementById('walletBalance').textContent = window.formatUsdFromCents(wallet.balance || 0);
-    }
-
-    const books = (myBooks && myBooks.success && Array.isArray(myBooks.books)) ? myBooks.books : [];
-    document.getElementById('myBooksCount').textContent = String(books.length);
-    const booksList = document.getElementById('dashboardBooksList');
-    if (booksList) {
-        if (!books.length) {
-            booksList.innerHTML = '<div class="col-span-full py-8 text-center text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-3 text-outline/50">auto_stories</span><p class="font-medium">No books in your library yet.</p></div>';
-        } else {
-            booksList.innerHTML = books.slice(0, 6).map((b) => `
-                <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group">
-                    <div class="aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm border border-outline-variant/10 bg-surface-container">
-                        <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${window.escapeHtml(b.name || 'Book')}">
-                    </div>
-                    <p class="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">${window.escapeHtml(b.name || 'Book')}</p>
-                </a>
-            `).join('');
+    try {
+        const wallet = await fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null);
+        if (wallet && wallet.success) {
+            document.getElementById('walletBalance').textContent = window.formatUsdFromCents(wallet.balance || 0);
         }
-    }
 
-    const statusEl = document.getElementById('membershipStatus');
-    const untilEl = document.getElementById('membershipUntil');
-    if (membership && membership.success && membership.active) {
-        statusEl.textContent = membership.active.plan_name || 'Active';
-        untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
-    } else {
-        statusEl.textContent = 'Not Active';
-        untilEl.textContent = 'Activate membership to unlock more books.';
+        const myBooks = await fetch('<?php echo APP_URL; ?>/controllers/books.php?action=my-books').then(r => r.json()).catch(() => null);
+        const books = (myBooks && myBooks.success && Array.isArray(myBooks.books)) ? myBooks.books : [];
+        document.getElementById('myBooksCount').textContent = String(books.length);
+        const booksList = document.getElementById('dashboardBooksList');
+        if (booksList) {
+            if (!books.length) {
+                booksList.innerHTML = '<div class="col-span-full py-8 text-center text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-3 text-outline/50">auto_stories</span><p class="font-medium">No books in your library yet.</p></div>';
+            } else {
+                booksList.innerHTML = books.slice(0, 6).map((b) => `
+                    <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group">
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm border border-outline-variant/10 bg-surface-container">
+                            <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${window.escapeHtml(b.name || 'Book')}">
+                        </div>
+                        <p class="text-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">${window.escapeHtml(b.name || 'Book')}</p>
+                    </a>
+                `).join('');
+            }
+        }
+
+        const membership = await fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null);
+        const statusEl = document.getElementById('membershipStatus');
+        const untilEl = document.getElementById('membershipUntil');
+        if (membership && membership.success && membership.active) {
+            statusEl.textContent = membership.active.plan_name || 'Active';
+            untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
+        } else {
+            statusEl.textContent = 'Not Active';
+            untilEl.textContent = 'Activate membership to unlock more books.';
+        }
+    } catch (err) {
+        console.error('Dashboard load error:', err);
     }
 
     loadQuote();
-    await loadRecommendations();
+    // Recommendations are now loaded on-demand via button click to save API quota.
 }
 
 function recommendationCard(book) {
@@ -313,13 +315,20 @@ async function loadRecommendations(forceRefresh = false) {
     const grid = document.getElementById('recommendationsGrid');
     const loading = document.getElementById('recommendationsLoading');
     const error = document.getElementById('recommendationsError');
-    const refreshBtn = document.getElementById('refreshRecommendationsBtn');
-    if (!grid || !loading || !error || !refreshBtn) return;
+    const placeholder = document.getElementById('recommendationsPlaceholder');
+    const getBtn = document.getElementById('getAiRecommendationsBtn');
+    
+    if (!grid || !loading || !error) return;
 
     error.classList.add('hidden');
+    if (placeholder) placeholder.classList.add('hidden');
+    grid.classList.add('hidden');
     loading.classList.remove('hidden');
-    refreshBtn.disabled = true;
-    refreshBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+    if (getBtn) {
+        getBtn.disabled = true;
+        getBtn.classList.add('opacity-60');
+    }
 
     try {
         const url = '<?php echo APP_URL; ?>/controllers/recommendations.php?action=for-user' + (forceRefresh ? '&t=' + Date.now() : '');
@@ -350,14 +359,19 @@ async function loadRecommendations(forceRefresh = false) {
         grid.innerHTML = '';
     } finally {
         loading.classList.add('hidden');
-        refreshBtn.disabled = false;
-        refreshBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        grid.classList.remove('hidden');
+        if (getBtn) {
+            getBtn.disabled = false;
+            getBtn.classList.remove('opacity-60');
+            // Change button text after first load to suggest refreshing
+            getBtn.innerHTML = '<span class="material-symbols-outlined text-lg">refresh</span> Refresh Recommendations';
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);
 document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('refreshRecommendationsBtn');
+    const btn = document.getElementById('getAiRecommendationsBtn');
     if (btn) {
         btn.addEventListener('click', function () {
             loadRecommendations(true);
