@@ -4,6 +4,7 @@
  * - getPlans
  * - getStatus
  * - purchase (wallet)
+ * - deactivate
  */
 ob_start();
 
@@ -59,6 +60,14 @@ try {
             }
 
             $result = $svc->purchaseWithWallet($userId, $planId);
+            membership_json($result, $result['success'] ? 200 : 400);
+        }
+
+        case 'deactivate': {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                membership_json(['success' => false, 'error' => 'Invalid request method'], 405);
+            }
+            $result = $svc->deactivateMembership($userId);
             membership_json($result, $result['success'] ? 200 : 400);
         }
 
