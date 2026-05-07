@@ -52,11 +52,17 @@
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
     }
 
-    async function handleBuyNow(bookId) {
+    async function handleBuyNow(bookId, buttonEl = null) {
         if (!bookId) return;
         if (!window.BROWSE_IS_LOGGED_IN) {
             window.showToast?.('Please login to buy books', 'warning');
             return;
+        }
+
+        const originalText = buttonEl ? buttonEl.textContent : '';
+        if (buttonEl) {
+            buttonEl.disabled = true;
+            buttonEl.textContent = 'Order Confirming...';
         }
         
         const body = new URLSearchParams();
@@ -68,6 +74,10 @@
             
             if (!result || !result.success) {
                 window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.textContent = originalText;
+                }
                 return;
             }
             
@@ -77,6 +87,10 @@
             }
         } catch (error) {
             window.showToast?.('An error occurred during purchase', 'error');
+            if (buttonEl) {
+                buttonEl.disabled = false;
+                buttonEl.textContent = originalText;
+            }
         }
     }
 
@@ -574,27 +588,40 @@
         const cancelEditBtn = document.getElementById('bookReviewCancelEdit');
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetReviewForm);
         if (buyOnlineBtn) buyOnlineBtn.addEventListener('click', async () => {
-            if (buyOnlineBtn.textContent === 'Go to My Books') return;
-            handleBuyNow(state.currentBookId);
+            if (buyOnlineBtn.textContent === 'Go to My Books' || buyOnlineBtn.disabled) return;
+            handleBuyNow(state.currentBookId, buyOnlineBtn);
         });
         if (membershipBtn) membershipBtn.addEventListener('click', async () => {
-            if (membershipBtn.textContent === 'Go to My Books') return;
+            if (membershipBtn.textContent === 'Go to My Books' || membershipBtn.disabled) return;
             if (!state.currentBookId) return;
             if (!window.BROWSE_IS_VERIFIED) {
                 window.showToast?.('Please verify your email to use membership access', 'warning');
                 return;
             }
+            
+            const originalText = membershipBtn.textContent;
+            membershipBtn.disabled = true;
+            membershipBtn.textContent = 'Granting Access...';
+            
             const body = new URLSearchParams();
             body.set('book_id', String(state.currentBookId));
-            const response = await fetch(apiUrl('unlock-with-membership'), { method: 'POST', body });
-            const result = await response.json().catch(() => null);
-            if (!result || !result.success) {
-                window.showToast?.((result && result.message) || 'Unable to grant access', 'error');
-                return;
-            }
-            window.showToast?.(result.message || 'Book added to your library', 'success');
-            if (window.MY_BOOKS_PAGE_URL) {
-                setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+            try {
+                const response = await fetch(apiUrl('unlock-with-membership'), { method: 'POST', body });
+                const result = await response.json().catch(() => null);
+                if (!result || !result.success) {
+                    window.showToast?.((result && result.message) || 'Unable to grant access', 'error');
+                    membershipBtn.disabled = false;
+                    membershipBtn.textContent = originalText;
+                    return;
+                }
+                window.showToast?.(result.message || 'Book added to your library', 'success');
+                if (window.MY_BOOKS_PAGE_URL) {
+                    setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
+                }
+            } catch (err) {
+                window.showToast?.('An error occurred', 'error');
+                membershipBtn.disabled = false;
+                membershipBtn.textContent = originalText;
             }
         });
 
@@ -610,9 +637,7 @@
 
             if (action === 'buy') {
                 state.currentBookId = bookId;
-                // Trigger the existing buy logic by simulating a click on the hidden buy button 
-                // or just call the logic directly. Let's call it directly.
-                handleBuyNow(bookId);
+                handleBuyNow(bookId, trigger.querySelector('button[data-action="buy"]') || trigger);
             } else {
                 openBookDetail(bookId);
             }

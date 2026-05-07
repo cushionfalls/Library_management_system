@@ -173,5 +173,10 @@ tailwind.config = {
     <form method="dialog" class="modal-backdrop"><button>close</button></form>
 </dialog>
 
+<script>
+window.MEMBERSHIP_API_URL = '<?php echo APP_URL; ?>/controllers/membership.php';
+window.MEMBERSHIP_WALLET_URL = '<?php echo APP_ROUTE; ?>?page=wallet';
+window.MEMBERSHIP_IS_VERIFIED = <?php echo ($session->isLoggedIn() && $session->isVerified()) ? 'true' : 'false'; ?>;
+</script>
 <script src="<?php echo APP_URL; ?>/public/js/membership.js"></script>
 

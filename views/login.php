@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/../classes/Session.php';
+$session = new Session();
+if ($session->isLoggedIn()) {
+    header('Location: ' . APP_ROUTE . '?page=dashboard');
+    exit;
+}
+?>
 <style>
     :root {
         --primary: #4c1d95;
@@ -125,11 +133,24 @@
         transform: translateX(-4px);
     }
 
+    /* Grid Background */
+    .grid-bg {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            linear-gradient(rgba(79, 27, 241, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(79, 27, 241, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -1;
+    }
+
     @media (max-width: 968px) {
-        .auth-container { grid-template-columns: 1fr; }
+        .auth-container { grid-template-columns: 1fr; background: var(--surface); }
         .auth-visual-side { display: none; }
     }
 </style>
+
+<div class="grid-bg"></div>
 
 <div class="auth-container">
     <div class="auth-form-side">
@@ -256,10 +277,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         const messageDiv = document.getElementById('loginMessage');
 
         if (result.success) {
-            messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
-            setTimeout(() => {
-                window.location.href = '<?php echo APP_ROUTE; ?>?page=dashboard';
-            }, 1500);
+            window.location.href = '<?php echo APP_ROUTE; ?>?page=dashboard';
         } else {
             if (result.unverified_email && result.email) {
                 messageDiv.innerHTML = `

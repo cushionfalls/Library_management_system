@@ -16,7 +16,7 @@ class GeminiService
 
         $this->apiKey = $apiKey;
         $this->endpoint = $endpoint;
-        $this->cacheTtlSeconds = (int)$cacheTtlSeconds;
+        $this->cacheTtlSeconds = max(3600, (int)$cacheTtlSeconds);
         $this->cacheDir = __DIR__ . '/../cache/gemini';
 
         if (!is_dir($this->cacheDir)) {
@@ -76,7 +76,14 @@ class GeminiService
     {
         $availableBooks = array_slice($availableBooks, 0, 40);
         $genrePriority = $this->deriveGenrePriority($borrowingHistory, $userProfile['favorite_genres'] ?? []);
-        $cacheKey = $this->buildCacheKey('recommendations', [$userProfile, $borrowingHistory, $availableBooks, $genrePriority]);
+        
+        $stableProfile = $this->stabilizeProfile($userProfile);
+        $stableHistory = $this->stabilizeHistory($borrowingHistory);
+        $stableCatalog = $this->stabilizeForCacheKey($availableBooks);
+        
+        $dataToHash = [$stableProfile, $stableHistory, $stableCatalog, $genrePriority];
+        $cacheKey = $this->buildCacheKey('recommendations', $dataToHash);
+        // error_log('Gemini cache key generated: ' . $cacheKey);
 
         $cached = $this->getCached($cacheKey);
         if ($cached !== null) {
@@ -85,14 +92,18 @@ class GeminiService
 
         $prompt = $this->buildRecommendationsPrompt($userProfile, $borrowingHistory, $availableBooks, $genrePriority);
         $result = $this->askGeminiForRecommendations($prompt, $availableBooks, $genrePriority);
-        $this->setCached($cacheKey, $result);
+        
+        // Cache fallback results for much longer if the API is failing
+        $ttl = ($result['source'] === 'fallback') ? max(7200, $this->cacheTtlSeconds) : $this->cacheTtlSeconds;
+        $this->setCached($cacheKey, $result, $ttl);
         return $result;
     }
 
     public function getSimilarBooks($bookTitle, $bookGenre, $availableBooks): array
     {
         $availableBooks = array_slice($availableBooks, 0, 40);
-        $cacheKey = $this->buildCacheKey('similar', [$bookTitle, $bookGenre, $availableBooks]);
+        $stableCatalog = $this->stabilizeForCacheKey($availableBooks);
+        $cacheKey = $this->buildCacheKey('similar', [$bookTitle, $bookGenre, $stableCatalog]);
         $cached = $this->getCached($cacheKey);
         if ($cached !== null) {
             return $cached;
@@ -114,7 +125,8 @@ class GeminiService
     public function getSearchSuggestions($searchQuery, $catalog): array
     {
         $catalog = array_slice($catalog, 0, 40);
-        $cacheKey = $this->buildCacheKey('search_suggestions', [$searchQuery, $catalog]);
+        $stableCatalog = $this->stabilizeForCacheKey($catalog);
+        $cacheKey = $this->buildCacheKey('search_suggestions', [$searchQuery, $stableCatalog]);
         $cached = $this->getCached($cacheKey);
         if ($cached !== null) {
             return $cached;
@@ -190,6 +202,10 @@ class GeminiService
 
     private function askGeminiForRecommendations($prompt, $availableBooks, array $genrePriority = []): array
     {
+        if ($this->isBackingOff()) {
+            return ['source' => 'fallback', 'recommendations' => $this->fallbackRecommendations($availableBooks, $genrePriority)];
+        }
+
         try {
             $raw = $this->sendPrompt($prompt);
             $decoded = $this->extractJson($raw);
@@ -204,7 +220,13 @@ class GeminiService
 
             return ['source' => 'gemini', 'recommendations' => array_slice($normalized, 0, 6)];
         } catch (Throwable $e) {
-            error_log('GeminiService fallback used: ' . $e->getMessage());
+            $msg = $e->getMessage();
+            error_log('GeminiService fallback used: ' . $msg);
+            
+            if (strpos($msg, '429') !== false) {
+                $this->setBackoff(300); // 5 minute circuit breaker on rate limits
+            }
+            
             return ['source' => 'fallback', 'recommendations' => $this->fallbackRecommendations($availableBooks, $genrePriority)];
         }
     }
@@ -322,6 +344,63 @@ class GeminiService
         throw new RuntimeException('Unable to parse JSON from Gemini response.');
     }
 
+    private function stabilizeForCacheKey(array $data): array
+    {
+        // If it's a list of books, only keep stable fields
+        if (isset($data[0]['id'])) {
+            return array_map(function ($b) {
+                return [
+                    'id' => (int)($b['id'] ?? 0),
+                    'isbn' => (string)($b['isbn'] ?? ''),
+                    'title' => (string)($b['title'] ?? ''),
+                    'genre' => (string)($b['genre'] ?? '')
+                ];
+            }, $data);
+        }
+        return $data;
+    }
+
+    private function stabilizeProfile($profile): array
+    {
+        if (!is_array($profile)) return [];
+        return [
+            'id' => (int)($profile['id'] ?? 0),
+            'email' => (string)($profile['email'] ?? ''),
+            'favorite_genres' => $profile['favorite_genres'] ?? []
+        ];
+    }
+
+    private function stabilizeHistory($history): array
+    {
+        if (!is_array($history)) return [];
+        return array_map(function($h) {
+            return [
+                'book_id' => (int)($h['book_id'] ?? 0),
+                'genre' => (string)($h['genre'] ?? ''),
+                'rating' => $h['rating'] ?? null
+            ];
+        }, $history);
+    }
+
+    private function isBackingOff(): bool
+    {
+        $backoffFile = $this->cacheDir . '/backoff.flag';
+        if (file_exists($backoffFile)) {
+            $until = (int)file_get_contents($backoffFile);
+            if ($until > time()) {
+                return true;
+            }
+            @unlink($backoffFile);
+        }
+        return false;
+    }
+
+    private function setBackoff($seconds): void
+    {
+        $backoffFile = $this->cacheDir . '/backoff.flag';
+        @file_put_contents($backoffFile, (string)(time() + $seconds));
+    }
+
     private function buildCacheKey($prefix, $data): string
     {
         return $prefix . '_' . sha1(json_encode($data));
@@ -349,10 +428,11 @@ class GeminiService
         return $payload['value'] ?? null;
     }
 
-    private function setCached($key, $value): void
+    private function setCached($key, $value, $ttl = null): void
     {
+        $ttl = $ttl ?? $this->cacheTtlSeconds;
         $payload = [
-            'expires_at' => time() + $this->cacheTtlSeconds,
+            'expires_at' => time() + $ttl,
             'value' => $value
         ];
         $_SESSION['gemini_cache'][$key] = $payload;

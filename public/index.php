@@ -85,10 +85,6 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet" type="text/css" />
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- LibBot Chatbot Styles -->
-    <?php if ($session->isLoggedIn()): ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/chatbot.css">
-    <?php endif; ?>
     <style>
         :root {
             --color-primary: 59, 130, 246;
@@ -347,11 +343,6 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </footer>
     <?php endif; ?>
 
-    <?php if ($session->isLoggedIn()): ?>
-    <!-- LibBot Chatbot Component -->
-    <?php include __DIR__ . '/../views/components/chatbot.php'; ?>
-    <?php endif; ?>
-
     <dialog id="logoutConfirmModal" class="modal">
         <div class="modal-box max-w-md">
             <h3 class="font-bold text-lg mb-3">Logout</h3>
@@ -403,8 +394,5 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </dialog>
 
     <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
-    <?php if ($session->isLoggedIn()): ?>
-    <script src="<?php echo APP_URL; ?>/public/js/chatbot.js"></script>
-    <?php endif; ?>
 </body>
 </html>

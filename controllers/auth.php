@@ -224,21 +224,6 @@ class AuthController {
             return ['error' => 'Email and password are required'];
         }
 
-        // Check if user is verified
-        $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("SELECT is_verified FROM Users WHERE email = ? LIMIT 1");
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-
-        if ($result && !$result['is_verified']) {
-            return [
-                'error' => 'Email already registered but not verified.',
-                'unverified_email' => true,
-                'email' => $email
-            ];
-        }
-
         $loginResult = $this->user->login($email, $password);
 
         if ($loginResult['success']) {
