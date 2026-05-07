@@ -86,6 +86,7 @@ async function loadWalletBalance() {
 function renderStatus(active) {
     const planEl = document.getElementById('membershipCurrentPlan');
     const nextEl = document.getElementById('membershipNextBilling');
+    const deactivateBtn = document.getElementById('membershipDeactivateBtn');
     if (!planEl || !nextEl) return;
 
     if (!active) {
@@ -93,6 +94,7 @@ function renderStatus(active) {
         planEl.classList.remove('text-primary');
         planEl.classList.add('text-error');
         nextEl.textContent = 'Activate a plan to unlock benefits.';
+        if (deactivateBtn) deactivateBtn.classList.add('hidden');
         return;
     }
 
@@ -100,6 +102,7 @@ function renderStatus(active) {
     planEl.classList.add('text-primary');
     planEl.classList.remove('text-error');
     nextEl.textContent = 'Valid until: ' + formatDate(active.ends_at);
+    if (deactivateBtn) deactivateBtn.classList.remove('hidden');
 }
 
 async function loadStatus() {
@@ -216,10 +219,51 @@ function initHistoryModal() {
     });
 }
 
+function initDeactivateMembership() {
+    const btn = document.getElementById('membershipDeactivateBtn');
+    const modal = document.getElementById('membershipDeactivateModal');
+    const confirmBtn = document.getElementById('membershipDeactivateConfirmBtn');
+    if (!btn || !modal || !confirmBtn) return;
+
+    btn.addEventListener('click', () => {
+        if (typeof modal.showModal === 'function') modal.showModal();
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        const oldText = confirmBtn.textContent;
+        confirmBtn.textContent = 'Processing…';
+        try {
+            const res = await fetch(membershipBaseUrl() + '/controllers/membership.php?action=deactivate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+            const data = await res.json().catch(() => null);
+            if (!data || !data.success) {
+                window.showToast?.(data?.message || data?.error || 'Could not deactivate membership.', 'danger');
+                return;
+            }
+
+            window.showToast?.(data?.message || 'Membership deactivated.', 'success');
+            if (typeof modal.close === 'function') modal.close();
+            const activeNow = await loadStatus();
+            await loadPlans(activeNow);
+        } catch (_) {
+            window.showToast?.('Could not deactivate membership. Please try again.', 'danger');
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = oldText;
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadWalletBalance();
     const active = await loadStatus();
     await loadPlans(active);
     initHistoryModal();
+    initDeactivateMembership();
 });
 
