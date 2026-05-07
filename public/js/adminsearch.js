@@ -17,9 +17,7 @@
             case 'users':
                 return 'Search users by name or email...';
             case 'transactions':
-                return 'Search by book, member, or type...';
-            case 'overdue':
-                return 'Search overdue by book or member...';
+                return 'Search by member or type...';
             default:
                 return 'Search books by ISBN, title, author, or publisher...';
         }
@@ -84,8 +82,6 @@
             window.__adminUsers = rows;
         } else if (tab === 'transactions' && typeof window.renderTransactions === 'function') {
             window.renderTransactions(rows);
-        } else if (tab === 'overdue' && typeof window.renderOverdue === 'function') {
-            window.renderOverdue(rows);
         }
     }
 

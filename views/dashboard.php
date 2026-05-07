@@ -99,7 +99,7 @@ tailwind.config = {
     </section>
 
     <!-- Stats Grid -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <a href="<?php echo APP_ROUTE; ?>?page=wallet" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
             <div>
                 <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
@@ -171,6 +171,29 @@ tailwind.config = {
             </div>
         </div>
     </section>
+
+    <!-- AI Recommendation Section -->
+    <section class="bg-white border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+                <h2 class="text-2xl font-extrabold font-headline">AI Recommendations</h2>
+                <p class="text-sm text-on-surface-variant mt-1">Personalized picks based on your reading profile and borrowing history.</p>
+            </div>
+            <button id="refreshRecommendationsBtn" type="button" class="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-xl font-bold hover:brightness-110 transition-all">
+                <span class="material-symbols-outlined text-lg">refresh</span>
+                Refresh Picks
+            </button>
+        </div>
+
+        <div id="recommendationsLoading" class="hidden py-10 text-center">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="mt-3 text-sm font-medium text-on-surface-variant">Generating recommendations...</p>
+        </div>
+
+        <div id="recommendationsError" class="hidden mb-4 rounded-xl border border-error/30 bg-error-container/30 text-on-error-container px-4 py-3 text-sm font-medium"></div>
+
+        <div id="recommendationsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </section>
 </div>
 
 <script>
@@ -236,7 +259,109 @@ async function loadDashboard() {
     }
 
     loadQuote();
+    await loadRecommendations();
+}
+
+function recommendationCard(book) {
+    const title = window.escapeHtml(book.title || 'Untitled');
+    const author = window.escapeHtml(book.author || 'Unknown Author');
+    const genre = window.escapeHtml(book.genre || 'General');
+    const reason = window.escapeHtml(book.reason || 'Recommended for your reading profile.');
+    const because = window.escapeHtml(book.because || ('Because you read books in ' + (book.genre || 'this') + '.'));
+    const score = Number(book.score || 0);
+    const scoreBadge = isNaN(score) ? 'Match' : ('Match ' + score + '%');
+    const rawCover = book.cover_image_url ? String(book.cover_image_url).trim() : '';
+    const coverEsc = rawCover ? window.escapeHtml(rawCover) : '';
+    const bookLink = book.book_id ? ('<?php echo htmlspecialchars(APP_ROUTE, ENT_QUOTES); ?>?page=books&book=' + encodeURIComponent(String(book.book_id))) : '';
+
+    const coverTop = `
+        <div class="aspect-[16/9] relative overflow-hidden bg-gradient-to-br from-[#ece5fa] via-surface-variant/80 to-primary/15 border-b border-outline-variant/10">
+            ${coverEsc ? `
+                <img src="${coverEsc}" alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer"
+                    onerror="this.style.display='none';var p=this.nextElementSibling;if(p){p.classList.remove('hidden');p.style.display='flex';}" />
+                <div class="absolute inset-0 hidden flex-col items-center justify-center gap-2 text-primary/55" aria-hidden="true">
+                    <span class="material-symbols-outlined text-5xl">menu_book</span>
+                </div>
+            ` : `
+                <div class="absolute inset-0 flex items-center justify-center text-primary/55">
+                    <span class="material-symbols-outlined text-5xl">menu_book</span>
+                </div>
+            `}
+        </div>`;
+
+    const inner = `
+            ${coverTop}
+            <div class="p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <h3 class="font-bold text-on-surface leading-tight">${title}</h3>
+                    <span class="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full bg-primary-container text-on-primary">AI ${window.escapeHtml(scoreBadge)}</span>
+                </div>
+                <p class="text-sm text-on-surface-variant mt-2">${author}</p>
+                <p class="text-xs uppercase tracking-wider text-primary font-bold mt-1">${genre}</p>
+                <p class="mt-3 text-sm text-on-surface">${reason}</p>
+                <p class="mt-2 text-xs text-on-surface-variant font-medium">${because}</p>
+            </div>`;
+
+    const wrapCls = 'rounded-2xl border border-outline-variant/20 bg-surface-container-low overflow-hidden shadow-sm hover:shadow-md transition-shadow block';
+    if (bookLink) {
+        return `<a href="${bookLink}" class="${wrapCls}">${inner}</a>`;
+    }
+    return `<div class="${wrapCls}">${inner}</div>`;
+}
+
+async function loadRecommendations(forceRefresh = false) {
+    const grid = document.getElementById('recommendationsGrid');
+    const loading = document.getElementById('recommendationsLoading');
+    const error = document.getElementById('recommendationsError');
+    const refreshBtn = document.getElementById('refreshRecommendationsBtn');
+    if (!grid || !loading || !error || !refreshBtn) return;
+
+    error.classList.add('hidden');
+    loading.classList.remove('hidden');
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+    try {
+        const url = '<?php echo APP_URL; ?>/controllers/recommendations.php?action=for-user' + (forceRefresh ? '&t=' + Date.now() : '');
+        const res = await fetch(url, { cache: 'no-store' });
+        const payload = await res.json();
+
+        if (!payload.success) {
+            throw new Error(payload.message || 'Unable to fetch recommendations');
+        }
+
+        const data = payload.data || {};
+        const recs = Array.isArray(data.recommendations) ? data.recommendations.slice(0, 6) : [];
+        if (!recs.length) {
+            grid.innerHTML = `
+                <div class="col-span-full py-10 text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-5xl mb-3 text-outline/60">auto_stories</span>
+                    <p class="font-semibold">No personalized recommendations yet.</p>
+                    <p class="text-sm mt-1">Borrow or buy at least one book and we’ll tailor picks to your taste.</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = recs.map((item) => recommendationCard(item)).join('');
+    } catch (err) {
+        error.textContent = err.message || 'Could not load AI recommendations.';
+        error.classList.remove('hidden');
+        grid.innerHTML = '';
+    } finally {
+        loading.classList.add('hidden');
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('refreshRecommendationsBtn');
+    if (btn) {
+        btn.addEventListener('click', function () {
+            loadRecommendations(true);
+        });
+    }
+});
 </script>
