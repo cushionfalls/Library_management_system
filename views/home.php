@@ -144,17 +144,34 @@
     }
     
     .floating-card {
-        position: absolute; background: white; border-radius: 20px; padding: 20px;
+        position: absolute; background: white; border-radius: 20px; padding: 12px;
         box-shadow: var(--shadow-xl); animation: floatCard 6s ease-in-out infinite;
+        z-index: 5;
+        pointer-events: auto;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .card-1 { top: 0; right: 0; width: 200px; animation-delay: 0s; }
-    .card-2 { top: 120px; left: 0; width: 180px; animation-delay: -2s; }
-    .card-3 { bottom: 40px; right: 40px; width: 160px; animation-delay: -4s; }
-    @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    .floating-card:hover {
+        transform: translateY(-20px) scale(1.1) rotate(var(--rotation, 0deg)) !important;
+        z-index: 10;
+        box-shadow: 0 25px 50px -12px rgba(76, 29, 149, 0.25);
+        animation-play-state: paused;
+    }
+    .card-1 { top: -60px; left: 95%; width: 220px; animation-delay: 0s; --rotation: 4deg; }
+    .card-2 { bottom: -80px; right: 95%; width: 200px; animation-delay: -2s; --rotation: -5deg; }
+    .card-3 { top: 50%; left: 105%; width: 180px; animation-delay: -4s; --rotation: 2deg; }
+    @keyframes floatCard { 
+        0%, 100% { transform: translateY(0) rotate(var(--rotation, 0deg)); } 
+        50% { transform: translateY(-25px) rotate(calc(var(--rotation, 0deg) + 3deg)); } 
+    }
     
     .hero-main-card {
         background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border-radius: 24px; padding: 40px; color: white; box-shadow: var(--shadow-xl);
+        border-radius: 32px; padding: 60px 48px; color: white; box-shadow: var(--shadow-xl);
+        position: relative; z-index: 2; overflow: hidden;
+    }
+    .hero-main-card::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
     }
 
     /* ===== STATS & FEATURES ===== */
@@ -228,6 +245,11 @@
                     <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop" class="rounded-xl mb-2" alt="Book">
                     <h4 class="text-sm font-semibold">1984</h4>
                     <p class="text-xs text-gray-500">George Orwell</p>
+                </div>
+                <div class="floating-card card-3">
+                    <img src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=200&h=280&fit=crop" class="rounded-xl mb-2" alt="Book">
+                    <h4 class="text-sm font-semibold">Harry Potter</h4>
+                    <p class="text-xs text-gray-500">J.K. Rowling</p>
                 </div>
             </div>
         </div>

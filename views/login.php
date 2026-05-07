@@ -14,6 +14,7 @@
         grid-template-columns: 1.2fr 1fr;
         min-height: 100vh;
         background: white;
+        position: relative;
     }
 
     .auth-form-side {
@@ -129,9 +130,18 @@
         .auth-container { grid-template-columns: 1fr; }
         .auth-visual-side { display: none; }
     }
+
+    .auth-grid {
+        position: absolute; inset: 0;
+        background-image: linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        z-index: 0;
+        pointer-events: none;
+    }
 </style>
 
 <div class="auth-container">
+    <div class="auth-grid"></div>
     <div class="auth-form-side">
         <a href="<?php echo APP_ROUTE; ?>?page=home" class="back-btn">
             <i class="fas fa-arrow-left"></i>
