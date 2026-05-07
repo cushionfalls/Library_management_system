@@ -287,9 +287,8 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
     if (submitBtn) submitBtn.disabled = true;
     document.getElementById('otpEmail').value = otpEmail;
-    
-    // Show loading in OTP modal
-    otpMessage.innerHTML = '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-spinner fa-spin"></i>Sending OTP to <strong>' + otpEmail + '</strong>...</div>';
+    this.style.display = 'none';
+    otpMessage.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin mr-2"></i>Sending OTP to <strong>' + otpEmail + '</strong>...</div>';
     otpModal.showModal();
 
     try {
@@ -299,15 +298,17 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
 
         const result = await response.json();
+        const messageDiv = document.getElementById('registrationMessage');
 
         if (result.success) {
             document.getElementById('otpEmail').value = result.email;
-            messageDiv.innerHTML = '<div class="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center gap-3"><i class="fas fa-check-circle"></i>' + result.message + '</div>';
-            otpMessage.innerHTML = '<div class="p-4 bg-green-50 text-green-700 rounded-xl border border-green-100 flex items-center gap-3"><i class="fas fa-check-circle"></i>' + result.message + '</div>';
+            messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
+            otpMessage.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + result.message + '</div>';
             const otpInput = document.getElementById('otp');
             if (otpInput) otpInput.focus();
         } else {
             otpModal.close();
+            this.style.display = '';
             if (result.unverified_email && result.email) {
                 messageDiv.innerHTML = `
                     <div class="p-4 bg-yellow-50 text-yellow-700 rounded-xl border border-yellow-100">
@@ -322,7 +323,8 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         }
     } catch (error) {
         otpModal.close();
-        document.getElementById('registrationMessage').innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3"><i class="fas fa-exclamation-circle"></i>An error occurred.</div>';
+        this.style.display = '';
+        document.getElementById('registrationMessage').innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle mr-2"></i>An error occurred. Please try again.</div>';
     } finally {
         if (submitBtn) submitBtn.disabled = false;
     }

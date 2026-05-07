@@ -89,6 +89,9 @@ tailwind.config = {
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button id="membershipDeactivateBtn" class="px-6 py-2.5 rounded-lg border border-error/40 text-error font-bold text-sm hover:bg-error-container transition-all hidden">
+                        Deactivate Membership
+                    </button>
                     <button id="membershipViewHistoryBtn" class="px-6 py-2.5 rounded-lg border border-outline text-on-surface font-bold text-sm hover:bg-surface-container-high transition-all">
                         View History
                     </button>
@@ -153,6 +156,18 @@ tailwind.config = {
         <div class="flex justify-end gap-3">
             <button type="button" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" onclick="document.getElementById('membershipConfirmModal').close()">Cancel</button>
             <button type="button" id="membershipConfirmBtn" class="px-4 py-2 text-sm font-semibold bg-primary text-white hover:opacity-90 rounded-lg transition-opacity">Confirm</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<dialog id="membershipDeactivateModal" class="modal">
+    <div class="modal-box max-w-sm bg-white">
+        <h3 class="font-bold text-lg mb-2">Deactivate Membership</h3>
+        <p class="text-sm text-on-surface-variant mb-6">Your membership access will end immediately. Are you sure you want to continue?</p>
+        <div class="flex justify-end gap-3">
+            <button type="button" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" onclick="document.getElementById('membershipDeactivateModal').close()">Cancel</button>
+            <button type="button" id="membershipDeactivateConfirmBtn" class="px-4 py-2 text-sm font-semibold bg-error text-white hover:opacity-90 rounded-lg transition-opacity">Deactivate</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop"><button>close</button></form>

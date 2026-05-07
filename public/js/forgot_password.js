@@ -67,17 +67,8 @@
         const fd = new FormData(this);
         const email = (fd.get("email") || "").toString().trim();
         if (!email) return;
-        const submitBtn = this.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.disabled = true;
 
         msg("forgotMsgEmail", "");
-        goStep2WithEmail(email);
-        msg(
-            "forgotMsgOtp",
-            '<div class="alert alert-info"><i class="fas fa-spinner fa-spin mr-2"></i>Sending OTP to ' +
-                email +
-                "...</div>"
-        );
         try {
             const res = await fetch(base + "/controllers/auth.php?action=request-password-reset", {
                 method: "POST",
@@ -86,6 +77,7 @@
             });
             const out = await res.json();
             if (out.success) {
+                goStep2WithEmail(email);
                 msg(
                     "forgotMsgOtp",
                     '<div class="alert alert-info"><i class="fas fa-envelope mr-2"></i>' +
@@ -93,7 +85,6 @@
                         "</div>"
                 );
             } else {
-                showStep(1);
                 msg(
                     "forgotMsgEmail",
                     '<div class="alert alert-error"><i class="fas fa-exclamation-circle mr-2"></i>' +
@@ -102,13 +93,10 @@
                 );
             }
         } catch (err) {
-            showStep(1);
             msg(
                 "forgotMsgEmail",
                 '<div class="alert alert-error"><i class="fas fa-exclamation-circle mr-2"></i>Network error. Try again.</div>'
             );
-        } finally {
-            if (submitBtn) submitBtn.disabled = false;
         }
     });
 

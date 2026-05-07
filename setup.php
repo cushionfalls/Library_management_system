@@ -211,44 +211,6 @@ foreach ($tables as $name => $sql) {
     }
 }
 
-echo "<h3>Optimizing database performance...</h3>";
-$indexes = [
-    "Books" => [
-        "idx_books_name" => "(name)",
-        "idx_books_genre" => "(genre)",
-        "idx_books_publisher" => "(publisher)",
-        "idx_books_created" => "(created_at)"
-    ],
-    "Authors" => [
-        "idx_authors_name" => "(first_name, last_name)"
-    ],
-    "BookTransactions" => [
-        "idx_trans_type" => "(transaction_type)",
-        "idx_trans_returned" => "(is_returned)",
-        "idx_trans_created" => "(created_at)"
-    ],
-    "WalletTransactions" => [
-        "idx_wallet_type" => "(type)",
-        "idx_wallet_reason" => "(reason)",
-        "idx_wallet_created" => "(created_at)"
-    ],
-    "BookReviews" => [
-        "idx_reviews_rating" => "(rating)",
-        "idx_reviews_created" => "(created_at)"
-    ]
-];
-
-foreach ($indexes as $table => $tableIndexes) {
-    foreach ($tableIndexes as $idxName => $cols) {
-        $checkIdx = $conn->query("SHOW INDEX FROM `$table` WHERE Key_name = '$idxName'");
-        if ($checkIdx && $checkIdx->num_rows === 0) {
-            if ($conn->query("ALTER TABLE `$table` ADD INDEX `$idxName` $cols")) {
-                echo "<p style='color:green'>Added index `$idxName` to `$table`.</p>";
-            }
-        }
-    }
-}
-
 // 5. Ensure missing columns (Migrations)
 echo "<h3>Running migrations...</h3>";
 
@@ -284,11 +246,11 @@ echo "<h3>Seeding data...</h3>";
 $adminEmail = 'admin@lms.com';
 $checkAdmin = $conn->query("SELECT id FROM Users WHERE email = '$adminEmail'");
 if ($checkAdmin->num_rows === 0) {
-    $pass = password_hash('admin123', PASSWORD_BCRYPT, ['cost' => 12]);
-    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at) 
-            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW())";
+    $pass = password_hash('Admin@123', PASSWORD_BCRYPT, ['cost' => 12]);
+    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, wallet) 
+            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW(), 5000)";
     if ($conn->query($sql)) {
-        echo "<p style='color:green'>Admin user created (admin@lms.com / admin123).</p>";
+        echo "<p style='color:green'>Admin user created (admin@lms.com / Admin@123).</p>";
     }
 } else {
     echo "<p>Admin user already exists.</p>";
