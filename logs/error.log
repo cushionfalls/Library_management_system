@@ -1,12 +1,1 @@
-[07-May-2026 15:56:37 Europe/Berlin] GroqService fallback used: Groq request failed with HTTP 400
-[07-May-2026 16:27:51 Europe/Berlin] GeminiService fallback used: Gemini request failed with HTTP 429
-[07-May-2026 16:37:47 Europe/Berlin] GeminiService fallback used: Gemini request failed with HTTP 429
-[07-May-2026 16:41:02 Europe/Berlin] GeminiService fallback used: Gemini request failed with HTTP 429
-[07-May-2026 16:47:16 Europe/Berlin] OpenAIService fallback used: AiService::sendPrompt(): Return value must be of type string, array returned
-[07-May-2026 16:53:12 Europe/Berlin] OpenAIService fallback used: Invalid JSON schema from OpenAI.
-[07-May-2026 16:55:50 Europe/Berlin] OpenAIService fallback used: Invalid JSON schema from OpenAI. Missing "recommendations" key. Raw: [{"id":"msg_09d0ce3611204b0f0069fca7f5ac3c81958721495d764b5ede","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"{\"recommendations\":[{\"i
-[07-May-2026 16:57:55 Europe/Berlin] OpenAIService fallback used: Invalid JSON schema from OpenAI. Missing "recommendations" key. Raw: [{"id":"msg_039b5284a46bc3d50069fca8720060819197102c51373e1b10","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"{\"recommendations\":[{\"i
-[07-May-2026 16:59:54 Europe/Berlin] RecommendationController error: Invalid JSON schema from OpenAI. Missing "recommendations" key.
-[07-May-2026 17:02:30 Europe/Berlin] RecommendationController error: Invalid JSON schema from OpenAI. Missing "recommendations" key. Raw: [{"id":"msg_062e04866e5d75f00069fca98546d081a392f2e7f0f30a1aec","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"{\"recommendations\":[{\"i
-[07-May-2026 17:03:02 Europe/Berlin] RecommendationController error: Invalid JSON schema from OpenAI. Missing "recommendations" key. Raw: [{"id":"msg_0739741b542fefc90069fca9a5d50481918bacb29fd2c4e71e","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"{\"recommendations\":[{\"i
-[07-May-2026 17:19:48 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\Library_management_system\public\index.php:155) in C:\xampp\htdocs\Library_management_system\views\login.php on line 5
+hey
