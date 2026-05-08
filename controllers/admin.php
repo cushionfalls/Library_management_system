@@ -92,6 +92,9 @@ class AdminController {
                     ]
                 );
             case 'delete-book':
+                if (!$this->session->isAdmin()) {
+                    return ['success' => false, 'message' => 'Forbidden: Only admins can delete books'];
+                }
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
                 }

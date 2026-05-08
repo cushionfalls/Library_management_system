@@ -59,7 +59,7 @@ function renderBooks(books) {
                 <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${formatUsdFromCents(book.online_buy_price || book.price || 0)}</td>
                 <td class="px-8 py-6 text-right">
                     <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
-                    <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>
+                    ${window.IS_ADMIN ? `<button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>` : ''}
                 </td>
             </tr>
         `;
