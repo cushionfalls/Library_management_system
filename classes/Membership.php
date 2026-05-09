@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Wallet.php';
 require_once __DIR__ . '/MembershipPlan.php';
+require_once __DIR__ . '/EmailService.php';
 
 class Membership {
     private $db;
@@ -207,11 +208,14 @@ class Membership {
             $this->db->commit();
 
             $activeNow = $this->getActiveMembership($userId);
+            $walletBalance = $wallet->getBalance($userId);
+            $this->sendMembershipPurchaseNotification($userId, (string)$plan['name'], $price, $walletBalance, $activeNow);
+
             return [
                 'success' => true,
                 'message' => 'Membership activated',
                 'membership' => $activeNow,
-                'wallet_balance' => $wallet->getBalance($userId),
+                'wallet_balance' => $walletBalance,
             ];
         } catch (Exception $e) {
             $this->db->rollback();
@@ -251,6 +255,51 @@ class Membership {
             ];
         }
         return $rows;
+    }
+
+    /**
+     * @param array<string, mixed>|null $activeMembership
+     */
+    private function sendMembershipPurchaseNotification($userId, $planName, $priceCents, $walletBalanceCents, $activeMembership) {
+        $user = $this->getUserContact((int)$userId);
+        if (!$user || empty($user['email'])) {
+            return;
+        }
+
+        $recipientName = trim(((string)($user['first_name'] ?? '')) . ' ' . ((string)($user['last_name'] ?? '')));
+        if ($recipientName === '') {
+            $recipientName = (string)($user['first_name'] ?? 'Reader');
+        }
+
+        $endsRaw = $activeMembership && !empty($activeMembership['ends_at'])
+            ? (string)$activeMembership['ends_at']
+            : '';
+        $validUntilText = '';
+        if ($endsRaw !== '') {
+            $ts = strtotime($endsRaw);
+            $validUntilText = $ts ? date('F j, Y g:i A', $ts) : $endsRaw;
+        }
+
+        try {
+            $emailService = new EmailService();
+            $emailService->sendMembershipPurchaseConfirmation(
+                (string)$user['email'],
+                $recipientName,
+                $planName,
+                (int)$priceCents,
+                (int)$walletBalanceCents,
+                $validUntilText
+            );
+        } catch (Exception $e) {
+            error_log('Membership confirmation email failed: ' . $e->getMessage());
+        }
+    }
+
+    private function getUserContact($userId) {
+        $stmt = $this->db->prepare('SELECT id, first_name, last_name, email FROM Users WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
     }
 }
 

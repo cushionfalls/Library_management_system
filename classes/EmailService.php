@@ -257,6 +257,49 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendMembershipPurchaseConfirmation($recipientEmail, $recipientName, $planName, $amountPaidCents, $walletBalanceCents, $validUntilText) {
+        $subject = 'Membership Activated — ' . $planName;
+        $amountPaid = '$' . number_format(((int)$amountPaidCents) / 100, 2);
+        $walletBalance = '$' . number_format(((int)$walletBalanceCents) / 100, 2);
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #6f42c1; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+                .content { padding: 20px; background-color: #f9f9f9; margin-top: 10px; }
+                .details { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background: #fff; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Membership Activated</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello " . htmlspecialchars($recipientName) . ",</p>
+                    <p>Your membership has been activated using your wallet. Thank you!</p>
+                    <div class='details'>
+                        <p><strong>Plan:</strong> " . htmlspecialchars($planName) . "</p>
+                        <p><strong>Amount charged:</strong> " . htmlspecialchars($amountPaid) . "</p>
+                        <p><strong>Wallet balance:</strong> " . htmlspecialchars($walletBalance) . "</p>
+                        <p><strong>Valid until:</strong> " . htmlspecialchars($validUntilText) . "</p>
+                    </div>
+                    <p>You can add eligible books from Browse with membership access and manage your plan anytime from the Membership page.</p>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . "</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     public function sendFineNotification($recipientEmail, $recipientName, $bookName, $fineAmount) {
         $subject = 'Fine Notification - Overdue Book: ' . $bookName;
 
