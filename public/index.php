@@ -161,7 +161,9 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
     
     <!-- Preloader -->
-    <?php include __DIR__ . '/../views/preloader.php'; ?>
+    <?php if (!isset($_GET['page']) || $_GET['page'] === ''): ?>
+        <?php include __DIR__ . '/../views/preloader.php'; ?>
+    <?php endif; ?>
 
     <!-- Navigation: hidden on guest auth/landing pages -->
     <?php if (!$isGuestAuthPage): ?>
