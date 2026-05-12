@@ -5,6 +5,10 @@
     let currentBookId = 0;
     let allBooks = [];
     let currentCategory = 'ALL';
+    let currentFontSize = 100;
+    let currentFontFamily = 'sans-serif';
+    let currentSelectionCfi = null;
+    let currentHighlights = [];
 
     function esc(value) {
         return String(value ?? '')
@@ -19,6 +23,53 @@
         const qp = new URLSearchParams(params);
         qp.set('action', action);
         return apiBase + '?' + qp.toString();
+    }
+
+    function applyReaderSettings() {
+        if (!currentRendition) return;
+        currentRendition.themes.fontSize(currentFontSize + '%');
+        currentRendition.themes.font(currentFontFamily);
+        const level = document.getElementById('myBooksZoomLevel');
+        if (level) level.textContent = currentFontSize + '%';
+        
+        currentRendition.themes.register('custom', {
+            '::selection': { 'background': 'rgba(56, 0, 191, 0.2)' },
+            '.epubjs-hl': { 'background-color': 'rgba(254, 240, 138, 0.6) !important' }
+        });
+        currentRendition.themes.select('custom');
+        
+        // Re-apply highlights when settings change or rendition is ready
+        currentHighlights.forEach(h => {
+            const cfi = typeof h === 'string' ? h : h.cfi;
+            currentRendition.annotations.remove(cfi, 'highlight');
+            currentRendition.annotations.add('highlight', cfi, {}, (e) => {
+                // When clicking a highlight, we show the unhighlight button in the header
+                currentSelectionCfi = cfi;
+                const hBtn = document.getElementById('myBooksHighlightBtn');
+                const uBtn = document.getElementById('myBooksUnhighlightBtn');
+                if (hBtn) hBtn.classList.add('hidden');
+                if (uBtn) uBtn.classList.remove('hidden');
+            }, 'epubjs-hl');
+        });
+    }
+
+    function saveHighlights() {
+        if (!currentBookId) return;
+        localStorage.setItem(`epub_highlights_${currentBookId}`, JSON.stringify(currentHighlights));
+    }
+
+    function loadHighlights(bookId) {
+        const saved = localStorage.getItem(`epub_highlights_${bookId}`);
+        const data = saved ? JSON.parse(saved) : [];
+        // Migration: convert old string CFIs to objects if needed
+        currentHighlights = data.map(h => typeof h === 'string' ? { cfi: h, text: '', page: '' } : h);
+    }
+
+    function removeHighlight(cfi) {
+        if (!currentRendition) return;
+        currentRendition.annotations.remove(cfi, 'highlight');
+        currentHighlights = currentHighlights.filter(h => h.cfi !== cfi);
+        saveHighlights();
     }
 
     function progressLabel(progress) {
@@ -162,6 +213,7 @@
         }
 
         modal.showModal();
+        loadHighlights(id);
         
         // Slight delay to ensure the dialog layout is complete before ePub measures the container
         setTimeout(() => {
@@ -174,6 +226,36 @@
                 flow: 'paginated'
             });
             currentRendition = rendition;
+            applyReaderSettings();
+
+            rendition.on('selected', (cfiRange) => {
+                currentSelectionCfi = cfiRange;
+                const hBtn = document.getElementById('myBooksHighlightBtn');
+                const uBtn = document.getElementById('myBooksUnhighlightBtn');
+                
+                // Check if this range (or overlapping) is already highlighted
+                const exists = currentHighlights.some(h => h.cfi === cfiRange);
+                
+                if (exists) {
+                    if (hBtn) hBtn.classList.add('hidden');
+                    if (uBtn) uBtn.classList.remove('hidden');
+                } else {
+                    if (hBtn) hBtn.classList.remove('hidden');
+                    if (uBtn) uBtn.classList.add('hidden');
+                }
+            });
+
+            // Hide highlight/unhighlight buttons when clicking anywhere in the rendition without a selection
+            rendition.on('click', (e) => {
+                setTimeout(() => {
+                    if (!currentSelectionCfi) {
+                        const hBtn = document.getElementById('myBooksHighlightBtn');
+                        const uBtn = document.getElementById('myBooksUnhighlightBtn');
+                        if (hBtn) hBtn.classList.add('hidden');
+                        if (uBtn) uBtn.classList.add('hidden');
+                    }
+                }, 100);
+            });
 
             const stateRes = fetch(apiUrl('reader-state', { book_id: id }), { cache: 'no-store' })
                 .then(res => res.json())
@@ -261,6 +343,93 @@
 
     document.getElementById('myBooksReaderNextBtn')?.addEventListener('click', () => {
         if (currentRendition) currentRendition.next();
+    });
+
+    document.getElementById('myBooksZoomIn')?.addEventListener('click', () => {
+        if (currentFontSize >= 200) return;
+        currentFontSize += 10;
+        applyReaderSettings();
+    });
+
+    document.getElementById('myBooksZoomOut')?.addEventListener('click', () => {
+        if (currentFontSize <= 50) return;
+        currentFontSize -= 10;
+        applyReaderSettings();
+    });
+
+    document.getElementById('myBooksFontFamily')?.addEventListener('change', (e) => {
+        currentFontFamily = e.target.value;
+        applyReaderSettings();
+    });
+
+    document.getElementById('myBooksFullscreenBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('myBooksReaderModal');
+        const box = modal?.querySelector('.modal-box');
+        if (!box) return;
+        
+        // Try requesting fullscreen on the content box
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            const requestMethod = box.requestFullscreen || box.webkitRequestFullscreen || box.mozRequestFullScreen || box.msRequestFullscreen;
+            if (requestMethod) {
+                requestMethod.call(box).catch(err => {
+                    // Fallback to modal if box fails
+                    modal.requestFullscreen?.();
+                });
+            }
+        } else {
+            const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exitMethod) exitMethod.call(document);
+        }
+    });
+
+    document.getElementById('myBooksHighlightBtn')?.addEventListener('click', async function() {
+        if (currentRendition && currentSelectionCfi) {
+            const cfi = currentSelectionCfi;
+            
+            // Check if already exists in memory
+            if (currentHighlights.some(h => h.cfi === cfi)) {
+                window.showToast?.('Already highlighted', 'info');
+                return;
+            }
+
+            // Get text and page info
+            let text = '';
+            try {
+                const range = await currentRendition.book.getRange(cfi);
+                text = range.toString();
+            } catch(e) {}
+
+            const pageLabel = document.getElementById('myBooksReaderPageInfo')?.textContent || '';
+
+            currentRendition.annotations.add('highlight', cfi, {}, (e) => {
+                currentSelectionCfi = cfi;
+                const hBtn = document.getElementById('myBooksHighlightBtn');
+                const uBtn = document.getElementById('myBooksUnhighlightBtn');
+                if (hBtn) hBtn.classList.add('hidden');
+                if (uBtn) uBtn.classList.remove('hidden');
+            }, 'epubjs-hl');
+            
+            currentHighlights.push({
+                cfi: cfi,
+                text: text,
+                page: pageLabel,
+                book_id: currentBookId
+            });
+            saveHighlights();
+            
+            // Clear selection and hide button
+            currentRendition.getContents().forEach(c => c.window.getSelection().removeAllRanges());
+            this.classList.add('hidden');
+            currentSelectionCfi = null;
+        }
+    });
+
+    document.getElementById('myBooksUnhighlightBtn')?.addEventListener('click', function() {
+        if (currentRendition && currentSelectionCfi) {
+            removeHighlight(currentSelectionCfi);
+            this.classList.add('hidden');
+            currentSelectionCfi = null;
+        }
     });
 
     document.getElementById('myBooksReaderModal')?.addEventListener('close', () => {

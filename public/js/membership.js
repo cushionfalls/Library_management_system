@@ -10,7 +10,7 @@ function membershipBaseUrl() {
 
 function planButtonLabel(active, plan) {
     if (!active) return 'Buy with Wallet';
-    if (plan.id == active.plan_id) return 'Owned';
+    if (plan.id == active.plan_id) return 'Renew';
     const price = Number(plan.price || 0);
     const activePrice = Number(active.price || 0);
     if (price < activePrice) return 'Downgrade Not Allowed';
@@ -33,8 +33,7 @@ function planCardHtml(plan, active) {
 
     const activePrice = active ? Number(active.price || 0) : 0;
     const isDowngrade = active && price < activePrice;
-    const isOwned = active && plan.id == active.plan_id;
-    const disabledAttr = (isDowngrade || isOwned) ? 'disabled' : '';
+    const finalDisabled = isDowngrade ? 'disabled' : '';
 
     const btnCls = popular
         ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
@@ -67,7 +66,7 @@ function planCardHtml(plan, active) {
                     <span>Priority support</span>
                 </li>
             </ul>
-            <button class="${btnCls}" data-plan-id="${escapeHtml(plan.id)}" ${disabledAttr}>${escapeHtml(planButtonLabel(active, plan))}</button>
+            <button class="${btnCls}" data-plan-id="${escapeHtml(plan.id)}" ${finalDisabled}>${escapeHtml(planButtonLabel(active, plan))}</button>
         </div>
     `;
 }
@@ -87,6 +86,7 @@ function renderStatus(active) {
     const planEl = document.getElementById('membershipCurrentPlan');
     const nextEl = document.getElementById('membershipNextBilling');
     const deactivateBtn = document.getElementById('membershipDeactivateBtn');
+    const renewBtn = document.getElementById('membershipRenewBtn');
     if (!planEl || !nextEl) return;
 
     if (!active) {
@@ -95,6 +95,7 @@ function renderStatus(active) {
         planEl.classList.add('text-error');
         nextEl.textContent = 'Activate a plan to unlock benefits.';
         if (deactivateBtn) deactivateBtn.classList.add('hidden');
+        if (renewBtn) renewBtn.classList.add('hidden');
         return;
     }
 
@@ -103,6 +104,11 @@ function renderStatus(active) {
     planEl.classList.remove('text-error');
     nextEl.textContent = 'Valid until: ' + formatDate(active.ends_at);
     if (deactivateBtn) deactivateBtn.classList.remove('hidden');
+    if (renewBtn) {
+        renewBtn.classList.remove('hidden');
+        renewBtn.style.display = 'block'; // Force display if hidden class is tricky
+    }
+    window.__currentActivePlanId = active.plan_id;
 }
 
 async function loadStatus() {
@@ -264,11 +270,38 @@ function initDeactivateMembership() {
     });
 }
 
+function initRenewMembership() {
+    const btn = document.getElementById('membershipRenewBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+        const planId = window.__currentActivePlanId;
+        if (!planId) return;
+
+        // Find the button in the plans grid and click it to reuse logic
+        const planBtn = document.querySelector(`button[data-plan-id="${planId}"]`);
+        if (planBtn) {
+            planBtn.click();
+        } else {
+            window.showToast?.('Could not find plan details. Please refresh.', 'danger');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadWalletBalance();
     const active = await loadStatus();
+    // After loading status, if it's still hidden, try forcing it one last time if we have an active plan
+    if (active && active.plan_id) {
+        const renewBtn = document.getElementById('membershipRenewBtn');
+        if (renewBtn) {
+            renewBtn.classList.remove('hidden');
+            renewBtn.style.display = 'block';
+        }
+    }
     await loadPlans(active);
     initHistoryModal();
     initDeactivateMembership();
+    initRenewMembership();
 });
 

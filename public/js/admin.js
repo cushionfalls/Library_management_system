@@ -35,6 +35,7 @@ function renderOverview(overview) {
     document.getElementById('adminTotalBooks').textContent = overview.total_books ?? 0;
     document.getElementById('adminTotalMemberships').textContent = overview.total_memberships ?? 0;
     document.getElementById('adminWalletCreditsToday').textContent = formatUsdFromCents(overview.wallet_credits_today ?? 0);
+    window.__adminExists = !!overview.admin_exists;
 }
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
@@ -386,10 +387,11 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
         if (existingProfileImageEl) existingProfileImageEl.value = user.profile_image || '';
         setProfileImage(user.profile_image || '');
-        if (titleEl) titleEl.textContent = 'Edit Member';
-        if (subtitleEl) subtitleEl.textContent = 'Update user information and access role.';
         if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
-        if (adminRoleOption) adminRoleOption.disabled = false;
+        if (adminRoleOption) {
+            // Disable ADMIN option if an admin already exists AND this user is not currently an admin
+            adminRoleOption.disabled = window.__adminExists && user.role !== 'ADMIN';
+        }
         if (passwordBlockEl) passwordBlockEl.classList.add('hidden');
         if (passwordEl) {
             passwordEl.value = '';
@@ -406,10 +408,12 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = '1';
         if (existingProfileImageEl) existingProfileImageEl.value = '';
         setProfileImage('');
-        if (titleEl) titleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Add New Librarian' : 'Add New User';
         if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
         if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
-        if (adminRoleOption) adminRoleOption.disabled = true;
+        if (adminRoleOption) {
+            // Disable ADMIN option for new users if an admin already exists
+            adminRoleOption.disabled = window.__adminExists;
+        }
         if (passwordBlockEl) passwordBlockEl.classList.remove('hidden');
         if (passwordEl) {
             passwordEl.value = '';
