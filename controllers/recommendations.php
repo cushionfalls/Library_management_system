@@ -66,31 +66,12 @@ class RecommendationController
             ];
         }
 
-        // Cold-start: if the user has no transaction history, ask the AI
-        // for general "newcomer" recommendations from the available catalog.
+        // Cold-start: if the user has no transaction history, they must buy a book first.
         if (count($history) === 0) {
-            $promptCatalog = array_slice($available, 0, 40);
-            $coldProfile = $profile;
-            $coldProfile['favorite_genres'] = [];
-            $ai = $this->ai->getBookRecommendations($coldProfile, [], $promptCatalog);
-
-            if (empty($ai['recommendations']) || !is_array($ai['recommendations']) || count($ai['recommendations']) === 0) {
-                $ai = [
-                    'source' => 'popular',
-                    'recommendations' => $this->buildGenreBasedRecommendations($available, [], 6)
-                ];
-            }
-
             return [
-                'success' => true,
-                'data' => $ai,
-                'meta' => [
-                    'user_id' => $userId,
-                    'history_count' => 0,
-                    'catalog_count' => count($available),
-                    'prompt_catalog_limit' => 40
-                ],
-                'message' => 'Here are some books we think you might enjoy!'
+                'success' => false,
+                'no_books' => true,
+                'message' => 'Buy some book to use this feature'
             ];
         }
 
