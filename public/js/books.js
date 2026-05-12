@@ -64,14 +64,14 @@
             buttonEl.disabled = true;
             buttonEl.textContent = 'Order Confirming...';
         }
-        
+
         const body = new URLSearchParams();
         body.set('book_id', String(bookId));
-        
+
         try {
             const response = await fetch(apiUrl('purchase-online'), { method: 'POST', body });
             const result = await response.json().catch(() => null);
-            
+
             if (!result || !result.success) {
                 window.showToast?.((result && result.message) || 'Unable to purchase book', 'error');
                 if (buttonEl) {
@@ -80,7 +80,7 @@
                 }
                 return;
             }
-            
+
             window.showToast?.(result.message || 'Book purchased', 'success');
             if (window.MY_BOOKS_PAGE_URL) {
                 setTimeout(() => { window.location.href = window.MY_BOOKS_PAGE_URL; }, 300);
@@ -337,8 +337,8 @@
                 if (ownedSection) {
                     ownedSection.classList.remove('hidden');
                     if (ownedText) {
-                        ownedText.textContent = alreadyOwned 
-                            ? 'You have full ownership of this book.' 
+                        ownedText.textContent = alreadyOwned
+                            ? 'You have full ownership of this book.'
                             : 'This book is unlocked via your active membership.';
                     }
                     if (goToMyBooksBtn) {
@@ -348,7 +348,7 @@
             } else {
                 if (ownedSection) ownedSection.classList.add('hidden');
                 if (accessSection) accessSection.classList.remove('hidden');
-                
+
                 if (buyBtn && buyPriceEl) {
                     buyBtn.textContent = 'Buy with Wallet';
                     buyBtn.classList.replace('bg-white/90', 'bg-white');
@@ -598,11 +598,11 @@
                 window.showToast?.('Please verify your email to use membership access', 'warning');
                 return;
             }
-            
+
             const originalText = membershipBtn.textContent;
             membershipBtn.disabled = true;
             membershipBtn.textContent = 'Granting Access...';
-            
+
             const body = new URLSearchParams();
             body.set('book_id', String(state.currentBookId));
             try {

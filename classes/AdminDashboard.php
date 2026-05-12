@@ -13,8 +13,14 @@ class AdminDashboard {
             'total_users' => $this->countTable('Users'),
             'total_books' => $this->countTable('Books'),
             'total_memberships' => $this->countTotalMemberships(),
-            'wallet_credits_today' => $this->sumWalletCreditsToday()
+            'wallet_credits_today' => $this->sumWalletCreditsToday(),
+            'admin_exists' => $this->checkAdminExists()
         ];
+    }
+
+    private function checkAdminExists() {
+        $res = $this->db->query("SELECT id FROM Users WHERE role = 'ADMIN' LIMIT 1");
+        return $res && $res->num_rows > 0;
     }
 
     public function getRecentUsers($limit = 8) {
@@ -293,6 +299,15 @@ class AdminDashboard {
         $allowedRoles = ['USER', 'LIBRARIAN', 'ADMIN'];
         if (!in_array($role, $allowedRoles, true)) {
             return ['success' => false, 'message' => 'Invalid role'];
+        }
+
+        if ($role === 'ADMIN') {
+            $adminCheck = $this->db->prepare("SELECT id FROM Users WHERE role = 'ADMIN' AND id != ? LIMIT 1");
+            $adminCheck->bind_param('i', $id);
+            $adminCheck->execute();
+            if ($adminCheck->get_result()->num_rows > 0) {
+                return ['success' => false, 'message' => 'There can be only one administrator. Another admin already exists.'];
+            }
         }
 
         $dup = $this->db->prepare("SELECT id FROM Users WHERE email = ? AND id != ? LIMIT 1");

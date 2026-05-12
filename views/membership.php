@@ -89,6 +89,9 @@ tailwind.config = {
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button id="membershipRenewBtn" class="px-6 py-2.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed font-bold text-sm hover:opacity-90 transition-all hidden">
+                        Renew Membership
+                    </button>
                     <button id="membershipDeactivateBtn" class="px-6 py-2.5 rounded-lg border border-error/40 text-error font-bold text-sm hover:bg-error-container transition-all hidden">
                         Deactivate Membership
                     </button>
