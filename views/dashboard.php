@@ -193,7 +193,7 @@ tailwind.config = {
 
         <div id="recommendationsError" class="hidden mb-4 rounded-xl border border-error/30 bg-error-container/30 text-on-error-container px-4 py-3 text-sm font-medium"></div>
 
-        <div id="recommendationsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        <div id="recommendationsGrid" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto"></div>
     </section>
 </div>
 
@@ -268,47 +268,41 @@ function recommendationCard(book) {
     const title = window.escapeHtml(book.title || 'Untitled');
     const author = window.escapeHtml(book.author || 'Unknown Author');
     const genre = window.escapeHtml(book.genre || 'General');
-    const reason = window.escapeHtml(book.reason || 'Recommended for your reading profile.');
-    const because = window.escapeHtml(book.because || ('Because you read books in ' + (book.genre || 'this') + '.'));
     const score = Number(book.score || 0);
-    const scoreBadge = isNaN(score) ? 'Match' : ('Match ' + score + '%');
+    const scoreBadge = isNaN(score) ? 'Match' : (score + '% Match');
     const rawCover = book.cover_image_url ? String(book.cover_image_url).trim() : '';
-    const coverEsc = rawCover ? window.escapeHtml(rawCover) : '';
-    const bookLink = book.book_id ? ('<?php echo htmlspecialchars(APP_ROUTE, ENT_QUOTES); ?>?page=books&book=' + encodeURIComponent(String(book.book_id))) : '';
+    const coverEsc = rawCover ? window.escapeHtml(rawCover) : 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
+    const bookLink = book.book_id ? ('<?php echo htmlspecialchars(APP_ROUTE, ENT_QUOTES); ?>?page=books&book=' + encodeURIComponent(String(book.book_id))) : '#';
 
-    const coverTop = `
-        <div class="aspect-[16/9] relative overflow-hidden bg-gradient-to-br from-[#ece5fa] via-surface-variant/80 to-primary/15 border-b border-outline-variant/10">
-            ${coverEsc ? `
-                <img src="${coverEsc}" alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" referrerpolicy="no-referrer"
-                    onerror="this.style.display='none';var p=this.nextElementSibling;if(p){p.classList.remove('hidden');p.style.display='flex';}" />
-                <div class="absolute inset-0 hidden flex-col items-center justify-center gap-2 text-primary/55" aria-hidden="true">
-                    <span class="material-symbols-outlined text-5xl">menu_book</span>
+    return `
+        <article class="group flex flex-col w-full" data-book-id="${book.book_id}">
+            <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_12px_24px_-8px_rgba(56,0,191,0.2)] cursor-pointer">
+                <a href="${bookLink}">
+                    <img class="w-full h-full object-cover" alt="${title}" src="${coverEsc}" loading="lazy" />
+                    <div class="absolute top-2 left-2 flex flex-col gap-1">
+                        <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${genre}</span>
+                    </div>
+                    <div class="absolute bottom-2 right-2">
+                         <div class="bg-primary px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm border border-white/20">
+                            <span class="material-symbols-outlined text-white text-[10px]" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+                            <span class="text-[10px] font-black text-white">${scoreBadge}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="px-1 flex flex-col flex-1">
+                <h3 class="text-sm font-bold text-on-surface leading-tight mb-0.5 group-hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                    <a href="${bookLink}">${title}</a>
+                </h3>
+                <p class="text-[11px] text-on-surface-variant font-medium mb-1 truncate">${author}</p>
+                <p class="mt-2 text-[10px] text-on-surface-variant font-medium italic line-clamp-2 opacity-80">${window.escapeHtml(book.reason || '')}</p>
+                
+                <div class="mt-4">
+                    <a href="${bookLink}" class="block w-full text-center py-2 text-[9px] font-black bg-primary text-white rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter">Details</a>
                 </div>
-            ` : `
-                <div class="absolute inset-0 flex items-center justify-center text-primary/55">
-                    <span class="material-symbols-outlined text-5xl">menu_book</span>
-                </div>
-            `}
-        </div>`;
-
-    const inner = `
-            ${coverTop}
-            <div class="p-5">
-                <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-on-surface leading-tight">${title}</h3>
-                    <span class="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full bg-primary-container text-on-primary">AI ${window.escapeHtml(scoreBadge)}</span>
-                </div>
-                <p class="text-sm text-on-surface-variant mt-2">${author}</p>
-                <p class="text-xs uppercase tracking-wider text-primary font-bold mt-1">${genre}</p>
-                <p class="mt-3 text-sm text-on-surface">${reason}</p>
-                <p class="mt-2 text-xs text-on-surface-variant font-medium">${because}</p>
-            </div>`;
-
-    const wrapCls = 'rounded-2xl border border-outline-variant/20 bg-surface-container-low overflow-hidden shadow-sm hover:shadow-md transition-shadow block';
-    if (bookLink) {
-        return `<a href="${bookLink}" class="${wrapCls}">${inner}</a>`;
-    }
-    return `<div class="${wrapCls}">${inner}</div>`;
+            </div>
+        </article>
+    `;
 }
 
 async function loadRecommendations(forceRefresh = false) {
@@ -340,7 +334,7 @@ async function loadRecommendations(forceRefresh = false) {
         }
 
         const data = payload.data || {};
-        const recs = Array.isArray(data.recommendations) ? data.recommendations.slice(0, 6) : [];
+        const recs = Array.isArray(data.recommendations) ? data.recommendations.slice(0, 3) : [];
         if (!recs.length) {
             grid.innerHTML = `
                 <div class="col-span-full py-10 text-center text-on-surface-variant">
@@ -354,9 +348,22 @@ async function loadRecommendations(forceRefresh = false) {
 
         grid.innerHTML = recs.map((item) => recommendationCard(item)).join('');
     } catch (err) {
-        error.textContent = err.message || 'Could not load AI recommendations.';
-        error.classList.remove('hidden');
-        grid.innerHTML = '';
+        if (err.message === 'Buy some book to use this feature') {
+            grid.innerHTML = `
+                <div class="col-span-full py-10 text-center text-on-surface-variant">
+                    <span class="material-symbols-outlined text-5xl mb-3 text-primary/60">shopping_cart</span>
+                    <p class="font-bold text-lg text-on-surface">Buy some book to use this feature</p>
+                    <p class="text-sm mt-2 max-w-xs mx-auto">Once you have at least one book in your library, our AI can start analyzing your taste to find perfect matches.</p>
+                    <a href="<?php echo APP_ROUTE; ?>?page=books" class="mt-6 inline-flex items-center gap-2 text-primary font-bold hover:underline">
+                        Browse Books <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+            `;
+        } else {
+            error.textContent = err.message || 'Could not load AI recommendations.';
+            error.classList.remove('hidden');
+            grid.innerHTML = '';
+        }
     } finally {
         loading.classList.add('hidden');
         grid.classList.remove('hidden');

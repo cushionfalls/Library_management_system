@@ -308,10 +308,6 @@ async function saveBook(event) {
         return;
     }
 
-    if (formData.has('online_buy_price') && formData.get('online_buy_price')) {
-        formData.set('online_buy_price', Math.round(Number(formData.get('online_buy_price')) * 100));
-    }
-    
     // Set defaults for removed fields
     formData.set('number_of_copies', '1');
     formData.set('price', formData.get('online_buy_price') || '0');

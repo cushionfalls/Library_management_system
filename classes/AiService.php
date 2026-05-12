@@ -269,7 +269,7 @@ class AiService
             throw new RuntimeException('OpenAI returned no usable recommendations matching our catalog.');
         }
 
-        return ['source' => 'openai', 'recommendations' => array_slice($normalized, 0, 6)];
+        return ['source' => 'openai', 'recommendations' => array_slice($normalized, 0, 3)];
     }
 
 
