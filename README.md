@@ -8,8 +8,9 @@ This is a **PHP (mysqli) + MySQL** library management system built to run easily
 - **Authentication** (register/login) with **email OTP verification**
 - **User roles**: `ADMIN`, `LIBRARIAN`, `USER`
 - **Books** + rentals/transactions + fines (project modules)
-- **Wallet system** with **eSewa top up**, transaction history, and admin refund tools
+- **Wallet system** with **Stripe top up**, transaction history, and admin refund tools
 - **Membership system** where users can buy plans using **wallet balance**
+- **Magical Book Preloader**: Custom once-per-session CSS/JS loading animation matching the "Paper Library" theme.
 
 ## Membership plans (wallet purchase)
 Membership is available at `index.php?page=membership` and is protected (login required).
@@ -28,7 +29,7 @@ This repo uses a simple MVC-style layout:
 
 - **`index.php`**: single entrypoint → loads `public/index.php`
 - **`public/index.php`**: front controller / router using query param `?page=...`
-- **`views/`**: page templates (`dashboard.php`, `wallet.php`, `membership.php`, etc.)
+- **`views/`**: page templates (`dashboard.php`, `wallet.php`, `membership.php`, `preloader.php`, etc.)
 - **`controllers/`**: JSON APIs (ex: `controllers/wallet.php`, `controllers/membership.php`)
 - **`classes/`**: business logic + DB access (`Database.php`, `Session.php`, `Wallet.php`, `Membership.php`, etc.)
 - **`config/config.php`**: app + DB configuration
