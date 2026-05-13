@@ -1,68 +1,3 @@
-<script id="tailwind-membership-lumina">
-tailwind.config = {
-    darkMode: "class",
-    theme: {
-        extend: {
-            colors: {
-                "on-surface-variant": "#474557",
-                "outline-variant": "#c9c4da",
-                "outline": "#787588",
-                "surface-container-lowest": "#ffffff",
-                "inverse-on-surface": "#f4eefe",
-                "on-tertiary-container": "#ffb6a1",
-                "error-container": "#ffdad6",
-                "on-background": "#1c1a25",
-                "on-secondary-container": "#595f7e",
-                "tertiary-fixed-dim": "#ffb59f",
-                "background": "#fdf8ff",
-                "tertiary": "#741d00",
-                "surface-container": "#f1ebfb",
-                "surface-bright": "#fdf8ff",
-                "on-tertiary": "#ffffff",
-                "on-primary-container": "#cac1ff",
-                "on-primary": "#ffffff",
-                "primary-container": "#4f1bf1",
-                "on-tertiary-fixed": "#3a0a00",
-                "surface-container-highest": "#e5e0f0",
-                "inverse-surface": "#312f3a",
-                "on-primary-fixed-variant": "#4200da",
-                "on-surface": "#1c1a25",
-                "secondary-fixed-dim": "#bfc5e8",
-                "inverse-primary": "#c8bfff",
-                "on-secondary-fixed-variant": "#3f4563",
-                "surface-tint": "#5a30fb",
-                "tertiary-container": "#9c2a00",
-                "surface": "#fdf8ff",
-                "secondary": "#575d7c",
-                "on-secondary-fixed": "#131a35",
-                "surface-container-high": "#ebe6f5",
-                "on-tertiary-fixed-variant": "#862300",
-                "primary-fixed-dim": "#c8bfff",
-                "on-primary-fixed": "#190064",
-                "tertiary-fixed": "#ffdbd1",
-                "surface-variant": "#e5e0f0",
-                "on-error-container": "#93000a",
-                "surface-dim": "#ddd8e7",
-                "surface-container-low": "#f7f1ff",
-                "primary-fixed": "#e5deff",
-                "secondary-container": "#d6dbff",
-                "on-error": "#ffffff",
-                "secondary-fixed": "#dde1ff",
-                "on-secondary": "#ffffff",
-                "primary": "#3800bf",
-                "error": "#ba1a1a"
-            },
-            borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
-            fontFamily: {
-                "headline": ["Manrope"],
-                "display": ["Manrope"],
-                "body": ["Inter"],
-                "label": ["Inter"]
-            }
-        }
-    }
-}
-</script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .ambient-shadow { box-shadow: 0 32px 64px -12px rgba(28, 26, 37, 0.06); }
@@ -124,7 +59,7 @@ tailwind.config = {
 </div>
 
 <dialog id="membershipHistoryModal" class="modal">
-    <div class="modal-box max-w-3xl bg-white">
+    <div class="modal-box max-w-3xl bg-surface-container-lowest">
         <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary">history</span>
             Membership History
@@ -153,7 +88,7 @@ tailwind.config = {
 </dialog>
 
 <dialog id="membershipConfirmModal" class="modal">
-    <div class="modal-box max-w-sm bg-white">
+    <div class="modal-box max-w-sm bg-surface-container-lowest">
         <h3 class="font-bold text-lg mb-2">Confirm Purchase</h3>
         <p class="text-sm text-on-surface-variant mb-6" id="membershipConfirmText">Are you sure you want to purchase this membership?</p>
         <div class="flex justify-end gap-3">
@@ -165,7 +100,7 @@ tailwind.config = {
 </dialog>
 
 <dialog id="membershipDeactivateModal" class="modal">
-    <div class="modal-box max-w-sm bg-white">
+    <div class="modal-box max-w-sm bg-surface-container-lowest">
         <h3 class="font-bold text-lg mb-2">Deactivate Membership</h3>
         <p class="text-sm text-on-surface-variant mb-6">Your membership access will end immediately. Are you sure you want to continue?</p>
         <div class="flex justify-end gap-3">

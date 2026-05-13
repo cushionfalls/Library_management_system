@@ -197,6 +197,42 @@
     .reveal { opacity: 0; transform: translateY(40px); transition: 0.8s ease-out; }
     .reveal.active { opacity: 1; transform: translateY(0); }
 
+    html.dark {
+        --primary: #c4b5fd;
+        --primary-light: #ddd6fe;
+        --primary-dark: #7c3aed;
+        --accent: #a78bfa;
+        --surface: #0f0d14;
+        --surface-card: #1a1724;
+        --text-primary: #ece8f0;
+        --text-secondary: #b9b2cc;
+        --text-light: #8a8299;
+        --border: #3d3658;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.35);
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.45), 0 2px 4px -1px rgba(0,0,0,0.35);
+        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.45), 0 4px 6px -2px rgba(0,0,0,0.35);
+        --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.35);
+    }
+    html.dark .stat-card,
+    html.dark .feature-card {
+        background: var(--surface-card);
+        border-color: var(--border);
+        color: var(--text-primary);
+    }
+    html.dark .showcase-mockup {
+        background: #1e1a26;
+        color: var(--text-primary);
+    }
+    html.dark .btn-lms-outline {
+        background: transparent;
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    html.dark .btn-lms-outline:hover {
+        background: var(--primary);
+        color: #1a1025;
+    }
+
     @media (max-width: 1024px) {
         .hero-content, .showcase-content, .footer-grid { grid-template-columns: 1fr; }
         .stats-grid, .features-grid { grid-template-columns: repeat(2, 1fr); }

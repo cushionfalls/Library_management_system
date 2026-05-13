@@ -52,47 +52,47 @@
 </div>
 
 <dialog id="myBooksReaderModal" class="modal">
-    <div class="modal-box w-11/12 max-w-7xl p-0 bg-white flex flex-col h-[90vh] overflow-hidden">
-        <div class="px-5 py-4 border-b flex items-center justify-between shrink-0">
+    <div class="modal-box w-11/12 max-w-7xl p-0 bg-surface-container-lowest flex flex-col h-[90vh] overflow-hidden">
+        <div class="px-5 py-4 border-b border-outline-variant/20 flex items-center justify-between shrink-0">
             <div>
-                <h3 class="font-bold text-lg" id="myBooksReaderTitle">Reader</h3>
-                <p class="text-xs text-gray-500" id="myBooksReaderMeta">Saved position available</p>
+                <h3 class="font-bold text-lg text-on-surface" id="myBooksReaderTitle">Reader</h3>
+                <p class="text-xs text-on-surface-variant" id="myBooksReaderMeta">Saved position available</p>
             </div>
             <div class="flex items-center gap-3">
-                <button id="myBooksHighlightBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-all text-primary hidden" title="Highlight Selection">
+                <button id="myBooksHighlightBtn" class="p-2 hover:bg-surface-container-high rounded-lg transition-all text-primary hidden" title="Highlight Selection">
                     <span class="material-symbols-outlined block">draw</span>
                 </button>
-                <button id="myBooksUnhighlightBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-all text-error hidden" title="Remove Highlight">
+                <button id="myBooksUnhighlightBtn" class="p-2 hover:bg-surface-container-high rounded-lg transition-all text-error hidden" title="Remove Highlight">
                     <span class="material-symbols-outlined block">ink_eraser</span>
                 </button>
-                <div class="hidden sm:flex items-center bg-gray-100 rounded-lg border border-gray-200 h-[34px] overflow-hidden">
-                    <button id="myBooksZoomOut" class="h-full px-2 hover:bg-white transition-all active:scale-90 border-r border-gray-200" title="Zoom Out">
+                <div class="hidden sm:flex items-center bg-surface-container-high rounded-lg border border-outline-variant/40 h-[34px] overflow-hidden">
+                    <button id="myBooksZoomOut" class="h-full px-2 hover:bg-surface-container-lowest transition-all active:scale-90 border-r border-outline-variant/30" title="Zoom Out">
                         <span class="material-symbols-outlined text-[18px] block">remove</span>
                     </button>
-                    <span id="myBooksZoomLevel" class="text-[10px] font-black px-2 w-10 text-center text-gray-600">100%</span>
-                    <button id="myBooksZoomIn" class="h-full px-2 hover:bg-white transition-all active:scale-90 border-l border-gray-200" title="Zoom In">
+                    <span id="myBooksZoomLevel" class="text-[10px] font-black px-2 w-10 text-center text-on-surface-variant">100%</span>
+                    <button id="myBooksZoomIn" class="h-full px-2 hover:bg-surface-container-lowest transition-all active:scale-90 border-l border-outline-variant/30" title="Zoom In">
                         <span class="material-symbols-outlined text-[18px] block">add</span>
                     </button>
                 </div>
-                <select id="myBooksFontFamily" class="hidden sm:block text-[11px] font-bold bg-gray-100 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 py-1.5 px-3">
+                <select id="myBooksFontFamily" class="hidden sm:block text-[11px] font-bold bg-surface-container-high border border-outline-variant/40 rounded-lg focus:ring-2 focus:ring-primary/20 py-1.5 px-3">
                     <option value="sans-serif">Sans Serif</option>
                     <option value="serif">Serif</option>
                     <option value="'Inter', sans-serif">Inter</option>
                     <option value="'Manrope', sans-serif">Manrope</option>
                 </select>
-                <button id="myBooksFullscreenBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Toggle Fullscreen">
+                <button id="myBooksFullscreenBtn" class="p-2 hover:bg-surface-container-high rounded-lg transition-colors" title="Toggle Fullscreen">
                     <span class="material-symbols-outlined block">fullscreen</span>
                 </button>
                 <form method="dialog"><button class="btn btn-sm btn-ghost">✕</button></form>
             </div>
         </div>
-        <div id="myBooksReaderContainer" class="flex-1 relative bg-[#f8f9fa] shadow-inner"></div>
-        <div class="px-5 py-3 border-t flex items-center justify-between shrink-0 bg-white">
+        <div id="myBooksReaderContainer" class="flex-1 relative bg-surface-dim shadow-inner"></div>
+        <div class="px-5 py-3 border-t border-outline-variant/20 flex items-center justify-between shrink-0 bg-surface-container-lowest">
             <button id="myBooksReaderPrevBtn" class="btn btn-ghost btn-sm gap-2">
                 <span class="material-symbols-outlined">chevron_left</span>
                 Previous
             </button>
-            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest" id="myBooksReaderPageInfo">Loading pages...</span>
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest" id="myBooksReaderPageInfo">Loading pages...</span>
             <button id="myBooksReaderNextBtn" class="btn btn-ghost btn-sm gap-2">
                 Next
                 <span class="material-symbols-outlined">chevron_right</span>

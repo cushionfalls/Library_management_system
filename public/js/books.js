@@ -165,7 +165,7 @@
                             <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${esc(book.genre_label)}</span>
                         </div>
                         <div class="absolute bottom-2 right-2">
-                             <div class="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
+                             <div class="bg-surface-container-lowest/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
                                 <span class="material-symbols-outlined text-amber-500 text-[10px]" style="font-variation-settings:'FILL' 1;">star</span>
                                 <span class="text-[10px] font-black text-[#1c1a25]">${esc(Number(book.rating || 0).toFixed(1))}</span>
                             </div>
@@ -202,7 +202,7 @@
         list.innerHTML = items.map((book) => {
             const cover = esc(book.cover_image_url || fallbackCover());
             return `
-                <article class="bg-white border border-outline-variant/30 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4">
+                <article class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4">
                     <img class="w-full sm:w-24 h-40 sm:h-32 rounded-lg object-cover shrink-0" src="${cover}" alt="${esc(book.name)}" />
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-3">
@@ -361,7 +361,7 @@
 
                 if (buyBtn && buyPriceEl) {
                     buyBtn.textContent = 'Buy with Wallet';
-                    buyBtn.classList.replace('bg-white/90', 'bg-white');
+                    buyBtn.classList.replace('bg-surface-container-lowest/90', 'bg-surface-container-lowest');
                     buyBtn.onclick = null;
                     buyPriceEl.textContent = formatUsdFromCents(book.online_buy_price);
                 }

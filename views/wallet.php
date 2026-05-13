@@ -1,73 +1,3 @@
-<script id="tailwind-wallet-lumina">
-tailwind.config = {
-    darkMode: "class",
-    theme: {
-        extend: {
-            colors: {
-                "on-primary-fixed": "#190064",
-                "tertiary-fixed": "#ffdbd1",
-                "on-primary": "#ffffff",
-                "on-error": "#ffffff",
-                "on-secondary-fixed-variant": "#3f4563",
-                "secondary-fixed-dim": "#bfc5e8",
-                "on-surface": "#1c1a25",
-                "primary-container": "#4f1bf1",
-                "tertiary-container": "#9c2a00",
-                "tertiary": "#741d00",
-                "primary": "#3800bf",
-                "on-primary-fixed-variant": "#4200da",
-                "surface-dim": "#ddd8e7",
-                "on-primary-container": "#cac1ff",
-                "secondary": "#575d7c",
-                "on-tertiary-fixed-variant": "#862300",
-                "primary-fixed-dim": "#c8bfff",
-                "outline": "#787588",
-                "on-tertiary-container": "#ffb6a1",
-                "surface-container-lowest": "#ffffff",
-                "surface-tint": "#5a30fb",
-                "inverse-on-surface": "#f4eefe",
-                "on-secondary": "#ffffff",
-                "outline-variant": "#c9c4da",
-                "error-container": "#ffdad6",
-                "on-background": "#1c1a25",
-                "on-tertiary": "#ffffff",
-                "surface-bright": "#fdf8ff",
-                "on-error-container": "#93000a",
-                "inverse-primary": "#c8bfff",
-                "on-secondary-container": "#595f7e",
-                "surface-container-high": "#ebe6f5",
-                "surface-container-low": "#f7f1ff",
-                "surface-container-highest": "#e5e0f0",
-                "error": "#ba1a1a",
-                "surface": "#fdf8ff",
-                "on-tertiary-fixed": "#3a0a00",
-                "background": "#fdf8ff",
-                "tertiary-fixed-dim": "#ffb59f",
-                "on-surface-variant": "#474557",
-                "inverse-surface": "#312f3a",
-                "surface-variant": "#e5e0f0",
-                "on-secondary-fixed": "#131a35",
-                "primary-fixed": "#e5deff",
-                "secondary-fixed": "#dde1ff",
-                "surface-container": "#f1ebfb",
-                "secondary-container": "#d6dbff"
-            },
-            borderRadius: {
-                "DEFAULT": "0.125rem",
-                "lg": "0.5rem",
-                "xl": "0.75rem",
-                "full": "9999px"
-            },
-            fontFamily: {
-                "headline": ["Manrope"],
-                "display": ["Manrope"],
-                "body": ["Inter"],
-                "label": ["Inter"]
-            }
-        }
-    }
-};
-</script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body { font-family: 'Inter', system-ui, sans-serif; }
@@ -135,7 +65,7 @@ tailwind.config = {
 
     <!-- ── Wallet Overview ──────────────────────────────────────────────── -->
     <section class="mb-16">
-        <div class="relative overflow-hidden balance-gradient rounded-3xl p-10 md:p-14 text-on-primary shadow-[0_20px_50px_rgba(56,0,191,0.3)] flex flex-col md:flex-row justify-between items-center border border-white/10">
+        <div class="relative overflow-hidden balance-gradient rounded-3xl p-10 md:p-14 text-white shadow-[0_20px_50px_rgba(56,0,191,0.3)] flex flex-col md:flex-row justify-between items-center border border-white/10">
             <!-- decorative rings -->
             <div class="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
                 <svg fill="none" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
@@ -150,8 +80,8 @@ tailwind.config = {
 
             <div class="z-10 text-center md:text-left mb-8 md:mb-0">
                 <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6">
-                    <span class="material-symbols-outlined text-[16px] text-primary-fixed-dim">verified_user</span>
-                    <span class="text-primary-fixed-dim font-bold tracking-widest uppercase text-[10px]">
+                    <span class="material-symbols-outlined text-[16px] text-white/90">verified_user</span>
+                    <span class="text-white font-bold tracking-widest uppercase text-[10px] drop-shadow-sm">
                         Secure Digital Vault
                     </span>
                 </div>
@@ -164,7 +94,7 @@ tailwind.config = {
 
             <div class="z-10 flex flex-col sm:flex-row gap-4">
                 <button id="walletTopUpBtn"
-                        class="bg-white text-primary px-10 py-5 rounded-2xl font-black text-lg
+                        class="bg-surface-container-lowest text-primary px-10 py-5 rounded-2xl font-black text-lg
                                hover:shadow-[0_10px_25px_rgba(255,255,255,0.4)] hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-3">
                     <span class="material-symbols-outlined font-bold">add_card</span>
                     Add Funds
@@ -185,7 +115,7 @@ tailwind.config = {
                 <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between
                             hover:bg-surface-container transition-colors group">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm p-2">
+                        <div class="w-12 h-12 rounded-lg bg-surface-container-lowest flex items-center justify-center shadow-sm p-2">
                             <span class="material-symbols-outlined text-primary" style="font-size:26px">credit_card</span>
                         </div>
                         <div>
@@ -242,12 +172,12 @@ tailwind.config = {
     <div class="modal-box w-full max-w-[800px] h-[950px] max-h-[95vh] p-0 overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-bright shadow-2xl font-body flex flex-col">
 
         <!-- Header -->
-        <div class="relative overflow-hidden bg-gradient-to-br from-primary via-[#4720c4] to-primary-container px-6 sm:px-8 pt-7 pb-8 text-on-primary">
+        <div class="relative overflow-hidden bg-gradient-to-br from-primary via-[#4720c4] to-primary-container px-6 sm:px-8 pt-7 pb-8 text-white">
             <div class="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-white/10 blur-2xl"></div>
             <div class="pointer-events-none absolute -bottom-24 -left-8 h-40 w-40 rounded-full bg-primary-fixed-dim/20 blur-3xl"></div>
 
             <button type="button"
-                    class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-on-primary backdrop-blur-sm transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-on-primary focus-visible:ring-offset-2 focus-visible:ring-offset-primary z-10"
+                    class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-primary z-10"
                     onclick="document.getElementById('walletTopUpModal').close()"
                     aria-label="Close">
                 <span class="material-symbols-outlined text-[22px]">close</span>
@@ -255,14 +185,14 @@ tailwind.config = {
 
             <div class="relative z-[1] flex flex-col gap-5 sm:flex-row sm:items-start">
                 <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 shadow-inner ring-1 ring-white/20 backdrop-blur-sm">
-                    <span class="material-symbols-outlined text-[30px] text-on-primary">account_balance_wallet</span>
+                    <span class="material-symbols-outlined text-[30px] text-white">account_balance_wallet</span>
                 </div>
                 <div class="min-w-0 flex-1 pr-10 sm:pr-12">
-                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-on-primary-container/95">Secure checkout</p>
-                    <h3 class="mt-2 font-display text-2xl font-extrabold tracking-tight text-on-primary sm:text-[1.75rem] leading-tight">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/85">Secure checkout</p>
+                    <h3 class="mt-2 font-display text-2xl font-extrabold tracking-tight text-white sm:text-[1.75rem] leading-tight drop-shadow-sm">
                         Top up your wallet
                     </h3>
-                    <p class="mt-2 max-w-md text-sm leading-relaxed text-on-primary-container opacity-95">
+                    <p class="mt-2 max-w-md text-sm leading-relaxed text-white/90">
                         Add USD to your balance for digital books and membership. Your card is processed by Stripe — we never store full card numbers.
                     </p>
                 </div>
@@ -290,7 +220,7 @@ tailwind.config = {
                            max="1000"
                            step="0.01"
                            required
-                           class="wallet-topup-amount-input w-full rounded-xl border-1.5 border-outline-variant/45 bg-white py-3 pl-10 pr-4 text-2xl font-black text-[#1c1a25] shadow-sm transition-all
+                           class="wallet-topup-amount-input w-full rounded-xl border-1.5 border-outline-variant/45 bg-surface-container-lowest py-3 pl-10 pr-4 text-2xl font-black text-on-surface shadow-sm transition-all
                                   placeholder:text-slate-400 placeholder:font-medium
                                   focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
                            style="color: #1c1a25 !important;"
@@ -357,7 +287,7 @@ tailwind.config = {
 
                     <div class="rounded-xl bg-primary/5 px-4 py-3 text-[11px] leading-relaxed text-on-surface-variant border border-primary/10">
                         <span class="font-bold text-primary uppercase tracking-tighter mr-1">Test mode:</span>
-                        Use <code class="rounded bg-white px-1.5 py-0.5 font-mono font-bold text-primary shadow-sm border border-primary/20">4242 4242 4242 4242</code>
+                        Use <code class="rounded bg-surface-container-lowest px-1.5 py-0.5 font-mono font-bold text-primary shadow-sm border border-primary/20">4242 4242 4242 4242</code>
                         <span class="mx-1">·</span> Any future date <span class="mx-1">·</span> Any CVC
                     </div>
                 </div>

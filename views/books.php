@@ -1,33 +1,3 @@
-<script id="tailwind-books-lumina">
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            colors: {
-                'on-primary-fixed': '#190064',
-                'on-secondary': '#ffffff',
-                'surface-tint': '#5a30fb',
-                'surface-dim': '#ddd8e7',
-                'surface': '#fdf8ff',
-                'secondary-fixed': '#dde1ff',
-                'primary-container': '#4f1bf1',
-                'on-primary-container': '#cac1ff',
-                'surface-container-lowest': '#ffffff',
-                'on-surface-variant': '#474557',
-                'secondary-container': '#d6dbff',
-                'on-surface': '#1c1a25',
-                'surface-container-low': '#f7f1ff',
-                'on-secondary-container': '#595f7e',
-                'surface-container-high': '#ebe6f5',
-                'background': '#fdf8ff',
-                'primary': '#3800bf',
-                'outline': '#787588',
-                'outline-variant': '#c9c4da'
-            }
-        }
-    }
-};
-</script>
 <style>
     .browse-shell .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;

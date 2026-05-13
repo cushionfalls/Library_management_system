@@ -88,16 +88,42 @@ $navActive = [
 // Hide header/footer on guest-facing auth/landing pages
 $guestAuthPages = ['login', 'register', 'forgot_password', 'home'];
 $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuthPages, true);
+
+$luminaShellPages = ['dashboard', 'books', 'my-books', 'admin', 'wallet', 'membership', 'profile', 'fines'];
+$bodyShellClass = in_array($current_page, $luminaShellPages, true) ? 'lumina-app-body' : '';
+$bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function () {
+        try {
+            var k = 'lumina-theme';
+            var s = localStorage.getItem(k);
+            var mode = (s === 'light' || s === 'dark')
+                ? s
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            var r = document.documentElement;
+            if (mode === 'dark') {
+                r.classList.add('dark');
+                r.setAttribute('data-theme', 'dark');
+            } else {
+                r.classList.remove('dark');
+                r.setAttribute('data-theme', 'light');
+            }
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo APP_NAME; ?></title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="<?php echo APP_URL; ?>/public/js/tailwind-lumina-config.js"></script>
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/lumina-theme.css" />
+    <script src="<?php echo APP_URL; ?>/public/js/theme.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
         rel="stylesheet" />
@@ -109,10 +135,8 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --color-primary: 59, 130, 246;
-            --color-primary-rgb: 59 130 246;
-        }
+        /* Lumina semantic colors: public/css/lumina-theme.css (--color-* space-separated RGB).
+           Never set --color-* here with comma-separated values — it breaks bg-primary / text-primary. */
 
         body {
             @apply bg-base-100 text-base-content;
@@ -170,9 +194,16 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </script>
 </head>
 
-<body
-    class="<?php echo ($current_page === 'home' || $current_page === 'books' || $current_page === 'dashboard' || $current_page === 'my-books' || $current_page === 'admin' || $current_page === 'wallet' || $current_page === 'membership' || $current_page === 'profile') ? 'lumina-surface bg-[#fdf8ff] text-[#1c1a25]' : ''; ?>">
-    
+<body class="<?php echo trim($bodyShellClass); ?>">
+    <?php if ($isGuestAuthPage): ?>
+    <div class="fixed top-4 right-4 z-[200]">
+        <button type="button" data-lumina-theme-toggle class="lumina-theme-toggle lumina-theme-toggle-fab" title="Toggle theme" aria-label="Toggle light or dark mode">
+            <span class="material-symbols-outlined lumina-theme-icon lumina-icon-moon" aria-hidden="true">dark_mode</span>
+            <span class="material-symbols-outlined lumina-theme-icon lumina-icon-sun" aria-hidden="true">light_mode</span>
+        </button>
+    </div>
+    <?php endif; ?>
+
     <!-- Preloader -->
     <?php if (!isset($_GET['page']) || $_GET['page'] === ''): ?>
         <?php include __DIR__ . '/../views/preloader.php'; ?>
@@ -180,13 +211,13 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
 
     <!-- Navigation: hidden on guest auth/landing pages -->
     <?php if (!$isGuestAuthPage): ?>
-        <header class="nav-lumina sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#c9c4da]/30">
+        <header class="lumina-header sticky top-0 z-50">
             <div
                 class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
                 <div class="flex items-center gap-4 lg:gap-10 flex-1 min-w-0">
                     <a href="<?php echo APP_ROUTE; ?>?page=dashboard"
-                        class="flex items-center gap-2.5 shrink-0 text-[#1c1a25] hover:opacity-90 transition-opacity">
-                        <span class="material-symbols-outlined text-[#4F1BF1] text-2xl"
+                        class="flex items-center gap-2.5 shrink-0 text-on-surface hover:opacity-90 transition-opacity">
+                        <span class="material-symbols-outlined text-primary text-2xl"
                             style="font-variation-settings: 'FILL' 1;">menu_book</span>
                         <span
                             class="text-lg font-bold tracking-tight font-['Manrope'] hidden sm:inline"><?php echo htmlspecialchars(APP_NAME); ?></span>
@@ -199,8 +230,8 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                         $lum = function ($href, $label, $active) {
                             $cls = 'nav-lumina-link uppercase text-[13px] tracking-wide relative pb-1 ';
                             $cls .= $active
-                                ? 'text-[#4F1BF1] font-bold after:absolute after:bottom-[-10px] after:left-0 after:w-full after:h-0.5 after:bg-[#4F1BF1]'
-                                : 'text-[#474557] font-semibold hover:text-[#4F1BF1] transition-colors';
+                                ? 'text-primary font-bold after:absolute after:bottom-[-10px] after:left-0 after:w-full after:h-0.5 after:bg-primary'
+                                : 'text-on-surface-variant font-semibold hover:text-primary transition-colors';
                             return '<a class="' . $cls . '" href="' . htmlspecialchars($href) . '">' . htmlspecialchars($label) . '</a>';
                         };
                         echo $lum(APP_ROUTE . '?page=dashboard', 'Dashboard', $navActive['dashboard']);
@@ -217,12 +248,16 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                     </nav>
 
                     <div
-                        class="flex items-center justify-between lg:justify-end gap-3 lg:pl-4 lg:border-l lg:border-[#c9c4da]/30">
+                        class="flex items-center justify-between lg:justify-end gap-3 lg:pl-4 lg:border-l lg:border-outline-variant/30">
+                        <button type="button" data-lumina-theme-toggle class="lumina-theme-toggle shrink-0" title="Toggle theme" aria-label="Toggle light or dark mode">
+                            <span class="material-symbols-outlined lumina-theme-icon lumina-icon-moon" aria-hidden="true">dark_mode</span>
+                            <span class="material-symbols-outlined lumina-theme-icon lumina-icon-sun" aria-hidden="true">light_mode</span>
+                        </button>
                         <div class="dropdown lg:hidden">
                             <label tabindex="0"
-                                class="btn btn-ghost btn-sm font-['Manrope'] font-semibold text-[#474557] border border-[#c9c4da]/40">Menu</label>
+                                class="btn btn-ghost btn-sm font-['Manrope'] font-semibold text-on-surface-variant border border-outline-variant/40">Menu</label>
                             <ul tabindex="0"
-                                class="dropdown-content z-[60] menu p-2 shadow-lg bg-white/95 backdrop-blur-md border border-[#c9c4da]/20 rounded-xl w-52">
+                                class="dropdown-content z-[60] menu p-2 shadow-lg lumina-dropdown backdrop-blur-md rounded-xl w-52">
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=dashboard">Dashboard</a>
                                 </li>
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=books">Browse</a></li>
@@ -240,7 +275,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
 
                         <div class="dropdown dropdown-end">
                             <label tabindex="0"
-                                class="cursor-pointer p-1.5 hover:bg-[#e5e0f0] rounded-full transition-colors text-[#474557] hover:text-[#4F1BF1] flex items-center justify-center"
+                                class="cursor-pointer p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant hover:text-primary flex items-center justify-center"
                                 title="Account">
                                 <?php
                                 $profileImg = nav_profile_image_url(($navUser && !empty($navUser['profile_image'])) ? $navUser['profile_image'] : '');
@@ -253,7 +288,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                                 <?php endif; ?>
                             </label>
                             <ul tabindex="0"
-                                class="dropdown-content z-[60] menu p-2 shadow-lg bg-white/95 backdrop-blur-md border border-[#c9c4da]/20 rounded-xl w-56">
+                                class="dropdown-content z-[60] menu p-2 shadow-lg lumina-dropdown backdrop-blur-md rounded-xl w-56">
                                 <li class="menu-title text-xs opacity-75">
                                     <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></li>
                                 <li class="lg:hidden"><a href="<?php echo APP_ROUTE; ?>?page=dashboard">Dashboard</a></li>
@@ -268,7 +303,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     <?php endif; ?>
 
     <?php if ($session->isLoggedIn() && !$session->isVerified()): ?>
-        <div class="bg-amber-50 border-b border-amber-200 py-3 px-4 sm:px-8">
+        <div class="lumina-verify-banner bg-amber-50 border-b border-amber-200 py-3 px-4 sm:px-8">
             <div
                 class="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-800">
                 <div class="flex items-center gap-2 text-sm font-medium">
@@ -278,11 +313,11 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                 </div>
                 <div class="flex items-center gap-4">
                     <button onclick="openGlobalVerificationModal('<?php echo addslashes($navUser['email'] ?? ''); ?>')"
-                        class="text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-lg hover:bg-amber-700 transition-colors">
+                        class="lumina-verify-btn text-xs font-bold bg-amber-600 text-white px-4 py-1.5 rounded-lg hover:bg-amber-700 transition-colors">
                         Verify Now
                     </button>
                     <button onclick="resendOTPInBanner('<?php echo addslashes($navUser['email'] ?? ''); ?>')"
-                        class="text-xs font-bold text-amber-700 hover:underline">
+                        class="lumina-verify-link text-xs font-bold text-amber-700 hover:underline">
                         Resend OTP
                     </button>
                 </div>
@@ -393,7 +428,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
 
     <!-- Footer: hidden on guest auth pages (landing page has its own footer) -->
     <?php if (!$isGuestAuthPage): ?>
-        <footer class="bg-surface-container-low border-t border-outline-variant/30 mt-16">
+        <footer class="lumina-footer border-t mt-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div>
@@ -439,7 +474,7 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     <?php endif; ?>
 
     <dialog id="logoutConfirmModal" class="modal">
-        <div class="modal-box max-w-md">
+        <div class="modal-box max-w-md bg-surface-container-lowest text-on-surface border border-outline-variant/25">
             <h3 class="font-bold text-lg mb-3">Logout</h3>
             <p class="opacity-75 mb-5">Are you sure you want to logout?</p>
             <div class="flex justify-end gap-2">
@@ -454,40 +489,40 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
     </dialog>
 
     <dialog id="globalOtpModal" class="modal">
-        <div class="modal-box bg-white rounded-3xl p-10 border border-[#c9c4da]/20 shadow-2xl">
-            <h3 class="text-3xl font-black text-gray-900 mb-2">Verify Email</h3>
-            <p class="text-gray-500 mb-8">An OTP code has been sent to your email. Please enter it below to verify your
+        <div class="modal-box bg-surface-container-lowest rounded-3xl p-10 border border-outline-variant/25 shadow-2xl text-on-surface">
+            <h3 class="text-3xl font-black text-on-surface mb-2">Verify Email</h3>
+            <p class="text-on-surface-variant mb-8">An OTP code has been sent to your email. Please enter it below to verify your
                 account.</p>
 
             <div id="globalOtpMessage" class="mb-8"></div>
 
             <form onsubmit="handleGlobalOtpSubmit(event)" class="space-y-8">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-3 text-center uppercase tracking-widest">OTP
+                    <label class="block text-sm font-bold text-on-surface mb-3 text-center uppercase tracking-widest">OTP
                         Code</label>
                     <input type="text" placeholder="0 0 0 0 0 0"
-                        class="w-full bg-[#fdf8ff] border border-[#c9c4da]/40 rounded-2xl p-5 text-center text-4xl tracking-[1rem] font-black focus:border-[#4F1BF1] focus:ring-4 focus:ring-[#4F1BF1]/10 outline-none transition-all"
+                        class="w-full bg-surface-container-low border border-outline-variant/40 rounded-2xl p-5 text-center text-4xl tracking-[1rem] font-black text-on-surface focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
                         name="otp" maxlength="6" required>
                 </div>
 
                 <input type="hidden" id="globalOtpEmail" name="email">
 
                 <button type="submit"
-                    class="w-full bg-[#4F1BF1] text-white py-4 rounded-2xl font-bold text-lg hover:bg-[#3b14b8] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#4F1BF1]/25">
+                    class="w-full bg-primary text-on-primary py-4 rounded-2xl font-bold text-lg hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/25">
                     Verify OTP
                 </button>
             </form>
 
             <div class="mt-8 text-center">
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-on-surface-variant">
                     Didn't receive the code?
                     <button onclick="resendOTPInBanner(document.getElementById('globalOtpEmail').value)"
-                        class="font-bold text-[#4F1BF1] hover:underline">Resend OTP</button>
+                        class="font-bold text-primary hover:underline">Resend OTP</button>
                 </p>
             </div>
 
             <div class="modal-action justify-center mt-8">
-                <button type="button" class="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                <button type="button" class="text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors"
                     onclick="document.getElementById('globalOtpModal').close()">Cancel</button>
             </div>
         </div>
