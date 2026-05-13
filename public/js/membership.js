@@ -9,11 +9,11 @@ function membershipBaseUrl() {
 
 
 function planButtonLabel(active, plan) {
-    if (!active) return 'Buy with Wallet';
-    if (plan.id == active.plan_id) return 'Renew';
+    if (!active) return 'Select Plan';
+    if (plan.id == active.plan_id) return 'Renew Plan';
     const price = Number(plan.price || 0);
     const activePrice = Number(active.price || 0);
-    if (price < activePrice) return 'Downgrade Not Allowed';
+    if (price < activePrice) return 'Active Plan';
     return 'Upgrade / Extend';
 }
 
@@ -31,19 +31,24 @@ function planCardHtml(plan, active) {
         ? `<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary-fixed text-on-tertiary-fixed px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase">Best Value</div>`
         : '';
 
+    const durationLabel = days >= 365 ? '/yr' : '/plan';
+    const isActive = active && plan.id == active.plan_id;
     const activePrice = active ? Number(active.price || 0) : 0;
     const isDowngrade = active && price < activePrice;
-    const finalDisabled = isDowngrade ? 'disabled' : '';
+    const finalDisabled = (isDowngrade && !isActive) ? 'disabled' : '';
+
+    const currentBadge = isActive 
+        ? `<div class="absolute top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg shadow-primary/20">Current</div>`
+        : '';
 
     const btnCls = popular
-        ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
-        : 'w-full py-4 rounded-lg bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant/20 transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
-
-    const durationLabel = days >= 365 ? '/yr' : '/plan';
+        ? 'w-full py-4 rounded-lg gradient-button text-white font-bold transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-primary/20'
+        : 'w-full py-4 rounded-lg bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant/30 transition-all scale-98 active:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none border border-outline-variant/40';
 
     return `
         <div class="${clsOuter}">
             ${topBadge}
+            ${currentBadge}
             <div class="mb-8">
                 <h3 class="font-headline font-bold text-2xl mb-2">${escapeHtml(name)}</h3>
                 <div class="flex items-baseline space-x-1">
@@ -106,7 +111,7 @@ function renderStatus(active) {
     if (deactivateBtn) deactivateBtn.classList.remove('hidden');
     if (renewBtn) {
         renewBtn.classList.remove('hidden');
-        renewBtn.style.display = 'block'; // Force display if hidden class is tricky
+        renewBtn.style.display = 'inline-flex'; 
     }
     window.__currentActivePlanId = active.plan_id;
 }
@@ -296,7 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const renewBtn = document.getElementById('membershipRenewBtn');
         if (renewBtn) {
             renewBtn.classList.remove('hidden');
-            renewBtn.style.display = 'block';
+            renewBtn.style.display = 'inline-flex';
         }
     }
     await loadPlans(active);

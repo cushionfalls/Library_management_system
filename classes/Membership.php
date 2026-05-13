@@ -3,6 +3,8 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Wallet.php';
 require_once __DIR__ . '/MembershipPlan.php';
+require_once __DIR__ . '/User.php';
+require_once __DIR__ . '/EmailService.php';
 
 class Membership {
     private $db;
@@ -202,6 +204,26 @@ class Membership {
 
             $this->db->commit();
 
+            // Send activation email
+            try {
+                $userObj = new User();
+                $userData = $userObj->getUserById($userId);
+                if ($userData) {
+                    $emailSvc = new EmailService();
+                    $activeNow = $this->getActiveMembership($userId);
+                    if ($activeNow) {
+                        $emailSvc->sendMembershipActivation(
+                            $userData['email'],
+                            $userData['first_name'],
+                            $activeNow['plan_name'],
+                            $activeNow['ends_at']
+                        );
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send membership activation email: " . $e->getMessage());
+            }
+
             $activeNow = $this->getActiveMembership($userId);
             return [
                 'success' => true,
@@ -265,6 +287,23 @@ class Membership {
             }
 
             $this->db->commit();
+
+            // Send deactivation email
+            try {
+                $userObj = new User();
+                $userData = $userObj->getUserById($userId);
+                if ($userData) {
+                    $emailSvc = new EmailService();
+                    $emailSvc->sendMembershipDeactivation(
+                        $userData['email'],
+                        $userData['first_name'],
+                        'Premium Plan'
+                    );
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send membership deactivation email: " . $e->getMessage());
+            }
+
             return [
                 'success' => true,
                 'message' => 'Membership deactivated successfully',
@@ -308,6 +347,47 @@ class Membership {
             ];
         }
         return $rows;
+    }
+
+    /**
+     * Finds memberships expiring in exactly N days and sends notifications.
+     * This should be called by a cron job once per day.
+     */
+    public function notifyExpiringMemberships($daysLeft = 3) {
+        $daysLeft = (int)$daysLeft;
+        // Find memberships that expire between (NOW + N days) and (NOW + N+1 days)
+        // We look for status='ACTIVE' and ends_at specifically around that date.
+        // We also want to avoid double-notifying if possible, but for a simple script, 
+        // running it once a day at a fixed time is usually enough.
+        
+        $sql = "SELECT um.user_id, um.ends_at, mp.name AS plan_name, u.email, u.first_name
+                FROM UserMemberships um
+                INNER JOIN MembershipPlans mp ON mp.id = um.plan_id
+                INNER JOIN Users u ON u.id = um.user_id
+                WHERE um.status = 'ACTIVE' 
+                AND DATE(um.ends_at) = DATE(DATE_ADD(NOW(), INTERVAL ? DAY))";
+        
+        $stmt = $this->db->prepare($sql);
+        if (!$stmt) return 0;
+        $stmt->bind_param('i', $daysLeft);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        $emailSvc = new EmailService();
+        $count = 0;
+        
+        while ($row = $res->fetch_assoc()) {
+            $emailSvc->sendMembershipExpiryWarning(
+                $row['email'],
+                $row['first_name'],
+                $row['plan_name'],
+                $row['ends_at'],
+                $daysLeft
+            );
+            $count++;
+        }
+        
+        return $count;
     }
 }
 

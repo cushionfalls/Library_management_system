@@ -11,6 +11,11 @@
     const BASE = baseUrl();
     const API  = BASE + '/controllers/wallet.php?action=';
 
+    function getCsrfToken() {
+        const el = document.querySelector('input[name="csrf_token"]');
+        return el ? el.value : '';
+    }
+
     // ── Unit convention ────────────────────────────────────────────────────
     // ALL amounts in this file are in CENTS (integer) unless a variable is
     // explicitly named *Dollars or *Float. formatUsdFromCents() is the only
@@ -31,6 +36,7 @@
     const $topUpModal   = document.getElementById('walletTopUpModal');
     const $topUpForm    = document.getElementById('walletTopUpForm');
     const $submitBtn    = document.getElementById('walletTopUpSubmitBtn');
+    const $submitLabel  = document.getElementById('walletTopUpSubmitLabel');
     const $gatewayInfo  = document.getElementById('walletGatewayInfo');
     const $gatewayText  = document.getElementById('walletGatewayInfoText');
     const $dlBtn        = document.getElementById('walletDownloadStatementBtn');
@@ -102,32 +108,46 @@
             const res  = await fetch(API + 'getBalance', { credentials: 'same-origin', cache: 'no-store' });
             const data = await res.json();
             if (data.success && $balanceHero) {
-                $balanceHero.textContent = formatUsdFromCents(data.balance ?? 0);
+                const balanceStr = typeof formatUsdFromCents === 'function' 
+                    ? formatUsdFromCents(data.balance ?? 0)
+                    : '$' + (Number(data.balance || 0) / 100).toFixed(2);
+                $balanceHero.textContent = balanceStr;
+                $balanceHero.style.color = '#ffffff'; // Restore white text
+                $balanceHero.style.opacity = '1';
             }
-        } catch (_) { /* silent */ }
+        } catch (e) {
+            console.error('Wallet: Failed to load balance', e);
+        }
     }
 
     function txRowHtml(tx) {
         const isCredit = String(tx.type || '').toUpperCase() === 'CREDIT';
         const amtCls   = isCredit ? 'color:#16a34a' : 'color:#dc2626';
         const prefix   = isCredit ? '+' : '−';
+        const statusBg = isCredit ? '#dcfce7' : '#fef2f2';
+        const statusCol = isCredit ? '#166534' : '#991b1b';
+        const statusText = isCredit ? 'Received' : 'Paid';
 
         return `
-        <tr style="border-bottom:1px solid var(--color-surface-container,#f1ebfb);transition:background .15s"
-            onmouseover="this.style.background='#e5e0f0'" onmouseout="this.style.background=''">
-            <td class="px-6 py-5 text-sm font-medium text-on-surface-variant">${escapeHtml(formatDate(tx.created_at))}</td>
+        <tr class="tx-row" style="border-bottom:1px solid #f1ebfb;transition:background .2s"
+            onmouseover="this.style.background='rgba(56,0,191,0.02)'" onmouseout="this.style.background=''">
+            <td class="px-6 py-5 text-sm font-semibold text-on-surface">${escapeHtml(formatDate(tx.created_at))}</td>
             <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-primary" style="font-size:20px">${escapeHtml(reasonIcon(tx.reason))}</span>
-                    <span class="font-semibold text-on-surface text-sm">${escapeHtml(reasonLabel(tx.reason))}</span>
+                    <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-[20px]">${escapeHtml(reasonIcon(tx.reason))}</span>
+                    </div>
+                    <span class="font-bold text-on-surface text-sm tracking-tight">${escapeHtml(reasonLabel(tx.reason))}</span>
                 </div>
             </td>
-            <td class="px-6 py-5 text-right text-sm font-bold" style="${amtCls}">
+            <td class="px-6 py-5 text-right text-sm font-black" style="${amtCls}">
                 ${prefix}${escapeHtml(formatUsdFromCents(Math.abs(tx.amount || 0)))}
             </td>
             <td class="px-6 py-5">
-                <span style="padding:3px 10px;border-radius:9999px;font-size:11px;font-weight:700;
-                             background:#d6dbff;color:#575d7c">Completed</span>
+                <div class="flex justify-end">
+                    <span style="padding:4px 12px;border-radius:9999px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;
+                                 background:${statusBg};color:${statusCol};border:1px solid ${statusCol}20">${statusText}</span>
+                </div>
             </td>
         </tr>`;
     }
@@ -135,14 +155,14 @@
     function setTxSpinner() {
         if (!$txBody) return;
         $txBody.innerHTML = `
-        <tr><td colspan="4" class="px-6 py-10 text-center text-on-surface-variant">
-            <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-                <svg style="animation:spin 1s linear infinite;width:20px;height:20px;color:#3800bf"
+        <tr><td colspan="4" class="px-6 py-10 text-center text-on-surface">
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+                <svg style="animation:spin 1s linear infinite;width:24px;height:24px;color:#3800bf"
                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                    <path opacity=".75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    <circle opacity=".15" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path opacity=".9" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                <span>Loading transactions…</span>
+                <span class="font-bold tracking-tight">Loading transactions…</span>
             </div>
         </td></tr>`;
     }
@@ -216,7 +236,27 @@
         stripe = window.Stripe(publishableKey);
         const elements = stripe.elements();
 
-        const style = { base: { fontSize: '16px', color: '#1c1a25', '::placeholder': { color: '#787588' } } };
+        const style = {
+            base: {
+                fontSize: '16px',
+                lineHeight: '24px',
+                color: '#1c1a25',
+                fontWeight: '500',
+                // system fonts first: Stripe fields render in a cross-origin iframe where
+                // page-loaded webfonts may not apply reliably.
+                fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+                fontSmoothing: 'antialiased',
+                letterSpacing: '0.02em',
+                '::placeholder': {
+                    color: '#94a3b8',
+                },
+            },
+            invalid: {
+                color: '#ef4444',
+                iconColor: '#ef4444',
+            },
+        };
+
         stripeCardNumber = elements.create('cardNumber', { style });
         stripeCardExpiry = elements.create('cardExpiry', { style });
         stripeCardCvc    = elements.create('cardCvc', { style });
@@ -238,13 +278,43 @@
     }
 
     function syncMethodUI() {
-        if ($submitBtn) $submitBtn.textContent = 'Pay with card';
-        if ($gatewayInfo) $gatewayInfo.classList.remove('hidden');
+        if ($submitLabel) $submitLabel.textContent = 'Pay with card';
+        if ($gatewayInfo) {
+            $gatewayInfo.classList.remove('hidden');
+            $gatewayInfo.classList.add('flex');
+        }
+    }
+
+    /** Quick amount presets + visual selection ring */
+    function wireTopUpPresets() {
+        const root = document.getElementById('walletTopUpForm');
+        if (!$amountInput || !root) return;
+
+        root.addEventListener('click', (e) => {
+            const btn = e.target.closest('.wallet-topup-preset');
+            if (!btn) return;
+            const raw = btn.getAttribute('data-dollar');
+            const n   = Number(raw);
+            if (!Number.isFinite(n)) return;
+            $amountInput.value = n.toFixed(2);
+            $amountInput.focus();
+            console.log('Wallet: Set preset amount', n);
+            root.querySelectorAll('.wallet-topup-preset.ring-preset').forEach(el => el.classList.remove('ring-preset'));
+            btn.classList.add('ring-preset');
+        });
+
+        const clearRing = () => {
+            root.querySelectorAll('.wallet-topup-preset.ring-preset').forEach(el => el.classList.remove('ring-preset'));
+        };
+
+        $amountInput.addEventListener('input', clearRing);
+        $amountInput.addEventListener('keydown', clearRing);
     }
 
     function resetModal() {
         $topUpForm?.reset();
-        if ($submitBtn) $submitBtn.textContent = 'Pay with card';
+        document.querySelectorAll('#walletTopUpForm .wallet-topup-preset.ring-preset').forEach(el => el.classList.remove('ring-preset'));
+        if ($submitLabel) $submitLabel.textContent = 'Pay with card';
         if ($submitBtn) $submitBtn.disabled    = false;
         syncMethodUI();
     }
@@ -252,7 +322,7 @@
     function setSubmitLoading(on, text = 'Processing…') {
         if (!$submitBtn) return;
         $submitBtn.disabled     = on;
-        $submitBtn.textContent  = on ? text : 'Pay with card';
+        if ($submitLabel) $submitLabel.textContent = on ? text : 'Pay with card';
     }
 
     async function handleTopUpSubmit(e) {
@@ -270,7 +340,10 @@
         try {
             // Send `amount_cents` (integer cents) — PHP reads this directly,
             // no multiplication needed on the server side.
-            const body = new URLSearchParams({ amount_cents: String(amountCents) });
+            const body = new URLSearchParams({ 
+                amount_cents: String(amountCents),
+                csrf_token: getCsrfToken()
+            });
             const res  = await fetch(API + 'stripe-create-intent', {
                 method:      'POST',
                 headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -309,7 +382,10 @@
             const res2 = await fetch(API + 'stripe-finalize', {
                 method:      'POST',
                 headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body:        new URLSearchParams({ payment_intent: pi.id }).toString(),
+                body:        new URLSearchParams({ 
+                    payment_intent: pi.id,
+                    csrf_token: getCsrfToken()
+                }).toString(),
                 credentials: 'same-origin',
                 cache:       'no-store',
             });
@@ -407,6 +483,7 @@
         }
 
         /* Initial data load */
+        wireTopUpPresets();
         loadBalance();
         loadTransactions(false);
         handleGatewayCallback();

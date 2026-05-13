@@ -300,6 +300,126 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendMembershipActivation($recipientEmail, $recipientName, $planName, $expiryDate) {
+        $subject = 'Membership Activated - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .plan-badge { display: inline-block; padding: 8px 16px; background: #f3f4f6; border-radius: 20px; font-weight: bold; color: #4f46e5; margin: 10px 0; }
+                .details { background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Welcome to Premium!</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>Great news! Your membership has been successfully activated. You now have full access to our premium digital library features.</p>
+                    <div class='details'>
+                        <p style='margin:0;'><strong>Active Plan:</strong></p>
+                        <div class='plan-badge'>" . htmlspecialchars($planName) . "</div>
+                        <p style='margin:10px 0 0 0;'><strong>Valid Until:</strong> " . date('F j, Y', strtotime($expiryDate)) . "</p>
+                    </div>
+                    <p>Start exploring our vast collection of books and exclusive resources today.</p>
+                    <center><a href='" . APP_URL . "/public/index.php?page=dashboard' class='button'>Go to Dashboard</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendMembershipExpiryWarning($recipientEmail, $recipientName, $planName, $expiryDate, $daysLeft) {
+        $subject = 'Action Required: Your Membership is Expiring Soon - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fff5f5; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #ef4444; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Membership Expiring Soon</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>Your <strong>" . htmlspecialchars($planName) . "</strong> membership is set to expire in <strong>$daysLeft days</strong>.</p>
+                    <div class='warning-box'>
+                        <p style='margin:0;'><strong>Expiry Date:</strong> " . date('F j, Y', strtotime($expiryDate)) . "</p>
+                        <p style='margin:10px 0 0 0;'>Don't lose your access to premium books and features! Renew now to keep enjoying " . APP_NAME . " without interruption.</p>
+                    </div>
+                    <center><a href='" . APP_URL . "/public/index.php?page=membership' class='button'>Renew Membership</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendMembershipDeactivation($recipientEmail, $recipientName, $planName) {
+        $subject = 'Membership Deactivated - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: #4b5563; color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Membership Deactivated</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>This email confirms that your <strong>" . htmlspecialchars($planName) . "</strong> membership has been deactivated. Your premium access has ended.</p>
+                    <p>If you have any questions or would like to rejoin, you can visit your dashboard at any time.</p>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     private function send($recipientEmail, $subject, $message, $recipientName = '') {
         try {
             $transportHost = $this->host;
