@@ -3,6 +3,7 @@ require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Wallet.php';
 require_once __DIR__ . '/Membership.php';
 require_once __DIR__ . '/EmailService.php';
+require_once __DIR__ . '/Session.php';
 
 class DigitalLibrary {
     private $db;
@@ -109,21 +110,27 @@ class DigitalLibrary {
     }
 
     public function getMyBooks($userId) {
-        $userId = (int)$userId;
+        $session = new Session();
+        $isAdminOrLibrarian = $session->isAdmin() || $session->isLibrarian();
+        
         $sql = "SELECT uba.id, uba.book_id, uba.access_type, uba.created_at,
                        b.name, b.description, b.genre, b.cover_image, b.online_copy_pdf,
                        COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors,
                        ubp.progress_percent, ubp.current_location, ubp.last_opened_at
-                FROM UserBookAccess uba
-                INNER JOIN Books b ON b.id = uba.book_id
-                LEFT JOIN UserBookProgress ubp ON ubp.user_id = uba.user_id AND ubp.book_id = uba.book_id
+                FROM Books b
+                LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = ?
+                LEFT JOIN UserBookProgress ubp ON ubp.user_id = ? AND ubp.book_id = b.id
                 LEFT JOIN BookAuthors ba ON ba.book_id = b.id
                 LEFT JOIN Authors a ON a.id = ba.author_id
-                WHERE uba.user_id = ?
-                GROUP BY uba.id
+                WHERE (uba.user_id = ?" . ($isAdminOrLibrarian ? " OR 1=1" : "") . ")
+                GROUP BY b.id
                 ORDER BY COALESCE(ubp.last_opened_at, uba.created_at) DESC, uba.id DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $userId);
+        if ($isAdminOrLibrarian) {
+            $stmt->bind_param('iii', $userId, $userId, $userId);
+        } else {
+            $stmt->bind_param('iii', $userId, $userId, $userId);
+        }
         $stmt->execute();
         $res = $stmt->get_result();
         $rows = [];
@@ -137,7 +144,7 @@ class DigitalLibrary {
                 'authors' => trim((string)($r['authors'] ?? '')) ?: 'Unknown Author',
                 'cover_image_url' => $this->assetUrl($r['cover_image'] ?? ''),
                 'epub_url' => $this->assetUrl($r['online_copy_pdf'] ?? ''),
-                'access_type' => (string)($r['access_type'] ?? 'OWNED'),
+                'access_type' => (string)($r['access_type'] ?? 'ADMIN_ACCESS'),
                 'progress_percent' => (int)($r['progress_percent'] ?? 0),
                 'current_location' => (string)($r['current_location'] ?? ''),
                 'last_opened_at' => (string)($r['last_opened_at'] ?? ''),
@@ -211,6 +218,9 @@ class DigitalLibrary {
     }
 
     private function hasAnyAccess($userId, $bookId) {
+        $session = new Session();
+        if ($session->isAdmin() || $session->isLibrarian()) return true;
+        
         $stmt = $this->db->prepare("SELECT id FROM UserBookAccess WHERE user_id = ? AND book_id = ? LIMIT 1");
         $stmt->bind_param('ii', $userId, $bookId);
         $stmt->execute();

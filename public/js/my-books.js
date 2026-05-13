@@ -437,7 +437,16 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        loadMyBooks();
+        loadMyBooks().then(() => {
+            const url = new URL(window.location.href);
+            const openId = url.searchParams.get('open_reader');
+            if (openId) {
+                openReader(openId);
+                // Clean up the URL
+                url.searchParams.delete('open_reader');
+                window.history.replaceState({}, '', url.toString());
+            }
+        });
         const filter = document.getElementById('myBooksCategoryFilter');
         if (filter) {
             filter.addEventListener('change', (e) => {

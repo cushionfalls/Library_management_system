@@ -79,6 +79,12 @@ tailwind.config = {
         <div>
             <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']">Browse Catalog</h1>
             <p class="text-on-surface-variant font-medium">Discover books curated for your reading journey.</p>
+            <?php if (!$session->isLoggedIn()): ?>
+                <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary text-sm font-bold rounded-lg border border-primary/20">
+                    <span class="material-symbols-outlined text-lg">info</span>
+                    Login to buy books and unlock memberships
+                </div>
+            <?php endif; ?>
         </div>
         <div class="w-full md:w-auto md:min-w-[320px]">
             <label class="sr-only" for="browseSearchInput">Search books</label>

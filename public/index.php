@@ -38,6 +38,15 @@ if (in_array($current_page, $admin_pages)) {
     }
 }
 
+// Restrict Wallet and Membership for Admin/Librarian
+$member_only_pages = ['wallet', 'membership'];
+if (in_array($current_page, $member_only_pages)) {
+    if ($session->isAdmin() || $session->isLibrarian()) {
+        header('Location: ' . APP_ROUTE . '?page=dashboard');
+        exit;
+    }
+}
+
 // Check session timeout
 if (!$session->checkTimeout() && in_array($current_page, $protected_pages)) {
     header('Location: ' . APP_ROUTE . '?page=login');
@@ -156,6 +165,9 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
         }
     </style>
     <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
+    <script>
+        window.USER_ROLE = '<?php echo $_SESSION['user_role'] ?? 'GUEST'; ?>';
+    </script>
 </head>
 
 <body
@@ -194,8 +206,10 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                         echo $lum(APP_ROUTE . '?page=dashboard', 'Dashboard', $navActive['dashboard']);
                         echo $lum(APP_ROUTE . '?page=books', 'Browse', $navActive['books']);
                         echo $lum(APP_ROUTE . '?page=my-books', 'My Books', $navActive['my-books']);
-                        echo $lum(APP_ROUTE . '?page=wallet', 'Wallet', $navActive['wallet']);
-                        echo $lum(APP_ROUTE . '?page=membership', 'Membership', $navActive['membership']);
+                        if (!$session->isAdmin() && !$session->isLibrarian()) {
+                            echo $lum(APP_ROUTE . '?page=wallet', 'Wallet', $navActive['wallet']);
+                            echo $lum(APP_ROUTE . '?page=membership', 'Membership', $navActive['membership']);
+                        }
                         if ($session->isAdmin() || $session->isLibrarian()) {
                             echo $lum(APP_ROUTE . '?page=admin', 'Admin', $navActive['admin']);
                         }
@@ -213,9 +227,11 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                                 </li>
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=books">Browse</a></li>
                                 <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=my-books">My Books</a></li>
-                                <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=wallet">Wallet</a></li>
-                                <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=membership">Membership</a>
-                                </li>
+                                <?php if (!$session->isAdmin() && !$session->isLibrarian()): ?>
+                                    <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=wallet">Wallet</a></li>
+                                    <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=membership">Membership</a>
+                                    </li>
+                                <?php endif; ?>
                                 <?php if ($session->isAdmin() || $session->isLibrarian()): ?>
                                     <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin">Admin</a></li>
                                 <?php endif; ?>
@@ -388,12 +404,30 @@ $isGuestAuthPage = !$session->isLoggedIn() && in_array($current_page, $guestAuth
                     <div>
                         <h3 class="font-bold text-lg mb-3 text-on-surface">Quick Links</h3>
                         <ul class="text-sm space-y-2 text-on-surface-variant">
-                            <li><a href="<?php echo APP_ROUTE; ?>?page=books"
-                                    class="hover:text-primary transition-colors">Browse Books</a></li>
                             <li><a href="<?php echo APP_ROUTE; ?>?page=home"
                                     class="hover:text-primary transition-colors">Home</a></li>
                         </ul>
                     </div>
+                    <?php if ($session->isLoggedIn()): ?>
+                    <div>
+                        <h3 class="font-bold text-lg mb-3 text-on-surface">Your Account</h3>
+                        <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+                            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Status</p>
+                            <p class="text-sm font-black text-primary">
+                                <?php 
+                                if ($session->isAdmin()) echo "Administrator";
+                                elseif ($session->isLibrarian()) echo "Librarian";
+                                else {
+                                    require_once __DIR__ . '/../classes/Membership.php';
+                                    $mSvc = new Membership();
+                                    $active = $mSvc->getActiveMembership($session->getUserId());
+                                    echo $active ? $active['plan_name'] : "Basic User";
+                                }
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     <div>
                         <h3 class="font-bold text-lg mb-3 text-on-surface">Legal</h3>
                         <p class="text-sm text-on-surface-variant">&copy; 2026 <?php echo APP_NAME; ?>. All rights reserved.

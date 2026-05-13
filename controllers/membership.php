@@ -27,6 +27,10 @@ if (!$session->isLoggedIn()) {
     membership_json(['success' => false, 'error' => 'Unauthorized'], 401);
 }
 
+if ($session->isAdmin() || $session->isLibrarian()) {
+    membership_json(['success' => false, 'error' => 'Administrators and Librarians cannot manage personal memberships.'], 403);
+}
+
 $userId = (int)$session->getUserId();
 $action = $_GET['action'] ?? 'getStatus';
 $svc = new Membership();
