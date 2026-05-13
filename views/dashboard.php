@@ -1,67 +1,3 @@
-<script id="tailwind-dashboard-lumina">
-tailwind.config = {
-    darkMode: "class",
-    theme: {
-        extend: {
-            colors: {
-                "on-primary-fixed": "#190064",
-                "tertiary-fixed": "#ffdbd1",
-                "on-primary": "#ffffff",
-                "on-error": "#ffffff",
-                "on-secondary-fixed-variant": "#3f4563",
-                "secondary-fixed-dim": "#bfc5e8",
-                "on-surface": "#1c1a25",
-                "primary-container": "#4f1bf1",
-                "tertiary-container": "#9c2a00",
-                "tertiary": "#741d00",
-                "primary": "#3800bf",
-                "on-primary-fixed-variant": "#4200da",
-                "surface-dim": "#ddd8e7",
-                "on-primary-container": "#cac1ff",
-                "secondary": "#575d7c",
-                "on-tertiary-fixed-variant": "#862300",
-                "primary-fixed-dim": "#c8bfff",
-                "outline": "#787588",
-                "on-tertiary-container": "#ffb6a1",
-                "surface-container-lowest": "#ffffff",
-                "surface-tint": "#5a30fb",
-                "inverse-on-surface": "#f4eefe",
-                "on-secondary": "#ffffff",
-                "outline-variant": "#c9c4da",
-                "error-container": "#ffdad6",
-                "on-background": "#1c1a25",
-                "on-tertiary": "#ffffff",
-                "surface-bright": "#fdf8ff",
-                "on-error-container": "#93000a",
-                "inverse-primary": "#c8bfff",
-                "on-secondary-container": "#595f7e",
-                "surface-container-high": "#ebe6f5",
-                "surface-container-low": "#f7f1ff",
-                "surface-container-highest": "#e5e0f0",
-                "error": "#ba1a1a",
-                "surface": "#fdf8ff",
-                "on-tertiary-fixed": "#3a0a00",
-                "background": "#fdf8ff",
-                "tertiary-fixed-dim": "#ffb59f",
-                "on-surface-variant": "#474557",
-                "inverse-surface": "#312f3a",
-                "surface-variant": "#e5e0f0",
-                "on-secondary-fixed": "#131a35",
-                "primary-fixed": "#e5deff",
-                "secondary-fixed": "#dde1ff",
-                "surface-container": "#f1ebfb",
-                "secondary-container": "#d6dbff"
-            },
-            fontFamily: {
-                "headline": ["Manrope"],
-                "display": ["Manrope"],
-                "body": ["Inter"],
-                "label": ["Inter"]
-            }
-        }
-    }
-};
-</script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body { font-family: 'Inter', system-ui, sans-serif; }
@@ -138,7 +74,7 @@ tailwind.config = {
 
     <!-- Bottom Section -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 bg-white border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
+        <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-2xl font-extrabold font-headline">Recent Books</h2>
                 <a href="<?php echo APP_ROUTE; ?>?page=my-books" class="text-primary text-sm font-bold hover:underline flex items-center gap-1">
@@ -173,7 +109,7 @@ tailwind.config = {
     </section>
 
     <!-- AI Recommendation Section -->
-    <section class="bg-white border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
+    <section class="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
         <div id="recommendationsPlaceholder" class="py-12 flex flex-col items-center justify-center text-center">
             <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
                 <span class="material-symbols-outlined text-3xl">auto_awesome</span>

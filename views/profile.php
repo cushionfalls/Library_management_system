@@ -171,11 +171,21 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 </div>
             </div>
 
-            <div class="bg-[#f7f1ff] rounded-xl p-8 space-y-4">
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Quick Links</h4>
-                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>My Books</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
-                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Browse Catalog</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
-                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-white rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=membership"><span>Membership</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+            <div class="bg-surface-container-low rounded-xl p-8 space-y-4">
+                <div class="flex items-center justify-between gap-3 pb-4 border-b border-outline-variant/20">
+                    <div>
+                        <p class="text-sm font-bold text-on-surface">Theme</p>
+                        <p class="text-xs text-on-surface-variant">Switch light or dark mode</p>
+                    </div>
+                    <button type="button" data-lumina-theme-toggle class="lumina-theme-toggle shrink-0" title="Toggle theme" aria-label="Toggle light or dark mode">
+                        <span class="material-symbols-outlined lumina-theme-icon lumina-icon-moon" aria-hidden="true">dark_mode</span>
+                        <span class="material-symbols-outlined lumina-theme-icon lumina-icon-sun" aria-hidden="true">light_mode</span>
+                    </button>
+                </div>
+                <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Quick Links</h4>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>My Books</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Browse Catalog</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=membership"><span>Membership</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <form id="profileDeleteForm" class="pt-4 border-t border-[#d8d1e9]">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
                     <label class="text-xs text-[#7b768d] font-medium">Type <strong>DELETE</strong> to confirm</label>

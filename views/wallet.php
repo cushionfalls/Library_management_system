@@ -1,73 +1,3 @@
-<script id="tailwind-wallet-lumina">
-tailwind.config = {
-    darkMode: "class",
-    theme: {
-        extend: {
-            colors: {
-                "on-primary-fixed": "#190064",
-                "tertiary-fixed": "#ffdbd1",
-                "on-primary": "#ffffff",
-                "on-error": "#ffffff",
-                "on-secondary-fixed-variant": "#3f4563",
-                "secondary-fixed-dim": "#bfc5e8",
-                "on-surface": "#1c1a25",
-                "primary-container": "#4f1bf1",
-                "tertiary-container": "#9c2a00",
-                "tertiary": "#741d00",
-                "primary": "#3800bf",
-                "on-primary-fixed-variant": "#4200da",
-                "surface-dim": "#ddd8e7",
-                "on-primary-container": "#cac1ff",
-                "secondary": "#575d7c",
-                "on-tertiary-fixed-variant": "#862300",
-                "primary-fixed-dim": "#c8bfff",
-                "outline": "#787588",
-                "on-tertiary-container": "#ffb6a1",
-                "surface-container-lowest": "#ffffff",
-                "surface-tint": "#5a30fb",
-                "inverse-on-surface": "#f4eefe",
-                "on-secondary": "#ffffff",
-                "outline-variant": "#c9c4da",
-                "error-container": "#ffdad6",
-                "on-background": "#1c1a25",
-                "on-tertiary": "#ffffff",
-                "surface-bright": "#fdf8ff",
-                "on-error-container": "#93000a",
-                "inverse-primary": "#c8bfff",
-                "on-secondary-container": "#595f7e",
-                "surface-container-high": "#ebe6f5",
-                "surface-container-low": "#f7f1ff",
-                "surface-container-highest": "#e5e0f0",
-                "error": "#ba1a1a",
-                "surface": "#fdf8ff",
-                "on-tertiary-fixed": "#3a0a00",
-                "background": "#fdf8ff",
-                "tertiary-fixed-dim": "#ffb59f",
-                "on-surface-variant": "#474557",
-                "inverse-surface": "#312f3a",
-                "surface-variant": "#e5e0f0",
-                "on-secondary-fixed": "#131a35",
-                "primary-fixed": "#e5deff",
-                "secondary-fixed": "#dde1ff",
-                "surface-container": "#f1ebfb",
-                "secondary-container": "#d6dbff"
-            },
-            borderRadius: {
-                "DEFAULT": "0.125rem",
-                "lg": "0.5rem",
-                "xl": "0.75rem",
-                "full": "9999px"
-            },
-            fontFamily: {
-                "headline": ["Manrope"],
-                "display": ["Manrope"],
-                "body": ["Inter"],
-                "label": ["Inter"]
-            }
-        }
-    }
-};
-</script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     body { font-family: 'Inter', system-ui, sans-serif; }
@@ -164,7 +94,7 @@ tailwind.config = {
 
             <div class="z-10 flex flex-col sm:flex-row gap-4">
                 <button id="walletTopUpBtn"
-                        class="bg-white text-primary px-10 py-5 rounded-2xl font-black text-lg
+                        class="bg-surface-container-lowest text-primary px-10 py-5 rounded-2xl font-black text-lg
                                hover:shadow-[0_10px_25px_rgba(255,255,255,0.4)] hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-3">
                     <span class="material-symbols-outlined font-bold">add_card</span>
                     Add Funds
@@ -185,7 +115,7 @@ tailwind.config = {
                 <div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between
                             hover:bg-surface-container transition-colors group">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm p-2">
+                        <div class="w-12 h-12 rounded-lg bg-surface-container-lowest flex items-center justify-center shadow-sm p-2">
                             <span class="material-symbols-outlined text-primary" style="font-size:26px">credit_card</span>
                         </div>
                         <div>
@@ -290,7 +220,7 @@ tailwind.config = {
                            max="1000"
                            step="0.01"
                            required
-                           class="wallet-topup-amount-input w-full rounded-xl border-1.5 border-outline-variant/45 bg-white py-3 pl-10 pr-4 text-2xl font-black text-[#1c1a25] shadow-sm transition-all
+                           class="wallet-topup-amount-input w-full rounded-xl border-1.5 border-outline-variant/45 bg-surface-container-lowest py-3 pl-10 pr-4 text-2xl font-black text-on-surface shadow-sm transition-all
                                   placeholder:text-slate-400 placeholder:font-medium
                                   focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
                            style="color: #1c1a25 !important;"
@@ -357,7 +287,7 @@ tailwind.config = {
 
                     <div class="rounded-xl bg-primary/5 px-4 py-3 text-[11px] leading-relaxed text-on-surface-variant border border-primary/10">
                         <span class="font-bold text-primary uppercase tracking-tighter mr-1">Test mode:</span>
-                        Use <code class="rounded bg-white px-1.5 py-0.5 font-mono font-bold text-primary shadow-sm border border-primary/20">4242 4242 4242 4242</code>
+                        Use <code class="rounded bg-surface-container-lowest px-1.5 py-0.5 font-mono font-bold text-primary shadow-sm border border-primary/20">4242 4242 4242 4242</code>
                         <span class="mx-1">·</span> Any future date <span class="mx-1">·</span> Any CVC
                     </div>
                 </div>

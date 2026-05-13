@@ -44,23 +44,23 @@ function renderBooks(books) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
     if (!books || books.length === 0) {
-        body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-[#595c5d]">No books found.</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-on-surface-variant">No books found.</td></tr>';
         return;
     }
 
 
     body.innerHTML = books.map((book) => {
         return `
-            <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(book.isbn)}</td>
+            <tr class="hover:bg-surface-variant/30 transition-colors">
+                <td class="px-8 py-6 text-sm font-medium text-on-surface">${escapeHtml(book.isbn)}</td>
                 <td class="px-8 py-6"><img class="w-16 h-20 object-cover rounded-md" alt="Book Cover" src="${adminAssetUrl(book.cover_image) || fallbackCover()}"/></td>
-                <td class="px-8 py-6 text-sm font-bold text-[#2c2f30]">${escapeHtml(book.name)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.publisher || '-')}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(book.authors || book.author || '-')}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${formatUsdFromCents(book.online_buy_price || book.price || 0)}</td>
+                <td class="px-8 py-6 text-sm font-bold text-on-surface">${escapeHtml(book.name)}</td>
+                <td class="px-8 py-6 text-sm text-on-surface-variant">${escapeHtml(book.publisher || '-')}</td>
+                <td class="px-8 py-6 text-sm text-on-surface-variant">${escapeHtml(book.authors || book.author || '-')}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-primary">${formatUsdFromCents(book.online_buy_price || book.price || 0)}</td>
                 <td class="px-8 py-6 text-right">
-                    <button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
-                    ${window.IS_ADMIN ? `<button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>` : ''}
+                    <button class="text-primary hover:bg-primary-fixed/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="edit" data-id="${book.id}">Edit</button>
+                    ${window.IS_ADMIN ? `<button class="text-error hover:bg-error-container/40 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-action="delete" data-id="${book.id}">Delete</button>` : ''}
                 </td>
             </tr>
         `;
@@ -71,23 +71,23 @@ function renderUsers(users) {
     const body = document.getElementById('adminUsersBody');
     if (!body) return;
     if (!users || users.length === 0) {
-        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-[#595c5d]">No users found.</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No users found.</td></tr>';
         return;
     }
 
     body.innerHTML = users.map((u) => {
         const actionButtons = window.IS_ADMIN 
-            ? `<button class="text-[#7343a9] hover:bg-[#e3c6ff]/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
-               <button class="text-[#b41340] hover:bg-[#ffefef] px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>`
-            : '<span class="text-xs text-[#595c5d] font-medium italic">View Only</span>';
+            ? `<button class="text-primary hover:bg-primary-fixed/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
+               <button class="text-error hover:bg-error-container/40 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>`
+            : '<span class="text-xs text-on-surface-variant font-medium italic">View Only</span>';
 
         return `
-            <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml(u.email)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${escapeHtml(u.role)}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30]">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${formatDate(u.created_at)}</td>
+            <tr class="hover:bg-surface-variant/30 transition-colors">
+                <td class="px-8 py-6 text-sm font-medium text-on-surface">${escapeHtml((u.first_name || '') + ' ' + (u.last_name || ''))}</td>
+                <td class="px-8 py-6 text-sm text-on-surface-variant">${escapeHtml(u.email)}</td>
+                <td class="px-8 py-6 text-sm text-on-surface">${escapeHtml(u.role)}</td>
+                <td class="px-8 py-6 text-sm text-on-surface">${Number(u.is_active) === 1 ? 'Active' : 'Inactive'}</td>
+                <td class="px-8 py-6 text-sm text-on-surface-variant">${formatDate(u.created_at)}</td>
                 <td class="px-8 py-6 text-right">
                     ${actionButtons}
                 </td>
@@ -100,18 +100,18 @@ function renderTransactions(transactions) {
     const body = document.getElementById('adminTransactionsBody');
     if (!body) return;
     if (!transactions || transactions.length === 0) {
-        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-[#595c5d]">No transactions found.</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No transactions found.</td></tr>';
         return;
     }
 
     body.innerHTML = transactions.map((tx) => {
         const displayType = tx.type.replace('_', ' ');
         return `
-            <tr class="hover:bg-[#eef1f2]/20 transition-colors">
-                <td class="px-8 py-6 text-sm font-medium text-[#2c2f30]">${escapeHtml(tx.title)}</td>
-                <td class="px-8 py-6 text-sm text-[#595c5d]">${escapeHtml((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
-                <td class="px-8 py-6 text-sm text-[#2c2f30] capitalize">${escapeHtml(displayType.toLowerCase())}</td>
-                <td class="px-8 py-6 text-sm font-semibold text-[#6933dc]">${formatUsdFromCents(tx.amount)}</td>
+            <tr class="hover:bg-surface-variant/30 transition-colors">
+                <td class="px-8 py-6 text-sm font-medium text-on-surface">${escapeHtml(tx.title)}</td>
+                <td class="px-8 py-6 text-sm text-on-surface-variant">${escapeHtml((tx.first_name || '') + ' ' + (tx.last_name || ''))}</td>
+                <td class="px-8 py-6 text-sm text-on-surface capitalize">${escapeHtml(displayType.toLowerCase())}</td>
+                <td class="px-8 py-6 text-sm font-semibold text-primary">${formatUsdFromCents(tx.amount)}</td>
             </tr>
         `;
     }).join('');
@@ -127,11 +127,11 @@ function setActiveTab(tabName) {
         if (panel) panel.classList.toggle('hidden', tab !== tabName);
         if (btn) {
             if (tab === tabName) {
-                btn.classList.add('bg-[#3800bf]', 'text-white', 'shadow-lg', 'shadow-[#3800bf]/20');
-                btn.classList.remove('text-[#474557]', 'hover:bg-[#e5e0f0]');
+                btn.classList.add('bg-primary', 'text-on-primary', 'shadow-lg', 'shadow-primary/25');
+                btn.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-highest');
             } else {
-                btn.classList.remove('bg-[#3800bf]', 'text-white', 'shadow-lg', 'shadow-[#3800bf]/20');
-                btn.classList.add('text-[#474557]', 'hover:bg-[#e5e0f0]');
+                btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-lg', 'shadow-primary/25');
+                btn.classList.add('text-on-surface-variant', 'hover:bg-surface-container-highest');
             }
         }
     });
@@ -607,11 +607,11 @@ function bindAdminEvents() {
         btn.addEventListener('click', () => {
             const filter = btn.getAttribute('data-filter');
             filterBtns.forEach(b => {
-                b.classList.remove('bg-[#3800bf]', 'text-white');
-                b.classList.add('text-[#474557]');
+                b.classList.remove('bg-primary', 'text-on-primary');
+                b.classList.add('text-on-surface-variant');
             });
-            btn.classList.add('bg-[#3800bf]', 'text-white');
-            btn.classList.remove('text-[#474557]');
+            btn.classList.add('bg-primary', 'text-on-primary');
+            btn.classList.remove('text-on-surface-variant');
             
             const allTxs = window.__adminTransactions || [];
             if (filter === 'all') {

@@ -229,26 +229,19 @@
         $brandIcon.innerHTML = `<i class="${cls} text-lg"></i>`;
     }
 
-    function ensureStripeMounted(publishableKey) {
-        if (stripe && stripeCardNumber && stripeCardExpiry && stripeCardCvc && stripePostal) return;
-        if (!publishableKey || typeof window.Stripe !== 'function') throw new Error('Stripe is not available');
-
-        stripe = window.Stripe(publishableKey);
-        const elements = stripe.elements();
-
-        const style = {
+    function getStripeElementStyle() {
+        const dark = document.documentElement.classList.contains('dark');
+        return {
             base: {
                 fontSize: '16px',
                 lineHeight: '24px',
-                color: '#1c1a25',
+                color: dark ? '#e8e4f0' : '#1c1a25',
                 fontWeight: '500',
-                // system fonts first: Stripe fields render in a cross-origin iframe where
-                // page-loaded webfonts may not apply reliably.
                 fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
                 fontSmoothing: 'antialiased',
                 letterSpacing: '0.02em',
                 '::placeholder': {
-                    color: '#94a3b8',
+                    color: dark ? '#9a94b0' : '#94a3b8',
                 },
             },
             invalid: {
@@ -256,6 +249,25 @@
                 iconColor: '#ef4444',
             },
         };
+    }
+
+    function updateStripeElementStyles() {
+        if (!stripeCardNumber || !stripeCardExpiry || !stripeCardCvc || !stripePostal) return;
+        const style = getStripeElementStyle();
+        stripeCardNumber.update({ style });
+        stripeCardExpiry.update({ style });
+        stripeCardCvc.update({ style });
+        stripePostal.update({ style });
+    }
+
+    function ensureStripeMounted(publishableKey) {
+        if (stripe && stripeCardNumber && stripeCardExpiry && stripeCardCvc && stripePostal) return;
+        if (!publishableKey || typeof window.Stripe !== 'function') throw new Error('Stripe is not available');
+
+        stripe = window.Stripe(publishableKey);
+        const elements = stripe.elements();
+
+        const style = getStripeElementStyle();
 
         stripeCardNumber = elements.create('cardNumber', { style });
         stripeCardExpiry = elements.create('cardExpiry', { style });
@@ -488,6 +500,8 @@
         loadTransactions(false);
         handleGatewayCallback();
         syncMethodUI();
+
+        document.addEventListener('lumina-themechange', updateStripeElementStyles);
     }
 
 
