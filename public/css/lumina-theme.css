@@ -103,6 +103,18 @@ html.dark {
 html { color-scheme: light; }
 html.dark { color-scheme: dark; }
 
+/* Global dark mode image adjustment */
+html.dark img {
+  filter: brightness(0.85) contrast(1.05);
+  transition: filter 0.3s ease;
+}
+html.dark img:hover {
+  filter: brightness(1) contrast(1);
+}
+
+.text-main { color: rgb(var(--color-on-surface)); }
+.text-muted { color: rgb(var(--color-on-surface-variant)); }
+
 .lumina-app-body {
   background-color: rgb(var(--color-background));
   color: rgb(var(--color-on-background));

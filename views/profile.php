@@ -35,28 +35,32 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
 <style>
     .profile-input {
         width: 100%;
-        background: #e9e3f4;
-        border: none;
+        background: rgb(var(--color-surface-container-high));
+        border: 1px solid rgb(var(--color-outline-variant) / 0.3);
+        color: rgb(var(--color-on-surface));
         border-radius: 0.5rem;
         padding: 0.75rem 1rem;
         transition: box-shadow 0.2s ease, background-color 0.2s ease;
     }
     .profile-input:focus {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(56, 0, 191, 0.25);
+        box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.25);
+        border-color: rgb(var(--color-primary) / 0.5);
     }
     .profile-label {
         display: block;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #6f6a81;
+        color: rgb(var(--color-on-surface-variant));
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-left: 0.25rem;
         margin-bottom: 0.5rem;
     }
     .profile-card {
-        background: #f7f1ff;
+        background: rgb(var(--color-surface-container-low));
+        color: rgb(var(--color-on-surface));
+        border: 1px solid rgb(var(--color-outline-variant) / 0.15);
         border-radius: 0.75rem;
         padding: 2rem;
     }
@@ -65,38 +69,38 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
 <div class="max-w-[1440px] mx-auto">
     <div class="flex flex-col md:flex-row items-end gap-8 mb-12">
         <div class="relative group">
-            <div class="h-40 w-40 rounded-xl overflow-hidden bg-[#ece5fa] shadow-2xl">
+            <div class="h-40 w-40 rounded-xl overflow-hidden bg-surface-container shadow-2xl">
                 <?php if ($avatarPath !== ''): ?>
                     <img id="profileImagePreview" alt="User Profile Image" class="w-full h-full object-cover" src="<?php echo htmlspecialchars($avatarPath); ?>" />
                 <?php else: ?>
-                    <div id="profileImagePreviewFallback" class="w-full h-full flex items-center justify-center text-5xl text-[#4f1bf1]">
+                    <div id="profileImagePreviewFallback" class="w-full h-full flex items-center justify-center text-5xl text-primary">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <img id="profileImagePreview" alt="User Profile Image" class="w-full h-full object-cover hidden" src="" />
                 <?php endif; ?>
             </div>
-            <label class="absolute -bottom-4 -right-4 h-12 w-12 bg-[#4f1bf1] rounded-full flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform shadow-lg" for="profileImagePicker">
+            <label class="absolute -bottom-4 -right-4 h-12 w-12 bg-primary rounded-full flex items-center justify-center text-on-primary cursor-pointer hover:scale-110 transition-transform shadow-lg" for="profileImagePicker">
                 <i class="fa-solid fa-camera"></i>
             </label>
         </div>
         <div class="flex-1 pb-2">
             <div class="flex items-center gap-4 mb-2">
-                <span class="text-slate-400 text-sm font-medium">Member since <?php echo htmlspecialchars($memberSince); ?></span>
+                <span class="text-on-surface-variant text-sm font-medium">Member since <?php echo htmlspecialchars($memberSince); ?></span>
             </div>
-            <h1 class="font-['Manrope'] font-extrabold text-5xl text-[#1c1a25] tracking-tight"><?php echo htmlspecialchars($displayName ?: 'Library Member'); ?></h1>
-            <p class="text-[#5b566a] mt-2 flex items-center gap-2">
+            <h1 class="font-['Manrope'] font-extrabold text-5xl text-on-surface tracking-tight"><?php echo htmlspecialchars($displayName ?: 'Library Member'); ?></h1>
+            <p class="text-on-surface-variant mt-2 flex items-center gap-2">
                 <i class="fa-solid fa-envelope text-sm"></i>
                 <?php echo htmlspecialchars((string)($profileUser['email'] ?? '')); ?>
             </p>
         </div>
         <div class="pb-2">
-            <div class="bg-[#f7f1ff] p-6 rounded-xl min-w-[220px] shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Wallet Balance</p>
+            <div class="bg-surface-container-low p-6 rounded-xl min-w-[220px] shadow-sm border border-outline-variant/15">
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Wallet Balance</p>
                 <div class="flex items-baseline gap-1">
-                    <span class="text-3xl font-['Manrope'] font-extrabold text-[#3800bf]">$<?php echo htmlspecialchars($walletBalance); ?></span>
-                    <span class="text-xs text-[#6a657a] font-medium">USD</span>
+                    <span class="text-3xl font-['Manrope'] font-extrabold text-primary">$<?php echo htmlspecialchars($walletBalance); ?></span>
+                    <span class="text-xs text-on-surface-variant font-medium">USD</span>
                 </div>
-                <a href="<?php echo APP_ROUTE; ?>?page=wallet" class="mt-4 text-[#3800bf] font-bold text-xs inline-flex items-center gap-1 hover:gap-2 transition-all">
+                <a href="<?php echo APP_ROUTE; ?>?page=wallet" class="mt-4 text-primary font-bold text-xs inline-flex items-center gap-1 hover:gap-2 transition-all">
                     Top up wallet <i class="fa-solid fa-arrow-right text-xs"></i>
                 </a>
             </div>
@@ -108,7 +112,7 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
             <section class="profile-card">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="font-['Manrope'] font-bold text-2xl">Personal Information</h2>
-                    <i class="fa-solid fa-id-card text-[#7b768d]"></i>
+                    <i class="fa-solid fa-id-card text-on-surface-variant"></i>
                 </div>
                 <form id="profileInfoForm" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
@@ -121,14 +125,14 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                         <div><label class="profile-label">Date of Birth</label><input class="profile-input" type="date" name="dob" value="<?php echo htmlspecialchars($dobValue); ?>" /></div>
                         <div><label class="profile-label">Phone Number</label><input class="profile-input" type="text" name="phone_number" value="<?php echo htmlspecialchars($phoneValue); ?>" placeholder="+977 - 00000-00000" /></div>
                     </div>
-                    <button class="bg-gradient-to-r from-[#3800bf] to-[#4f1bf1] text-white px-8 py-3 rounded-lg font-bold text-sm shadow-lg hover:opacity-90 transition-opacity" type="submit">Save Changes</button>
+                    <button class="bg-primary text-on-primary px-8 py-3 rounded-lg font-bold text-sm shadow-lg hover:opacity-90 transition-opacity" type="submit">Save Changes</button>
                 </form>
             </section>
 
             <section class="profile-card">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="font-['Manrope'] font-bold text-2xl">Security &amp; Authentication</h2>
-                    <i class="fa-solid fa-lock text-[#7b768d]"></i>
+                    <i class="fa-solid fa-lock text-on-surface-variant"></i>
                 </div>
                 <form id="profilePasswordForm" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
@@ -137,13 +141,13 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                         <div><label class="profile-label">New Password</label><input class="profile-input" type="password" name="new_password" minlength="6" placeholder="Min. 6 characters" required /></div>
                         <div><label class="profile-label">Confirm New Password</label><input class="profile-input" type="password" name="confirm_password" minlength="6" placeholder="Re-type new password" required /></div>
                     </div>
-                    <button class="text-[#3800bf] font-bold px-4 py-3 rounded-lg border-2 border-[#3800bf]/20 hover:bg-[#3800bf]/5 transition-colors text-sm" type="submit">Update Password</button>
+                    <button class="text-primary font-bold px-4 py-3 rounded-lg border-2 border-primary/20 hover:bg-primary/5 transition-colors text-sm" type="submit">Update Password</button>
                 </form>
             </section>
         </div>
 
         <div class="space-y-8">
-            <form id="profileImageForm" class="bg-[#e8e1f2] rounded-xl p-8 text-center border-2 border-dashed border-[#3800bf]/15">
+            <form id="profileImageForm" class="bg-surface-container-high rounded-xl p-8 text-center border-2 border-dashed border-primary/15">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
                 <input type="hidden" name="first_name" value="<?php echo htmlspecialchars((string)($profileUser['first_name'] ?? '')); ?>" />
                 <input type="hidden" name="last_name" value="<?php echo htmlspecialchars((string)($profileUser['last_name'] ?? '')); ?>" />
@@ -151,13 +155,13 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <input type="hidden" name="phone_number" value="<?php echo htmlspecialchars($phoneValue); ?>" />
                 <input id="profileImagePicker" class="hidden" type="file" name="profile_image" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" />
                 <input id="profileImagePickerSecondary" class="hidden" type="file" name="profile_image_secondary" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" />
-                <div class="h-16 w-16 bg-[#4f1bf1]/10 text-[#4f1bf1] rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-cloud-arrow-up text-2xl"></i></div>
+                <div class="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-cloud-arrow-up text-2xl"></i></div>
                 <h3 class="font-['Manrope'] font-bold text-lg mb-2">Change Profile Image</h3>
-                <p class="text-xs text-[#696477] font-medium mb-6">JPG, PNG, or GIF. Max size of 5MB.</p>
-                <label for="profileImagePickerSecondary" class="block w-full text-center py-3 bg-white text-[#1c1a25] font-bold text-sm rounded-lg shadow-sm border border-[#c9c4da]/50 cursor-pointer hover:bg-[#fdf8ff] transition-colors">Choose File</label>
+                <p class="text-xs text-on-surface-variant font-medium mb-6">JPG, PNG, or GIF. Max size of 5MB.</p>
+                <label for="profileImagePickerSecondary" class="block w-full text-center py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-lg shadow-sm border border-outline-variant/50 cursor-pointer hover:bg-surface-container-high transition-colors">Choose File</label>
             </form>
 
-            <div class="bg-[#3800bf] text-white rounded-xl p-8 relative overflow-hidden">
+            <div class="bg-primary text-on-primary rounded-xl p-8 relative overflow-hidden">
                 <div class="relative z-10">
                     <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">Membership Status</p>
                     <div class="flex items-center gap-4 mb-6"><div class="h-3 w-3 <?php echo $statusDot; ?> rounded-full animate-pulse"></div><span class="font-['Manrope'] font-bold text-2xl tracking-tight">Status: <?php echo htmlspecialchars($statusLabel); ?></span></div>
@@ -186,11 +190,11 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>My Books</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Browse Catalog</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=membership"><span>Membership</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
-                <form id="profileDeleteForm" class="pt-4 border-t border-[#d8d1e9]">
+                <form id="profileDeleteForm" class="pt-4 border-t border-outline-variant/20">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
-                    <label class="text-xs text-[#7b768d] font-medium">Type <strong>DELETE</strong> to confirm</label>
+                    <label class="text-xs text-on-surface-variant font-medium">Type <strong>DELETE</strong> to confirm</label>
                     <input class="profile-input mt-2" type="text" name="confirm_delete" placeholder="DELETE" />
-                    <button class="mt-3 flex items-center justify-between text-sm font-medium p-2 hover:bg-[#ffecec] rounded-lg transition-colors text-[#ba1a1a] w-full" type="submit"><span>Delete Account</span><i class="fa-solid fa-trash text-xs"></i></button>
+                    <button class="mt-3 flex items-center justify-between text-sm font-medium p-2 hover:bg-error-container/20 rounded-lg transition-colors text-error w-full" type="submit"><span>Delete Account</span><i class="fa-solid fa-trash text-xs"></i></button>
                 </form>
             </div>
         </div>

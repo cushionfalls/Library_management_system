@@ -1,36 +1,25 @@
-hey[13-May-2026 03:41:49 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+[13-May-2026 15:10:42 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.memberships' doesn't exist in C:\xampp\htdocs\Library_management_system\scratch\check_schema.php:7
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2028-05-09 00:0...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\xampp\htdocs\Library_management_system\scratch\check_schema.php(7): mysqli->query('DESCRIBE Member...')
+#1 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\scratch\check_schema.php on line 7
+[13-May-2026 15:14:38 Europe/Berlin] PHP Parse error:  syntax error, unexpected token "private", expecting end of file in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 547
+[13-May-2026 15:14:56 Europe/Berlin] PHP Parse error:  syntax error, unexpected token "private", expecting end of file in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 547
+[13-May-2026 15:17:04 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method AdminDashboard::countTotalMemberships() in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:15
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2027-05-13 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(173): AdminDashboard->getOverview()
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(372): AdminController->handle('dashboard')
 #2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:31 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 15
+[13-May-2026 15:17:06 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method AdminDashboard::countTotalMemberships() in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:15
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-06-12 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(173): AdminDashboard->getOverview()
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(372): AdminController->handle('dashboard')
 #2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:32 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 15
+[13-May-2026 15:17:14 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method AdminDashboard::countTotalMemberships() in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php:15
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-07-12 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#0 C:\xampp\htdocs\Library_management_system\controllers\admin.php(173): AdminDashboard->getOverview()
+#1 C:\xampp\htdocs\Library_management_system\controllers\admin.php(372): AdminController->handle('dashboard')
 #2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
-Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-08-11 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
-Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-09-10 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+  thrown in C:\xampp\htdocs\Library_management_system\classes\AdminDashboard.php on line 15

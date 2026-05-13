@@ -120,7 +120,7 @@ function renderTransactions(transactions) {
 
 function setActiveTab(tabName) {
     window.__adminActiveTab = tabName;
-    const tabs = ['books', 'users', 'transactions'];
+    const tabs = ['books', 'users', 'transactions', 'analytics'];
     tabs.forEach((tab) => {
         const panel = document.getElementById('adminSection' + tab.charAt(0).toUpperCase() + tab.slice(1));
         const btn = document.querySelector('.admin-tab-btn[data-tab="' + tab + '"]');
@@ -135,6 +135,10 @@ function setActiveTab(tabName) {
             }
         }
     });
+
+    if (tabName === 'analytics') {
+        loadAnalytics();
+    }
 }
 
 async function loadAdminDashboard() {
@@ -150,6 +154,228 @@ async function loadAdminDashboard() {
     window.__adminBooks = result.data.books || [];
     window.__adminUsers = result.data.recent_users || [];
     window.__adminTransactions = result.data.recent_transactions || [];
+}
+
+async function loadAnalytics() {
+    const result = await adminFetch('analytics', { cache: 'no-store' });
+    if (!result.success || !result.data) {
+        adminToast(result.error || 'Failed to load analytics', 'error');
+        return;
+    }
+
+    const { stats, revenue, top_books, genres } = result.data;
+
+    // Update Stats
+    document.getElementById('statActiveMemberships').textContent = stats.active_memberships ?? 0;
+    document.getElementById('statNewUsers').textContent = stats.new_users_7d ?? 0;
+    document.getElementById('statMonthlyPurchases').textContent = stats.monthly_books_purchased ?? 0;
+
+    renderRevenueChart(revenue);
+    renderTopBooksChart(top_books);
+    renderGenreChart(genres);
+}
+
+let charts = {};
+
+function renderRevenueChart(data) {
+    const options = {
+        series: [{
+            name: 'Revenue',
+            data: data.map(d => Number((d.total / 100).toFixed(2)))
+        }],
+        chart: {
+            type: 'area',
+            height: 350,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            foreColor: 'rgb(var(--color-on-surface-variant))'
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        colors: ['rgb(var(--color-primary))'],
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [20, 100]
+            }
+        },
+        xaxis: {
+            categories: data.map(d => {
+                const date = new Date(d.date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }),
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: (val) => '$' + val
+            }
+        },
+        grid: {
+            borderColor: 'rgb(var(--color-outline-variant) / 0.1)',
+            strokeDashArray: 4
+        },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            y: { formatter: (val) => '$' + val }
+        }
+    };
+
+    if (charts.revenue) charts.revenue.destroy();
+    charts.revenue = new ApexCharts(document.querySelector("#revenueChart"), options);
+    charts.revenue.render();
+}
+
+function renderTopBooksChart(data) {
+    const options = {
+        series: [{
+            name: 'Sales',
+            data: data.map(d => Number(d.sales || 0))
+        }],
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: { show: false },
+            foreColor: 'rgb(var(--color-on-surface-variant))'
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 8,
+                columnWidth: '40%',
+                distributed: true
+            }
+        },
+        dataLabels: { enabled: false },
+        colors: ['rgb(var(--color-primary))', 'rgb(var(--color-secondary))', 'rgb(var(--color-tertiary))', 'rgb(var(--color-error))', 'rgb(var(--color-primary-container))'],
+        xaxis: {
+            categories: data.map(d => {
+                const words = d.name.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(w => {
+                    if (currentLine.length + w.length > 12) {
+                        lines.push(currentLine.trim());
+                        currentLine = w + ' ';
+                    } else {
+                        currentLine += w + ' ';
+                    }
+                });
+                if (currentLine) lines.push(currentLine.trim());
+                return lines;
+            }),
+            labels: {
+                rotate: 0,
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'Manrope',
+                    lineHeight: '1.2'
+                }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: (val) => Math.floor(val)
+            },
+            tickAmount: Math.max(1, ...data.map(d => Number(d.sales || 0))),
+            min: 0
+        },
+        grid: {
+            borderColor: 'rgb(var(--color-outline-variant) / 0.1)',
+            strokeDashArray: 4
+        },
+        legend: { show: false },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    if (charts.topBooks) charts.topBooks.destroy();
+    charts.topBooks = new ApexCharts(document.querySelector("#topBooksChart"), options);
+    charts.topBooks.render();
+}
+
+function renderGenreChart(data) {
+    const options = {
+        series: data.map(d => Number(d.count || 0)),
+        labels: data.map(d => d.genre.replace('_', ' ')),
+        dataLabels: {
+            formatter: (val) => Math.round(val) + '%',
+            style: {
+                fontSize: '13px',
+                fontFamily: 'Manrope',
+                fontWeight: '800',
+                colors: ['#111827']
+            },
+            dropShadow: {
+                enabled: true,
+                top: 0,
+                left: 0,
+                blur: 3,
+                color: '#fff',
+                opacity: 1
+            }
+        },
+        chart: {
+            type: 'donut',
+            height: 350,
+            foreColor: 'rgb(var(--color-on-surface-variant))',
+            fontFamily: 'Manrope'
+        },
+        colors: ['#4F1BF1', '#7C52FF', '#A384FF', '#C9B6FF', '#EFEDFF'],
+        stroke: { show: false },
+        legend: {
+            position: 'bottom',
+            fontFamily: 'Manrope'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '75%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total Books',
+                            color: 'rgb(var(--color-on-surface-variant))',
+                            fontSize: '14px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 600,
+                            formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                        },
+                        value: {
+                            show: true,
+                            fontSize: '24px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 900,
+                            color: 'rgb(var(--color-on-surface))',
+                            offsetY: 10
+                        },
+                        name: {
+                            show: true,
+                            fontSize: '14px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 600,
+                            color: 'rgb(var(--color-on-surface-variant))',
+                            offsetY: -10
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    if (charts.genre) charts.genre.destroy();
+    charts.genre = new ApexCharts(document.querySelector("#genreChart"), options);
+    charts.genre.render();
 }
 
 function openBookModal(book = null) {

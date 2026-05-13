@@ -123,6 +123,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="<?php echo APP_URL; ?>/public/js/tailwind-lumina-config.js"></script>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/lumina-theme.css" />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="<?php echo APP_URL; ?>/public/js/theme.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
@@ -242,7 +243,8 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
                             echo $lum(APP_ROUTE . '?page=membership', 'Membership', $navActive['membership']);
                         }
                         if ($session->isAdmin() || $session->isLibrarian()) {
-                            echo $lum(APP_ROUTE . '?page=admin', 'Admin', $navActive['admin']);
+                            $adminLabel = $session->isAdmin() ? 'Admin' : 'Librarian';
+                            echo $lum(APP_ROUTE . '?page=admin', $adminLabel, $navActive['admin']);
                         }
                         ?>
                     </nav>
@@ -268,7 +270,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
                                     </li>
                                 <?php endif; ?>
                                 <?php if ($session->isAdmin() || $session->isLibrarian()): ?>
-                                    <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin">Admin</a></li>
+                                    <li><a class="font-['Manrope']" href="<?php echo APP_ROUTE; ?>?page=admin"><?php echo $session->isAdmin() ? 'Admin' : 'Librarian'; ?></a></li>
                                 <?php endif; ?>
                             </ul>
                         </div>

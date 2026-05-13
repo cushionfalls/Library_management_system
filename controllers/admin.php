@@ -156,6 +156,16 @@ class AdminController {
                     $_POST['id'] ?? 0,
                     $this->session->getUserId()
                 );
+            case 'analytics':
+                return [
+                    'success' => true,
+                    'data' => [
+                        'stats' => $this->service->getAnalyticsStats(),
+                        'revenue' => $this->service->getRevenueLast30Days(),
+                        'top_books' => $this->service->getTop5PurchasedBooks(),
+                        'genres' => $this->service->getGenreBreakdown()
+                    ]
+                ];
             case 'dashboard':
                 return [
                     'success' => true,
