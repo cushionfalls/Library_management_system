@@ -96,11 +96,17 @@ try {
 
         /* ── Existing: balance ───────────────────────────────────────────── */
         case 'getBalance': {
+            if ($session->isAdmin() || $session->isLibrarian()) {
+                wallet_json(['success' => false, 'error' => 'Administrators and Librarians do not have a wallet.'], 403);
+            }
             wallet_json(['success' => true, 'balance' => $wallet->getBalance($userId)]);
         }
 
         /* ── Existing: transactions ──────────────────────────────────────── */
         case 'getTransactions': {
+            if ($session->isAdmin() || $session->isLibrarian()) {
+                wallet_json(['success' => false, 'error' => 'Administrators and Librarians do not have wallet transactions.'], 403);
+            }
             $limit  = (int)($_GET['limit']  ?? 20);
             $offset = (int)($_GET['offset'] ?? 0);
             $tx     = $wallet->getTransactions($userId, $limit, $offset);
@@ -109,6 +115,9 @@ try {
 
         case 'stripe-create-intent': {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') wallet_json(['success' => false, 'error' => 'POST required'], 405);
+            if ($session->isAdmin() || $session->isLibrarian()) {
+                wallet_json(['success' => false, 'error' => 'Administrators and Librarians cannot top up a wallet.'], 403);
+            }
             if (!$session->isVerified()) {
                 wallet_json(['success' => false, 'error' => 'Please verify your email address to top up your wallet.'], 403);
             }
@@ -216,6 +225,9 @@ try {
 
         /* ── Existing: CSV download ──────────────────────────────────────── */
         case 'downloadStatement': {
+            if ($session->isAdmin() || $session->isLibrarian()) {
+                wallet_json(['success' => false, 'error' => 'Forbidden'], 403);
+            }
             $limit = max(1, min(Wallet::TX_MAX_LIMIT, (int)($_GET['limit'] ?? 500)));
             $tx    = $wallet->getTransactions($userId, $limit, 0);
 

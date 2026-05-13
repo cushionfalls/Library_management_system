@@ -231,10 +231,6 @@
                     <span class="material-symbols-outlined text-4xl mb-4 opacity-50">auto_stories</span>
                     <h3 class="text-3xl font-black mb-4 font-lumina">Paper Library</h3>
                     <p class="text-lg opacity-80 mb-8 leading-relaxed">Dive into your next adventure. Your library is waiting for you.</p>
-                    <a href="<?php echo APP_ROUTE; ?>?page=books" class="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all">
-                        <i class="fas fa-compass"></i>
-                        Browse Catalog
-                    </a>
                 </div>
 
                 <!-- Floating Elements -->
@@ -375,17 +371,8 @@
         <div>
             <h4 class="font-bold mb-4 uppercase text-xs tracking-widest">Quick Links</h4>
             <ul class="text-gray-400 text-sm space-y-2">
-                <li><a href="#">Browse Books</a></li>
-                <li><a href="#">How It Works</a></li>
-                <li><a href="#">Pricing</a></li>
-            </ul>
-        </div>
-        <div>
-            <h4 class="font-bold mb-4 uppercase text-xs tracking-widest">Support</h4>
-            <ul class="text-gray-400 text-sm space-y-2">
-                <li><a href="#">Help Center</a></li>
-                <li><a href="#">Contact Us</a></li>
-                <li><a href="#">FAQ</a></li>
+                <li><a href="<?php echo APP_ROUTE; ?>?page=home">Home</a></li>
+                <li><a href="<?php echo APP_ROUTE; ?>?page=home#features">How It Works</a></li>
             </ul>
         </div>
     </div>

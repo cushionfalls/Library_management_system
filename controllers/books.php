@@ -49,8 +49,12 @@ class BooksController {
                     return ['success' => false, 'message' => 'Book not found'];
                 }
                 if ($this->session->isLoggedIn()) {
-                    $access = $this->library->getAccessForUserBook($this->session->getUserId(), (int)$book['id']);
-                    $book['user_access'] = $access;
+                    if ($this->session->isAdmin() || $this->session->isLibrarian()) {
+                        $book['user_access'] = ['access_type' => 'OWNED', 'created_at' => date('Y-m-d H:i:s')];
+                    } else {
+                        $access = $this->library->getAccessForUserBook($this->session->getUserId(), (int)$book['id']);
+                        $book['user_access'] = $access;
+                    }
                 } else {
                     $book['user_access'] = null;
                 }
@@ -167,7 +171,11 @@ class BooksController {
                     $_GET['book_id'] ?? 0
                 );
                 if ($state === null) {
-                    return ['success' => false, 'message' => 'Access denied'];
+                    if ($this->session->isAdmin() || $this->session->isLibrarian()) {
+                        $state = ['progress_percent' => 0, 'current_location' => '', 'last_opened_at' => null];
+                    } else {
+                        return ['success' => false, 'message' => 'Access denied'];
+                    }
                 }
                 return ['success' => true, 'state' => $state];
 

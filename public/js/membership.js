@@ -264,8 +264,9 @@ function initDeactivateMembership() {
 
             window.showToast?.(data?.message || 'Membership deactivated.', 'success');
             if (typeof modal.close === 'function') modal.close();
-            const activeNow = await loadStatus();
-            await loadPlans(activeNow);
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
         } catch (_) {
             window.showToast?.('Could not deactivate membership. Please try again.', 'danger');
         } finally {

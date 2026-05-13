@@ -324,6 +324,23 @@ async function loadRecommendations(forceRefresh = false) {
         getBtn.classList.add('opacity-60');
     }
 
+    const statusText = loading.querySelector('p');
+    const messages = [
+        'Fetching your reading profile...',
+        'Analyzing reading patterns...',
+        'Comparing with trending titles...',
+        'Consulting AI librarian...',
+        'Finalizing recommendations...'
+    ];
+    let msgIdx = 0;
+    const msgInterval = setInterval(() => {
+        if (statusText && messages[msgIdx]) {
+            statusText.textContent = messages[msgIdx];
+            msgIdx++;
+        }
+        if (msgIdx >= messages.length) clearInterval(msgInterval);
+    }, 1200);
+
     try {
         const url = '<?php echo APP_URL; ?>/controllers/recommendations.php?action=for-user' + (forceRefresh ? '&t=' + Date.now() : '');
         const res = await fetch(url, { cache: 'no-store' });
@@ -365,6 +382,7 @@ async function loadRecommendations(forceRefresh = false) {
             grid.innerHTML = '';
         }
     } finally {
+        clearInterval(msgInterval);
         loading.classList.add('hidden');
         grid.classList.remove('hidden');
         if (getBtn) {
