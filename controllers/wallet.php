@@ -113,6 +113,11 @@ try {
                 wallet_json(['success' => false, 'error' => 'Please verify your email address to top up your wallet.'], 403);
             }
 
+            $csrfToken = $_POST['csrf_token'] ?? '';
+            if (!$session->validateCSRFToken($csrfToken)) {
+                wallet_json(['success' => false, 'error' => 'Invalid security token. Please refresh and try again.'], 403);
+            }
+
             // Convention: We now expect `amount_cents` as a direct integer from the frontend.
             $amountCents = (int)($_POST['amount_cents'] ?? 0);
             if ($amountCents <= 0) wallet_json(['success' => false, 'error' => 'Amount must be > 0'], 400);
@@ -152,6 +157,12 @@ try {
             if ($piId === '' || $pendingPi === '' || $piId !== $pendingPi) wallet_json(['success' => false, 'error' => 'Invalid payment intent'], 400);
             if ($pendingCents <= 0 || time() > $expires) wallet_json(['success' => false, 'error' => 'Session expired'], 400);
 
+            // Verify CSRF again for finalization
+            $csrfToken = $_POST['csrf_token'] ?? '';
+            if (!$session->validateCSRFToken($csrfToken)) {
+                wallet_json(['success' => false, 'error' => 'Security token mismatch.'], 403);
+            }
+
             $resp = stripe_request('GET', '/v1/payment_intents/' . rawurlencode($piId));
             if (!$resp['ok']) wallet_json(['success' => false, 'error' => $resp['error']], 500);
 
@@ -180,6 +191,12 @@ try {
 
             $targetUserId = (int)($_POST['user_id'] ?? 0);
             $amount       = (int)($_POST['amount_cents']  ?? 0);
+            $csrfToken    = $_POST['csrf_token'] ?? '';
+            
+            if (!$session->validateCSRFToken($csrfToken)) {
+                wallet_json(['success' => false, 'error' => 'CSRF failure'], 403);
+            }
+
             if ($targetUserId <= 0) wallet_json(['success' => false, 'error' => 'user_id required'], 400);
 
             $result = $wallet->refund($targetUserId, $amount);

@@ -1,1 +1,36 @@
-hey
+hey[13-May-2026 03:41:49 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2028-05-09 00:0...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+[13-May-2026 03:49:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2027-05-13 07:3...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+[13-May-2026 03:49:31 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-06-12 07:3...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+[13-May-2026 03:49:32 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-07-12 07:3...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-08-11 07:3...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-09-10 07:3...')
+#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
+#2 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
