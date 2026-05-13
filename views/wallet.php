@@ -239,7 +239,7 @@ tailwind.config = {
 
 <!-- ── Top Up Modal ──────────────────────────────────────────────────────── -->
 <dialog id="walletTopUpModal" class="modal">
-    <div class="modal-box max-w-xl p-0 overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-bright shadow-2xl font-body">
+    <div class="modal-box w-full max-w-[800px] h-[950px] max-h-[95vh] p-0 overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-bright shadow-2xl font-body flex flex-col">
 
         <!-- Header -->
         <div class="relative overflow-hidden bg-gradient-to-br from-primary via-[#4720c4] to-primary-container px-6 sm:px-8 pt-7 pb-8 text-on-primary">
@@ -269,7 +269,7 @@ tailwind.config = {
             </div>
         </div>
 
-        <form id="walletTopUpForm" class="flex flex-col max-h-[85vh]">
+        <form id="walletTopUpForm" class="flex-1 flex flex-col min-h-0">
             <input type="hidden" name="csrf_token" value="<?php echo (new Session())->generateCSRFToken(); ?>">
 
             <!-- Scrollable Body -->
