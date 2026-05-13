@@ -154,6 +154,9 @@ if ($session->isLoggedIn()) {
         z-index: -1;
     }
 
+    .text-main { color: var(--text-primary); }
+    .text-muted { color: var(--text-secondary); }
+
     @media (max-width: 968px) {
         .auth-container { grid-template-columns: 1fr; background: var(--surface); }
         .auth-visual-side { display: none; }
@@ -174,8 +177,8 @@ if ($session->isLoggedIn()) {
         </a>
 
         <div class="mb-10">
-            <h1 class="text-4xl font-black text-gray-900 mb-3">Create Account</h1>
-            <p class="text-gray-500">Join our community and start your reading journey.</p>
+            <h1 class="text-4xl font-black text-main mb-3">Create Account</h1>
+            <p class="text-muted">Join our community and start your reading journey.</p>
         </div>
 
         <div id="registrationMessage" class="mb-6"></div>
@@ -183,34 +186,34 @@ if ($session->isLoggedIn()) {
         <form id="registerForm" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">First Name</label>
+                    <label class="block text-sm font-bold text-main mb-2">First Name</label>
                     <input type="text" placeholder="First Name" class="input-lms" name="first_name" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Last Name</label>
+                    <label class="block text-sm font-bold text-main mb-2">Last Name</label>
                     <input type="text" placeholder="Last Name" class="input-lms" name="last_name" required>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                <label class="block text-sm font-bold text-main mb-2">Email Address</label>
                 <input type="email" placeholder="you@example.com" class="input-lms" name="email" required>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Password</label>
+                    <label class="block text-sm font-bold text-main mb-2">Password</label>
                     <input type="password" placeholder="••••••••" class="input-lms" name="password" minlength="6" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Confirm Password</label>
+                    <label class="block text-sm font-bold text-main mb-2">Confirm Password</label>
                     <input type="password" placeholder="••••••••" class="input-lms" name="confirm_password" required>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
                 <input type="checkbox" id="terms" class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" required>
-                <label for="terms" class="text-sm text-gray-600 cursor-pointer font-medium">
+                <label for="terms" class="text-sm text-muted cursor-pointer font-medium">
                     I agree to the <a href="#" class="text-primary font-bold hover:underline">Terms of Service</a>
                 </label>
             </div>
@@ -221,7 +224,7 @@ if ($session->isLoggedIn()) {
         </form>
 
         <div class="mt-10 pt-10 border-t border-gray-100 text-center">
-            <p class="text-gray-600">Already have an account? <a href="<?php echo APP_ROUTE; ?>?page=login" class="font-bold text-primary hover:underline">Sign In</a></p>
+            <p class="text-muted">Already have an account? <a href="<?php echo APP_ROUTE; ?>?page=login" class="font-bold text-primary hover:underline">Sign In</a></p>
         </div>
     </div>
 
@@ -237,7 +240,7 @@ if ($session->isLoggedIn()) {
     <!-- OTP Verification Modal -->
     <dialog id="otpModal" class="modal">
         <div class="modal-box">
-            <h3 class="text-2xl font-black text-gray-900 mb-4 font-lumina text-center">Verify Email</h3>
+            <h3 class="text-2xl font-black text-main mb-4 font-lumina text-center">Verify Email</h3>
             
             <div id="otpMessage" class="mb-6"></div>
 
@@ -245,7 +248,7 @@ if ($session->isLoggedIn()) {
                 <p class="text-sm text-gray-500 text-center">An OTP code has been sent to your email. Please enter it below to verify your account.</p>
 
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2 text-center uppercase tracking-widest">OTP Code</label>
+                    <label class="block text-sm font-bold text-main mb-2 text-center uppercase tracking-widest">OTP Code</label>
                     <input type="text" placeholder="0 0 0 0 0 0" class="input-lms text-center text-4xl tracking-[1rem] font-black" id="otp" name="otp" maxlength="6" required>
                 </div>
 

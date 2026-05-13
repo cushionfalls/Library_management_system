@@ -1,6 +1,8 @@
 <div id="adminDashboardRoot" class="space-y-10">
     <section class="mb-2">
-        <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']">Admin Dashboard</h1>
+        <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']" id="adminDashboardTitle">
+            <?php echo $session->isAdmin() ? 'Admin' : 'Librarian'; ?> Dashboard
+        </h1>
         <p class="text-on-surface-variant text-lg">Manage catalog, members, transactions, and library operations.</p>
     </section>
 
@@ -27,6 +29,7 @@
         <button class="admin-tab-btn px-8 py-2.5 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-lg shadow-primary/25" data-tab="books">Books</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="users">Users</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="transactions">Transactions</button>
+        <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="analytics">Analytics</button>
     </section>
 
     <?php require __DIR__ . '/partials/admin_search_bar.php'; ?>
@@ -125,6 +128,72 @@
                     <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Loading transactions...</td></tr>
                 </tbody>
             </table>
+        </div>
+    </section>
+
+    <section id="adminSectionAnalytics" class="admin-tab-panel hidden space-y-8">
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">card_membership</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Active Memberships</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statActiveMemberships">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">New Registrations (7d)</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statNewUsers">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Books Purchased (Month)</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statMonthlyPurchases">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl lg:col-span-2">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">insights</span>
+                    Revenue Trend (Last 30 Days)
+                </h3>
+                <div id="revenueChart" class="w-full h-[350px]"></div>
+            </div>
+            
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary">trending_up</span>
+                    Top 5 Best Sellers
+                </h3>
+                <div id="topBooksChart" class="w-full h-[350px]"></div>
+            </div>
+
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary">pie_chart</span>
+                    Genre Distribution
+                </h3>
+                <div id="genreChart" class="w-full h-[350px]"></div>
+            </div>
         </div>
     </section>
 

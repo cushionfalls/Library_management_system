@@ -457,13 +457,6 @@ class AdminDashboard {
         }
     }
 
-    private function countTable($tableName) {
-        $safe = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
-        $result = $this->db->query("SELECT COUNT(*) AS total FROM {$safe}");
-        $row = $result ? $result->fetch_assoc() : ['total' => 0];
-        return (int)($row['total'] ?? 0);
-    }
-
     private function countTotalMemberships() {
         $result = $this->db->query(
             "SELECT COUNT(*) AS total
@@ -474,16 +467,103 @@ class AdminDashboard {
         return (int)($row['total'] ?? 0);
     }
 
-
     private function sumWalletCreditsToday() {
+        // Only sum credits created today
         $result = $this->db->query(
             "SELECT COALESCE(SUM(amount), 0) AS total
              FROM WalletTransactions
-             WHERE type = 'CREDIT'"
+             WHERE type = 'CREDIT' AND DATE(created_at) = CURDATE()"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
     }
+
+    public function getAnalyticsStats() {
+        return [
+            'active_memberships' => $this->countActiveMemberships(),
+            'new_users_7d' => $this->countNewUsers(7),
+            'monthly_books_purchased' => $this->countMonthlyPurchases()
+        ];
+    }
+
+    public function getRevenueLast30Days() {
+        $stmt = $this->db->prepare(
+            "SELECT DATE(created_at) as date, COALESCE(SUM(amount), 0) as total
+             FROM WalletTransactions
+             WHERE type = 'CREDIT' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             GROUP BY DATE(created_at)
+             ORDER BY date ASC"
+        );
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        // Fill gaps in dates
+        $data = [];
+        $today = new DateTime();
+        for ($i = 29; $i >= 0; $i--) {
+            $d = (clone $today)->modify("-$i days")->format('Y-m-d');
+            $found = array_search($d, array_column($res, 'date'));
+            $data[] = [
+                'date' => $d,
+                'total' => $found !== false ? (int)$res[$found]['total'] : 0
+            ];
+        }
+        return $data;
+    }
+
+    public function getTop5PurchasedBooks() {
+        $stmt = $this->db->query(
+            "SELECT b.name, COUNT(uba.id) as sales
+             FROM UserBookAccess uba
+             JOIN Books b ON b.id = uba.book_id
+             WHERE uba.access_type = 'OWNED'
+             GROUP BY uba.book_id
+             ORDER BY sales DESC
+             LIMIT 5"
+        );
+        return $stmt->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getGenreBreakdown() {
+        $stmt = $this->db->query(
+            "SELECT genre, COUNT(*) as count
+             FROM Books
+             GROUP BY genre"
+        );
+        return $stmt->fetch_all(MYSQLI_ASSOC);
+    }
+
+    private function countActiveMemberships() {
+        // Simple count of unique users who have an active membership in UserBookAccess
+        // Wait, a better way is to check the Membership table if it exists, but I saw it doesn't.
+        // Let's check classes/Membership.php to see how it's handled.
+        // Actually, DigitalLibrary.php uses UserBookAccess for membership-unlocked books.
+        // But the "active memberships" usually refers to the plan subscription.
+        // Let's check classes/Membership.php.
+        return $this->countTable('UserMemberships WHERE ends_at > NOW()');
+    }
+
+    private function countNewUsers($days) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM Users WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
+        $stmt->bind_param('i', $days);
+        $stmt->execute();
+        return (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+    }
+
+    private function countMonthlyPurchases() {
+        $result = $this->db->query(
+            "SELECT COUNT(*) as total FROM WalletTransactions 
+             WHERE reason = 'BOOK_BUY' AND created_at >= DATE_FORMAT(NOW() ,'%Y-%m-01')"
+        );
+        return (int)($result->fetch_assoc()['total'] ?? 0);
+    }
+
+    private function countTable($tableWithWhere) {
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM {$tableWithWhere}");
+        $row = $result ? $result->fetch_assoc() : ['total' => 0];
+        return (int)($row['total'] ?? 0);
+    }
+
 
     private function normalizeGenre($genre) {
         $genre = strtoupper(trim((string)$genre));

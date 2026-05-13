@@ -159,7 +159,7 @@
 
             return `
                 <article class="group flex flex-col" data-book-id="${book.id}">
-                    <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_12px_24px_-8px_rgba(56,0,191,0.2)] cursor-pointer" data-book-id="${book.id}" data-action="details">
+                    <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-xl cursor-pointer" data-book-id="${book.id}" data-action="details">
                         <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" loading="lazy" />
                         <div class="absolute top-2 left-2 flex flex-col gap-1">
                             <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${esc(book.genre_label)}</span>
@@ -167,7 +167,7 @@
                         <div class="absolute bottom-2 right-2">
                              <div class="bg-surface-container-lowest/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
                                 <span class="material-symbols-outlined text-amber-500 text-[10px]" style="font-variation-settings:'FILL' 1;">star</span>
-                                <span class="text-[10px] font-black text-[#1c1a25]">${esc(Number(book.rating || 0).toFixed(1))}</span>
+                                <span class="text-[10px] font-black text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
                             </div>
                         </div>
                     </div>
@@ -182,7 +182,7 @@
                             ` : `
                                 <button class="flex-1 py-2 text-[9px] font-black bg-primary text-white rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" data-action="buy" data-book-id="${book.id}">Buy Now</button>
                             `}
-                            <button class="flex-1 py-2 text-[9px] font-black bg-[#f0ecf8] text-[#3800bf] rounded-md hover:bg-[#e4dff3] transition-colors uppercase tracking-tighter" data-action="details" data-book-id="${book.id}">Details</button>
+                            <button class="flex-1 py-2 text-[9px] font-black bg-surface-container-high text-primary rounded-md hover:opacity-80 transition-colors uppercase tracking-tighter" data-action="details" data-book-id="${book.id}">Details</button>
                         </div>
                     </div>
                 </article>

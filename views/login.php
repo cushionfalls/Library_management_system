@@ -144,6 +144,9 @@ if ($session->isLoggedIn()) {
         z-index: -1;
     }
 
+    .text-main { color: var(--text-primary); }
+    .text-muted { color: var(--text-secondary); }
+
     @media (max-width: 968px) {
         .auth-container { grid-template-columns: 1fr; background: var(--surface); }
         .auth-visual-side { display: none; }
@@ -164,8 +167,8 @@ if ($session->isLoggedIn()) {
         </a>
 
         <div class="mb-10">
-            <h1 class="text-4xl font-black text-gray-900 mb-3">Welcome Back</h1>
-            <p class="text-gray-500">Please enter your details to sign in to your account.</p>
+            <h1 class="text-4xl font-black text-main mb-3">Welcome Back</h1>
+            <p class="text-muted">Please enter your details to sign in to your account.</p>
         </div>
 
         <div id="loginMessage" class="mb-6">
@@ -178,13 +181,13 @@ if ($session->isLoggedIn()) {
 
         <form id="loginForm" class="space-y-6" autocomplete="on">
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                <label class="block text-sm font-bold text-main mb-2">Email Address</label>
                 <input type="email" placeholder="you@example.com" class="input-lms" id="loginEmail" name="email" required>
             </div>
 
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label class="block text-sm font-bold text-gray-700">Password</label>
+                    <label class="block text-sm font-bold text-main">Password</label>
                     <a href="<?php echo APP_ROUTE; ?>?page=forgot_password" class="text-sm font-bold text-primary hover:underline">Forgot password?</a>
                 </div>
                 <input type="password" placeholder="••••••••" class="input-lms" id="loginPassword" name="password" required autocomplete="current-password">
@@ -192,7 +195,7 @@ if ($session->isLoggedIn()) {
 
             <div class="flex items-center gap-3">
                 <input type="checkbox" id="loginRemember" name="remember_me" value="1" class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
-                <label for="loginRemember" class="text-sm text-gray-600 cursor-pointer font-medium">Remember me on this device</label>
+                <label for="loginRemember" class="text-sm text-muted cursor-pointer font-medium">Remember me on this device</label>
             </div>
 
             <button type="submit" class="btn-auth">
@@ -201,7 +204,7 @@ if ($session->isLoggedIn()) {
         </form>
 
         <div class="mt-10 pt-10 border-t border-gray-100 text-center">
-            <p class="text-gray-600">Don't have an account? <a href="<?php echo APP_ROUTE; ?>?page=register" class="font-bold text-primary hover:underline">Create one for free</a></p>
+            <p class="text-muted">Don't have an account? <a href="<?php echo APP_ROUTE; ?>?page=register" class="font-bold text-primary hover:underline">Create one for free</a></p>
         </div>
     </div>
 

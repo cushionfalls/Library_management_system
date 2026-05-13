@@ -14,6 +14,7 @@
         --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
         --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        --footer-bg: #111827;
     }
 
     body {
@@ -186,12 +187,12 @@
     /* ===== SHOWCASE ===== */
     .showcase { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 100px 24px; }
     .showcase-content { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-    .showcase-mockup { background: white; border-radius: 24px; padding: 24px; color: var(--text-primary); transform: perspective(1000px) rotateY(-5deg); transition: 0.6s; }
+    .showcase-mockup { background: white; border-radius: 24px; padding: 24px; color: #1f2937; transform: perspective(1000px) rotateY(-5deg); transition: 0.6s; }
     .showcase-mockup:hover { transform: perspective(1000px) rotateY(0deg); }
 
     /* ===== CTA & FOOTER ===== */
     .cta { padding: 100px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; text-align: center; }
-    .footer { background: var(--text-primary); color: white; padding: 60px 24px; }
+    .footer { background: var(--footer-bg); color: white; padding: 60px 24px; }
     .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; max-width: 1280px; margin: 0 auto; }
 
     .reveal { opacity: 0; transform: translateY(40px); transition: 0.8s ease-out; }
@@ -212,6 +213,7 @@
         --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.45), 0 2px 4px -1px rgba(0,0,0,0.35);
         --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.45), 0 4px 6px -2px rgba(0,0,0,0.35);
         --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.35);
+        --footer-bg: #050408;
     }
     html.dark .stat-card,
     html.dark .feature-card {
@@ -232,6 +234,8 @@
         background: var(--primary);
         color: #1a1025;
     }
+
+    .text-secondary { color: var(--text-secondary); }
 
     @media (max-width: 1024px) {
         .hero-content, .showcase-content, .footer-grid { grid-template-columns: 1fr; }
@@ -296,7 +300,7 @@
         <div class="stat-card reveal">
             <div class="text-primary text-2xl mb-4"><i class="fas fa-book"></i></div>
             <div class="stat-number" data-target="10000">0</div>
-            <div class="text-gray-500 font-medium">Books Available</div>
+            <div class="text-secondary font-medium">Books Available</div>
         </div>
         <div class="stat-card reveal">
             <div class="text-primary text-2xl mb-4"><i class="fas fa-users"></i></div>
@@ -321,13 +325,13 @@
     <div class="text-center max-w-2xl mx-auto mb-16">
         <div class="hero-badge"><i class="fas fa-wand-magic-sparkles"></i> Why Choose Us</div>
         <h2 class="text-4xl font-extrabold mb-4">Experience the Future of Reading</h2>
-        <p class="text-gray-500">Our comprehensive platform is designed for modern readers who want seamless access to their favorite books.</p>
+        <p class="text-secondary">Our comprehensive platform is designed for modern readers who want seamless access to their favorite books.</p>
     </div>
     <div class="features-grid">
         <div class="feature-card reveal">
             <div class="feature-icon"><i class="fas fa-book-open"></i></div>
             <h3 class="text-xl font-bold mb-2">Vast Collection</h3>
-            <p class="text-gray-500">Browse thousands of books across multiple genres and find your next favorite read.</p>
+            <p class="text-secondary">Browse thousands of books across multiple genres and find your next favorite read.</p>
         </div>
         <div class="feature-card reveal">
             <div class="feature-icon"><i class="fas fa-tags"></i></div>
@@ -402,17 +406,17 @@
                 <i class="fas fa-book-open"></i>
                 <?php echo APP_NAME; ?>
             </a>
-            <p class="text-gray-400 text-sm">Your digital library management solution. Buy books or unlock them with a membership with ease.</p>
+            <p class="text-on-surface-variant/80 text-sm">Your digital library management solution. Buy books or unlock them with a membership with ease.</p>
         </div>
         <div>
             <h4 class="font-bold mb-4 uppercase text-xs tracking-widest">Quick Links</h4>
-            <ul class="text-gray-400 text-sm space-y-2">
-                <li><a href="<?php echo APP_ROUTE; ?>?page=home">Home</a></li>
-                <li><a href="<?php echo APP_ROUTE; ?>?page=home#features">How It Works</a></li>
+            <ul class="text-on-surface-variant/70 text-sm space-y-2">
+                <li><a href="<?php echo APP_ROUTE; ?>?page=home" class="hover:text-white transition-colors">Home</a></li>
+                <li><a href="<?php echo APP_ROUTE; ?>?page=home#features" class="hover:text-white transition-colors">How It Works</a></li>
             </ul>
         </div>
     </div>
-    <div class="max-w-[1280px] mx-auto mt-12 pt-8 border-t border-white/10 flex justify-between items-center text-gray-500 text-sm">
+    <div class="max-w-[1280px] mx-auto mt-12 pt-8 border-t border-white/10 flex justify-between items-center text-on-surface-variant/60 text-sm">
         <p>&copy; 2026 <?php echo APP_NAME; ?>. All rights reserved.</p>
         <div class="flex gap-4">
             <a href="#" class="hover:text-white"><i class="fab fa-twitter"></i></a>
