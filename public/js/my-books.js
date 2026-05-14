@@ -101,6 +101,130 @@
         allBooks = Array.isArray(data.books) ? data.books : [];
         populateCategories(allBooks);
         applyFilter();
+        loadWishlist();
+    }
+
+    async function loadWishlist() {
+        const wishlistContainer = document.getElementById('myBooksWishlistList');
+        if (!wishlistContainer) return;
+
+        try {
+            const response = await fetch((window.WISHLIST_API_URL || '') + '?action=list', { cache: 'no-store' });
+            const result = await response.json();
+            
+            if (!result || !result.success) {
+                wishlistContainer.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load wishlist</p>';
+                return;
+            }
+
+            renderWishlist(result.data || []);
+        } catch (error) {
+            wishlistContainer.innerHTML = '<p class="col-span-full text-center text-red-500">An error occurred while loading wishlist</p>';
+        }
+    }
+
+    function renderWishlist(items) {
+        const container = document.getElementById('myBooksWishlistList');
+        const countEl = document.getElementById('myBooksWishlistCount');
+        if (!container || !countEl) return;
+
+        countEl.textContent = items.length + ' item' + (items.length !== 1 ? 's' : '');
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full py-12 text-center text-on-surface-variant bg-surface-container-low rounded-2xl border-2 border-dashed border-outline-variant/30">
+                    <span class="material-symbols-outlined text-4xl mb-3 opacity-50 block">bookmark_add</span>
+                    <p class="font-medium">Your wishlist is empty. Start adding books from the catalog!</p>
+                    <a href="${window.BROWSE_BOOKS_URL || '#'}" class="btn btn-primary btn-sm mt-4">Browse Books</a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = items.map(item => {
+            const priceCents = Number(item.online_buy_price || item.price || 0);
+            const priceDisplay = priceCents > 0 ? formatUsdFromCents(priceCents) : 'FREE';
+            
+            return `
+                <div class="group flex flex-col bg-surface-container-low/50 dark:bg-surface-container-low/30 rounded-xl p-3 border border-outline-variant/20 hover:border-primary/40 hover:shadow-xl transition-all duration-300" data-wishlist-item="${item.id}">
+                    <div class="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 shadow-md group-hover:shadow-lg transition-shadow">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="${esc(item.cover_image_url || '')}" alt="${esc(item.name)}"/>
+                        <button class="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-surface-container-low/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 shadow-md hover:scale-110 transition-transform active:scale-95 group/remove" data-remove-wishlist="${item.id}" title="Remove from wishlist">
+                            <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">bookmark</span>
+                        </button>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-on-surface truncate mb-0.5">${esc(item.name)}</h4>
+                        <p class="text-[11px] text-on-surface-variant truncate mb-3 font-medium">${esc(item.authors)}</p>
+                        <div class="flex items-center justify-between mt-auto pt-2 border-t border-outline-variant/10">
+                            <span class="text-xs font-black text-primary tracking-tight">${priceDisplay}</span>
+                            <button class="px-3 py-1.5 bg-primary text-white text-[10px] font-bold rounded-lg hover:brightness-110 active:scale-95 transition-all uppercase tracking-tighter shadow-sm" data-buy-wishlist="${item.id}">Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function removeFromWishlist(bookId) {
+        if (!confirm('Remove this book from your wishlist?')) return;
+        
+        try {
+            const body = new URLSearchParams();
+            body.set('book_id', String(bookId));
+            const response = await fetch((window.WISHLIST_API_URL || '') + '?action=toggle', { method: 'POST', body });
+            const result = await response.json();
+            
+            if (result && result.success) {
+                window.showToast?.(result.message, 'success');
+                loadWishlist();
+                updateWishlistBadge();
+            } else {
+                window.showToast?.(result.message || 'Failed to remove from wishlist', 'error');
+            }
+        } catch (e) {
+            window.showToast?.('An error occurred', 'error');
+        }
+    }
+
+    async function updateWishlistBadge() {
+        try {
+            const response = await fetch((window.WISHLIST_API_URL || '') + '?action=count');
+            const result = await response.json();
+            const badge = document.getElementById('navWishlistBadge');
+            if (badge && result.success) {
+                badge.textContent = result.count;
+                badge.classList.toggle('hidden', result.count <= 0);
+            }
+        } catch (e) {}
+    }
+
+    async function handleWishlistBuy(bookId, buttonEl) {
+        if (!bookId) return;
+        const originalText = buttonEl.textContent;
+        buttonEl.disabled = true;
+        buttonEl.textContent = '...';
+
+        try {
+            const body = new URLSearchParams();
+            body.set('book_id', String(bookId));
+            const response = await fetch(window.MYBOOKS_API_URL + '?action=purchase-online', { method: 'POST', body });
+            const result = await response.json();
+
+            if (result && result.success) {
+                window.showToast?.(result.message, 'success');
+                await loadMyBooks(); // Will also call loadWishlist()
+                updateWishlistBadge();
+            } else {
+                window.showToast?.(result.message || 'Purchase failed', 'error');
+                buttonEl.disabled = false;
+                buttonEl.textContent = originalText;
+            }
+        } catch (error) {
+            window.showToast?.('An error occurred', 'error');
+            buttonEl.disabled = false;
+            buttonEl.textContent = originalText;
+        }
     }
 
     function populateCategories(books) {
@@ -333,8 +457,22 @@
 
     document.addEventListener('click', (event) => {
         const btn = event.target.closest('[data-open-reader]');
-        if (!btn) return;
-        openReader(btn.getAttribute('data-open-reader'));
+        if (btn) {
+            openReader(btn.getAttribute('data-open-reader'));
+            return;
+        }
+
+        const removeBtn = event.target.closest('[data-remove-wishlist]');
+        if (removeBtn) {
+            removeFromWishlist(removeBtn.getAttribute('data-remove-wishlist'));
+            return;
+        }
+
+        const buyBtn = event.target.closest('[data-buy-wishlist]');
+        if (buyBtn) {
+            handleWishlistBuy(buyBtn.getAttribute('data-buy-wishlist'), buyBtn);
+            return;
+        }
     });
 
     document.getElementById('myBooksReaderPrevBtn')?.addEventListener('click', () => {

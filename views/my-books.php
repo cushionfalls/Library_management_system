@@ -37,7 +37,7 @@
         </div>
     </section>
 
-    <section>
+    <section class="mb-16">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div class="flex items-center gap-4 flex-1 w-full">
                 <h2 class="text-2xl font-bold tracking-tight whitespace-nowrap">Your Collection</h2>
@@ -48,6 +48,21 @@
             </select>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="myBooksCollectionList"></div>
+    </section>
+
+    <section id="wishlist" class="mt-20 scroll-mt-24">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold tracking-tight">Your Wishlist</h2>
+            <div class="h-px flex-1 bg-surface-container mx-8"></div>
+            <span class="text-primary font-bold text-sm uppercase tracking-widest" id="myBooksWishlistCount">0 items</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6" id="myBooksWishlistList">
+            <div class="col-span-full py-12 text-center text-on-surface-variant bg-surface-container-low rounded-2xl border-2 border-dashed border-outline-variant/30">
+                <span class="material-symbols-outlined text-4xl mb-3 opacity-50 block">bookmark_add</span>
+                <p class="font-medium">Your wishlist is empty. Start adding books from the catalog!</p>
+                <a href="<?php echo APP_ROUTE; ?>?page=books" class="btn btn-primary btn-sm mt-4">Browse Books</a>
+            </div>
+        </div>
     </section>
 </div>
 
@@ -104,5 +119,7 @@
 
 <script>
 window.MYBOOKS_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
+window.WISHLIST_API_URL = '<?php echo APP_URL; ?>/controllers/wishlist.php';
+window.BROWSE_BOOKS_URL = '<?php echo APP_ROUTE; ?>?page=books';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/my-books.js"></script>

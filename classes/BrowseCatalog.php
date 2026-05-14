@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/Session.php';
 
 class BrowseCatalog {
     private $db;
@@ -63,9 +64,21 @@ class BrowseCatalog {
 
         $selectAccess = '';
         $joinAccess = '';
+        $selectWishlist = '';
+        $joinWishlist = '';
+
         if ($userId > 0) {
-            $selectAccess = ", uba.access_type AS user_access_type";
-            $joinAccess = "LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = " . (int)$userId;
+            $session = new Session();
+            if ($session->isAdmin() || $session->isLibrarian()) {
+                $selectAccess = ", 'OWNED' AS user_access_type";
+                $joinAccess = "";
+            } else {
+                $selectAccess = ", uba.access_type AS user_access_type";
+                $joinAccess = "LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = " . (int)$userId;
+            }
+            
+            $selectWishlist = ", (CASE WHEN w.id IS NOT NULL THEN 1 ELSE 0 END) AS is_wishlisted";
+            $joinWishlist = "LEFT JOIN Wishlist w ON w.book_id = b.id AND w.user_id = " . (int)$userId;
         }
 
         $sql = "
@@ -85,11 +98,13 @@ class BrowseCatalog {
                 COALESCE(ROUND(AVG(br.rating), 1), 0) AS rating,
                 COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors
                 {$selectAccess}
+                {$selectWishlist}
             FROM Books b
             LEFT JOIN BookReviews br ON br.book_id = b.id
             LEFT JOIN BookAuthors ba ON ba.book_id = b.id
             LEFT JOIN Authors a ON a.id = ba.author_id
             {$joinAccess}
+            {$joinWishlist}
             {$whereSql}
             GROUP BY b.id
             {$orderSql}
@@ -208,6 +223,16 @@ class BrowseCatalog {
         if ($bookId <= 0 || $userId <= 0) {
             return ['success' => false, 'message' => 'Invalid review request'];
         }
+
+        // Restriction: Admin and Librarian cannot review books
+        $userCheck = $this->db->prepare("SELECT role FROM Users WHERE id = ? LIMIT 1");
+        $userCheck->bind_param('i', $userId);
+        $userCheck->execute();
+        $userRole = $userCheck->get_result()->fetch_assoc()['role'] ?? 'USER';
+        if ($userRole === 'ADMIN' || $userRole === 'LIBRARIAN') {
+            return ['success' => false, 'message' => 'Administrators and librarians are not permitted to review books.'];
+        }
+
         if ($rating < 1 || $rating > 5) {
             return ['success' => false, 'message' => 'Rating must be between 1 and 5'];
         }
@@ -331,7 +356,8 @@ class BrowseCatalog {
             'rating' => (float)($row['rating'] ?? 0),
             'author_display' => trim((string)($row['authors'] ?? '')) !== '' ? (string)$row['authors'] : 'Unknown Author',
             'created_at' => (string)($row['created_at'] ?? ''),
-            'user_access_type' => $row['user_access_type'] ?? null
+            'user_access_type' => $row['user_access_type'] ?? null,
+            'is_wishlisted' => isset($row['is_wishlisted']) ? (bool)$row['is_wishlisted'] : false
         ];
     }
 
