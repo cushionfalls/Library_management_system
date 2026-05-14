@@ -63,6 +63,12 @@ class DigitalLibrary {
             }
 
             $this->db->commit();
+
+            // Automatically remove from wishlist if present
+            require_once __DIR__ . '/Wishlist.php';
+            $wishlist = new Wishlist();
+            $wishlist->removeFromWishlist($userId, $bookId);
+
             $wallet = new Wallet();
             $walletBalance = $wallet->getBalance($userId);
             $this->sendPurchaseNotification($userId, $book, $price, $walletBalance);
@@ -106,6 +112,11 @@ class DigitalLibrary {
             return ['success' => false, 'message' => 'Failed to add book to your library'];
         }
 
+        // Automatically remove from wishlist if present
+        require_once __DIR__ . '/Wishlist.php';
+        $wishlist = new Wishlist();
+        $wishlist->removeFromWishlist($userId, $bookId);
+
         return ['success' => true, 'message' => 'Book added to My Books using membership'];
     }
 
@@ -113,7 +124,7 @@ class DigitalLibrary {
         $session = new Session();
         $isAdminOrLibrarian = $session->isAdmin() || $session->isLibrarian();
         
-        $sql = "SELECT uba.id, uba.book_id, uba.access_type, uba.created_at,
+        $sql = "SELECT b.id AS book_id, uba.id AS access_id, uba.access_type, uba.created_at,
                        b.name, b.description, b.genre, b.cover_image, b.online_copy_pdf,
                        COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors,
                        ubp.progress_percent, ubp.current_location, ubp.last_opened_at
@@ -124,7 +135,7 @@ class DigitalLibrary {
                 LEFT JOIN Authors a ON a.id = ba.author_id
                 WHERE (uba.user_id = ?" . ($isAdminOrLibrarian ? " OR 1=1" : "") . ")
                 GROUP BY b.id
-                ORDER BY COALESCE(ubp.last_opened_at, uba.created_at) DESC, uba.id DESC";
+                ORDER BY COALESCE(ubp.last_opened_at, uba.created_at) DESC, b.id DESC";
         $stmt = $this->db->prepare($sql);
         if ($isAdminOrLibrarian) {
             $stmt->bind_param('iii', $userId, $userId, $userId);
@@ -136,7 +147,7 @@ class DigitalLibrary {
         $rows = [];
         while ($r = $res->fetch_assoc()) {
             $rows[] = [
-                'access_id' => (int)$r['id'],
+                'access_id' => (int)$r['access_id'],
                 'book_id' => (int)$r['book_id'],
                 'name' => (string)($r['name'] ?? ''),
                 'description' => (string)($r['description'] ?? ''),

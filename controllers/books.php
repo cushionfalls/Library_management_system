@@ -70,6 +70,9 @@ class BooksController {
                 if (!$this->session->isVerified()) {
                     return ['success' => false, 'message' => 'Please verify your email address to submit reviews'];
                 }
+                if ($this->session->isAdmin() || $this->session->isLibrarian()) {
+                    return ['success' => false, 'message' => 'Administrators and librarians are not permitted to review books.'];
+                }
                 $bookId = (int)($_POST['book_id'] ?? 0);
                 $userId = $this->session->getUserId();
                 $access = $this->library->getAccessForUserBook($userId, $bookId);
@@ -89,6 +92,9 @@ class BooksController {
                 }
                 if (!$this->session->isLoggedIn()) {
                     return ['success' => false, 'message' => 'Please login to edit your review'];
+                }
+                if ($this->session->isAdmin() || $this->session->isLibrarian()) {
+                    return ['success' => false, 'message' => 'Administrators and librarians are not permitted to review books.'];
                 }
                 return $this->catalog->updateReview(
                     $_POST['review_id'] ?? 0,

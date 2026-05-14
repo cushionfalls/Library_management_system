@@ -55,6 +55,13 @@ if (!$session->checkTimeout() && in_array($current_page, $protected_pages)) {
 
 $navUser = ($session->isLoggedIn()) ? $session->getUserData() : null;
 
+$wishlistCount = 0;
+if ($session->isLoggedIn()) {
+    require_once __DIR__ . '/../classes/Wishlist.php';
+    $wishlistSvc = new Wishlist();
+    $wishlistCount = $wishlistSvc->getCount($session->getUserId());
+}
+
 if (!function_exists('nav_profile_image_url')) {
     function nav_profile_image_url($img)
     {
@@ -124,6 +131,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
     <script src="<?php echo APP_URL; ?>/public/js/tailwind-lumina-config.js"></script>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/lumina-theme.css" />
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
     <script src="<?php echo APP_URL; ?>/public/js/theme.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
@@ -251,6 +259,14 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
 
                     <div
                         class="flex items-center justify-between lg:justify-end gap-3 lg:pl-4 lg:border-l lg:border-outline-variant/30">
+                        <?php if ($session->isLoggedIn() && !$session->isAdmin() && !$session->isLibrarian()): ?>
+                        <a href="<?php echo APP_ROUTE; ?>?page=my-books#wishlist" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center group" title="Wishlist">
+                            <span class="material-symbols-outlined text-[26px]">bookmark</span>
+                            <span id="navWishlistBadge" class="absolute top-1 right-1 bg-primary text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-surface-container-lowest shadow-sm <?php echo $wishlistCount > 0 ? '' : 'hidden'; ?>">
+                                <?php echo $wishlistCount; ?>
+                            </span>
+                        </a>
+                        <?php endif; ?>
                         <button type="button" data-lumina-theme-toggle class="lumina-theme-toggle shrink-0" title="Toggle theme" aria-label="Toggle light or dark mode">
                             <span class="material-symbols-outlined lumina-theme-icon lumina-icon-moon" aria-hidden="true">dark_mode</span>
                             <span class="material-symbols-outlined lumina-theme-icon lumina-icon-sun" aria-hidden="true">light_mode</span>
