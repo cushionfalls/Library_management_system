@@ -356,6 +356,18 @@ class AuthController {
 // Handle requests
 try {
     $action = $_GET['action'] ?? 'register';
+    
+    // CSRF Protection for POST requests
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $session = new Session();
+        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!$session->validateCSRFToken($token)) {
+            ob_clean();
+            echo json_encode(['error' => 'Invalid CSRF token']);
+            exit;
+        }
+    }
+
     $controller = new AuthController();
 
     switch ($action) {
@@ -371,7 +383,6 @@ try {
         case 'login':
             $response = $controller->login();
             break;
-        // forgot_password.js → request-password-reset (email), then verify-password-reset-otp, then reset-password
         case 'request-password-reset':
             $response = $controller->requestPasswordReset();
             break;
@@ -397,4 +408,3 @@ try {
     echo json_encode(['error' => $e->getMessage()]);
 }
 ?>
-

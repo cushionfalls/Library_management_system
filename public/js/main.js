@@ -7,6 +7,16 @@ function appBaseUrl() {
     return '';
 }
 
+// Asset URL helper
+function assetUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const base = appBaseUrl();
+    if (raw.startsWith('/')) return base + raw;
+    return base + '/' + raw;
+}
+
 // Global functions
 function openLogoutModal() {
     const modal = document.getElementById('logoutConfirmModal');
@@ -161,19 +171,9 @@ function validateForm(formElement) {
     return isValid;
 }
 
-// Initialize tooltips and popovers
+// Initialize tooltips and popovers (REMOVED: Bootstrap tooltips/popovers not used)
 document.addEventListener('DOMContentLoaded', function () {
-    // Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // Bootstrap popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+    // DaisyUI or other vanilla logic can go here
 });
 
 // Check authentication status
@@ -263,6 +263,7 @@ window.formatCurrency = formatCurrency;
 window.formatUsdFromCents = formatUsdFromCents;
 window.escapeHtml = escapeHtml;
 window.showToast = showToast;
+window.assetUrl = assetUrl;
 window.apiCall = apiCall;
 window.validateForm = validateForm;
 window.openLogoutModal = openLogoutModal;

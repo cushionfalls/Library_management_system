@@ -11,23 +11,32 @@ function adminApiUrl(action) {
     return (window.ADMIN_API_URL || '') + '?action=' + encodeURIComponent(action);
 }
 
-function adminBaseUrl() {
-    const api = window.ADMIN_API_URL || '';
-    return api.replace(/\/controllers\/admin\.php.*$/, '');
-}
-
 function adminAssetUrl(path) {
-    const raw = String(path || '').trim();
-    if (!raw) return '';
-    if (/^https?:\/\//i.test(raw)) return raw;
-    if (raw.startsWith('/')) return adminBaseUrl() + raw;
-    return adminBaseUrl() + '/' + raw.replace(/^\/+/, '');
+    return window.assetUrl ? window.assetUrl(path) : path;
 }
 
 async function adminFetch(action, options = {}) {
+    const isPost = (options.method || 'GET').toUpperCase() === 'POST';
+    if (isPost && window.CSRF_TOKEN) {
+        if (options.body instanceof FormData) {
+            options.body.append('csrf_token', window.CSRF_TOKEN);
+        } else if (typeof options.body === 'string') {
+            options.body += (options.body ? '&' : '') + 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+        } else if (!options.body) {
+            options.body = 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+            options.headers = { ...options.headers, 'Content-Type': 'application/x-www-form-urlencoded', ...options.headers };
+        }
+    }
     const response = await fetch(adminApiUrl(action), options);
     return response.json();
 }
+
+let adminOffsets = {
+    books: 0,
+    users: 0,
+    transactions: 0
+};
+const adminLimit = 20;
 
 
 function renderOverview(overview) {
@@ -40,16 +49,16 @@ function renderOverview(overview) {
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
     }
-function renderBooks(books) {
+function renderBooks(books, append = false) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
-    if (!books || books.length === 0) {
+    if (!append && (!books || books.length === 0)) {
         body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-on-surface-variant">No books found.</td></tr>';
+        document.getElementById('adminLoadMoreBooksBtn')?.classList.add('hidden');
         return;
     }
 
-
-    body.innerHTML = books.map((book) => {
+    const html = books.map((book) => {
         return `
             <tr class="hover:bg-surface-variant/30 transition-colors">
                 <td class="px-8 py-6 text-sm font-medium text-on-surface">${escapeHtml(book.isbn)}</td>
@@ -65,17 +74,29 @@ function renderBooks(books) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreBooksBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', books.length < adminLimit);
+    }
 }
 
-function renderUsers(users) {
+function renderUsers(users, append = false) {
     const body = document.getElementById('adminUsersBody');
     if (!body) return;
-    if (!users || users.length === 0) {
+    if (!append && (!users || users.length === 0)) {
         body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No users found.</td></tr>';
+        document.getElementById('adminLoadMoreUsersBtn')?.classList.add('hidden');
         return;
     }
 
-    body.innerHTML = users.map((u) => {
+    const html = users.map((u) => {
         const actionButtons = window.IS_ADMIN 
             ? `<button class="text-primary hover:bg-primary-fixed/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
                <button class="text-error hover:bg-error-container/40 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>`
@@ -94,17 +115,29 @@ function renderUsers(users) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreUsersBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', users.length < adminLimit);
+    }
 }
 
-function renderTransactions(transactions) {
+function renderTransactions(transactions, append = false) {
     const body = document.getElementById('adminTransactionsBody');
     if (!body) return;
-    if (!transactions || transactions.length === 0) {
+    if (!append && (!transactions || transactions.length === 0)) {
         body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No transactions found.</td></tr>';
+        document.getElementById('adminLoadMoreTransactionsBtn')?.classList.add('hidden');
         return;
     }
 
-    body.innerHTML = transactions.map((tx) => {
+    const html = transactions.map((tx) => {
         const displayType = tx.type.replace('_', ' ');
         return `
             <tr class="hover:bg-surface-variant/30 transition-colors">
@@ -115,6 +148,17 @@ function renderTransactions(transactions) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreTransactionsBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', transactions.length < adminLimit);
+    }
 }
 
 
@@ -142,7 +186,15 @@ function setActiveTab(tabName) {
 }
 
 async function loadAdminDashboard() {
-    const result = await adminFetch('dashboard', { cache: 'no-store' });
+    adminOffsets = { books: 0, users: 0, transactions: 0 };
+    
+    // Use POST to send limits and offsets for initial load
+    const result = await adminFetch('dashboard', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `limit=${adminLimit}&offset=0`
+    });
+
     if (!result.success || !result.data) {
         adminToast(result.error || 'Failed to load dashboard', 'error');
         return;
@@ -154,6 +206,39 @@ async function loadAdminDashboard() {
     window.__adminBooks = result.data.books || [];
     window.__adminUsers = result.data.recent_users || [];
     window.__adminTransactions = result.data.recent_transactions || [];
+}
+
+async function loadMoreSection(type) {
+    const btn = document.getElementById('adminLoadMore' + type.charAt(0).toUpperCase() + type.slice(1) + 'Btn');
+    if (btn) btn.disabled = true;
+
+    adminOffsets[type] += adminLimit;
+    const action = type === 'books' ? 'books' : (type === 'users' ? 'recent-users' : 'recent-transactions');
+    
+    try {
+        const result = await adminFetch(action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `limit=${adminLimit}&offset=${adminOffsets[type]}`
+        });
+
+        if (result.success && result.data) {
+            if (type === 'books') {
+                renderBooks(result.data, true);
+                window.__adminBooks = [...(window.__adminBooks || []), ...result.data];
+            } else if (type === 'users') {
+                renderUsers(result.data, true);
+                window.__adminUsers = [...(window.__adminUsers || []), ...result.data];
+            } else if (type === 'transactions') {
+                renderTransactions(result.data, true);
+                window.__adminTransactions = [...(window.__adminTransactions || []), ...result.data];
+            }
+        }
+    } catch (e) {
+        adminToast('Failed to load more ' + type, 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 async function loadAnalytics() {
@@ -847,6 +932,11 @@ function bindAdminEvents() {
             }
         });
     });
+
+    // Pagination Listeners
+    document.getElementById('adminLoadMoreBooksBtn')?.addEventListener('click', () => loadMoreSection('books'));
+    document.getElementById('adminLoadMoreUsersBtn')?.addEventListener('click', () => loadMoreSection('users'));
+    document.getElementById('adminLoadMoreTransactionsBtn')?.addEventListener('click', () => loadMoreSection('transactions'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

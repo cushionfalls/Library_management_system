@@ -64,14 +64,21 @@ class Session {
         return (int)($this->get('is_verified', 0)) === 1;
     }
 
+    private static $userDataCache = null;
+
     public function getUserData() {
         if (!$this->isLoggedIn()) return null;
+
+        if (self::$userDataCache !== null) {
+            return self::$userDataCache;
+        }
 
         $userId = $this->getUserId();
         $stmt = $this->db->prepare("SELECT * FROM Users WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $userId);
         $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        self::$userDataCache = $stmt->get_result()->fetch_assoc();
+        return self::$userDataCache;
     }
 
     public function login($user_id, $role, $name = '', $is_verified = 1) {

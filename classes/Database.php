@@ -72,41 +72,94 @@ class Database {
         }
     }
 
-    public function selectAll($table, $where = '', $order = '', $limit = '') {
+    private function getType($value) {
+        if (is_int($value)) return 'i';
+        if (is_double($value)) return 'd';
+        return 's';
+    }
+
+    public function selectAll($table, $where = '', $params = [], $order = '', $limit = '') {
         $sql = "SELECT * FROM `$table`";
         if (!empty($where)) $sql .= " WHERE $where";
         if (!empty($order)) $sql .= " ORDER BY $order";
         if (!empty($limit)) $sql .= " LIMIT $limit";
 
-        return $this->query($sql);
+        if (empty($params)) {
+            return $this->query($sql);
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        $types = "";
+        foreach ($params as $param) {
+            $types .= $this->getType($param);
+        }
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        return $stmt->get_result();
     }
 
     public function selectOne($table, $id) {
-        $sql = "SELECT * FROM `$table` WHERE `id` = $id LIMIT 1";
-        $result = $this->query($sql);
+        $sql = "SELECT * FROM `$table` WHERE `id` = ? LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
         return $result ? $result->fetch_assoc() : null;
     }
 
     public function insert($table, $data) {
-        $columns = implode(',', array_keys($data));
-        $values = implode("','", array_values($data));
-        $sql = "INSERT INTO `$table` ($columns) VALUES ('$values')";
-        return $this->query($sql);
+        $columns = "`" . implode("`, `", array_keys($data)) . "`";
+        $placeholders = implode(", ", array_fill(0, count($data), "?"));
+        $sql = "INSERT INTO `$table` ($columns) VALUES ($placeholders)";
+        
+        $stmt = $this->conn->prepare($sql);
+        $types = "";
+        $values = [];
+        foreach ($data as $value) {
+            $types .= $this->getType($value);
+            $values[] = $value;
+        }
+        $stmt->bind_param($types, ...$values);
+        return $stmt->execute();
     }
 
-    public function update($table, $data, $where) {
+    public function update($table, $data, $where, $whereParams = []) {
         $set = [];
+        $types = "";
+        $values = [];
+        
         foreach ($data as $key => $value) {
-            $set[] = "`$key` = '$value'";
+            $set[] = "`$key` = ?";
+            $types .= $this->getType($value);
+            $values[] = $value;
         }
         $set = implode(', ', $set);
+        
         $sql = "UPDATE `$table` SET $set WHERE $where";
-        return $this->query($sql);
+        
+        foreach ($whereParams as $param) {
+            $types .= $this->getType($param);
+            $values[] = $param;
+        }
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param($types, ...$values);
+        return $stmt->execute();
     }
 
-    public function delete($table, $where) {
+    public function delete($table, $where, $params = []) {
         $sql = "DELETE FROM `$table` WHERE $where";
-        return $this->query($sql);
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!empty($params)) {
+            $types = "";
+            foreach ($params as $param) {
+                $types .= $this->getType($param);
+            }
+            $stmt->bind_param($types, ...$params);
+        }
+        
+        return $stmt->execute();
     }
 }
 ?>

@@ -10,6 +10,14 @@ class OTP {
     }
 
     public function generate($email) {
+        $cooldownTime = date('Y-m-d H:i:s', time() + OTP_VALIDITY - 60);
+        $stmt = $this->db->prepare("SELECT id FROM OTP WHERE email = ? AND expires_at > ? LIMIT 1");
+        $stmt->bind_param('ss', $email, $cooldownTime);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            return false;
+        }
+
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiryTime = date('Y-m-d H:i:s', time() + OTP_VALIDITY);
 

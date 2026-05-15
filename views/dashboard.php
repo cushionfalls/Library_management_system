@@ -4,6 +4,8 @@
     h1, h2, h3, .brand-logo { font-family: 'Manrope', system-ui, sans-serif; }
 </style>
 
+<?php $userRole = $_SESSION['user_role'] ?? 'USER'; ?>
+
 <div class="w-full space-y-12">
 
     <!-- Hero Section -->
@@ -58,6 +60,7 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </a>
+        <?php if ($userRole === 'USER'): ?>
         <a href="<?php echo APP_ROUTE; ?>?page=membership" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
             <div>
                 <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
@@ -70,6 +73,7 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </a>
+        <?php endif; ?>
     </section>
 
     <!-- Bottom Section -->
@@ -108,6 +112,7 @@
         </div>
     </section>
 
+    <?php if ($userRole === 'USER'): ?>
     <!-- AI Recommendation Section -->
     <section class="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
         <div id="recommendationsPlaceholder" class="py-12 flex flex-col items-center justify-center text-center">
@@ -131,6 +136,7 @@
 
         <div id="recommendationsGrid" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto"></div>
     </section>
+    <?php endif; ?>
 </div>
 
 <script>

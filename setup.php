@@ -288,8 +288,8 @@ $adminEmail = 'admin@lms.com';
 $checkAdmin = $conn->query("SELECT id FROM Users WHERE email = '$adminEmail'");
 if ($checkAdmin->num_rows === 0) {
     $pass = password_hash('Admin@123', PASSWORD_BCRYPT, ['cost' => 12]);
-    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, wallet) 
-            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW(), 5000)";
+    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at) 
+            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW())";
     $conn->query($sql);
 }
 

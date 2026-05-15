@@ -50,6 +50,7 @@
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="myBooksCollectionList"></div>
     </section>
 
+    <?php if (($session->getRole() ?? '') === 'USER'): ?>
     <section id="wishlist" class="mt-20 scroll-mt-24">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-bold tracking-tight">Your Wishlist</h2>
@@ -64,6 +65,7 @@
             </div>
         </div>
     </section>
+    <?php endif; ?>
 </div>
 
 <dialog id="myBooksReaderModal" class="modal">
