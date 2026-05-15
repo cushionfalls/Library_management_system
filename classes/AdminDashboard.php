@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/User.php';
 
 class AdminDashboard {
     private $db;
@@ -23,21 +24,23 @@ class AdminDashboard {
         return $res && $res->num_rows > 0;
     }
 
-    public function getRecentUsers($limit = 8) {
+    public function getRecentUsers($limit = 8, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
             "SELECT id, first_name, last_name, email, role, is_active, phone_number, dob, profile_image, created_at
              FROM Users
              ORDER BY created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getRecentTransactions($limit = 100) {
+    public function getRecentTransactions($limit = 100, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
                     "SELECT wt.id,
                     wt.reason AS type,
@@ -53,16 +56,17 @@ class AdminDashboard {
              INNER JOIN Users u ON u.id = wt.user_id
              WHERE wt.reason IN ('TOP_UP', 'MEMBERSHIP', 'BOOK_BUY')
              ORDER BY created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
 
-    public function getBooks($limit = 100) {
+    public function getBooks($limit = 100, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
             "SELECT b.id, b.isbn, b.name, b.description, b.publisher, b.published_at, b.language, b.genre,
                     b.number_of_copies, b.price, b.online_buy_price,
@@ -73,9 +77,9 @@ class AdminDashboard {
              LEFT JOIN Authors a ON a.id = ba.author_id
              GROUP BY b.id
              ORDER BY b.created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
@@ -396,63 +400,18 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'You cannot remove your own account'];
         }
 
-        $roleStmt = $this->db->prepare("SELECT role FROM Users WHERE id = ? LIMIT 1");
-        $roleStmt->bind_param('i', $id);
-        $roleStmt->execute();
-        $row = $roleStmt->get_result()->fetch_assoc();
-        if (!$row) {
+        $user = new User();
+        $userData = $user->getUserById($id);
+        if (!$userData) {
             return ['success' => false, 'message' => 'User not found'];
         }
-        if (($row['role'] ?? '') === 'ADMIN') {
+        if (($userData['role'] ?? '') === 'ADMIN') {
             return ['success' => false, 'message' => 'Admin user cannot be removed'];
         }
 
-        $this->db->begin_transaction();
-        try {
-            $emailStmt = $this->db->prepare("SELECT email FROM Users WHERE id = ? LIMIT 1");
-            $emailStmt->bind_param('i', $id);
-            $emailStmt->execute();
-            $user = $emailStmt->get_result()->fetch_assoc();
-            if (!$user) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'User not found'];
-            }
-
-            $email = $user['email'];
-
-            $stmt = $this->db->prepare("DELETE FROM WalletTransactions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM BookReviews WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM BookTransactions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Sessions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM OTP WHERE email = ?");
-            $stmt->bind_param('s', $email);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Users WHERE id = ? LIMIT 1");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            if ($stmt->affected_rows <= 0) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'User not found'];
-            }
-
-            $this->db->commit();
+        if ($user->deleteUser($id)) {
             return ['success' => true, 'message' => 'User removed successfully'];
-        } catch (Exception $e) {
-            $this->db->rollback();
+        } else {
             return ['success' => false, 'message' => 'Failed to remove user'];
         }
     }
@@ -534,13 +493,9 @@ class AdminDashboard {
     }
 
     private function countActiveMemberships() {
-        // Simple count of unique users who have an active membership in UserBookAccess
-        // Wait, a better way is to check the Membership table if it exists, but I saw it doesn't.
-        // Let's check classes/Membership.php to see how it's handled.
-        // Actually, DigitalLibrary.php uses UserBookAccess for membership-unlocked books.
-        // But the "active memberships" usually refers to the plan subscription.
-        // Let's check classes/Membership.php.
-        return $this->countTable('UserMemberships WHERE ends_at > NOW()');
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM UserMemberships WHERE ends_at > NOW()");
+        $row = $result ? $result->fetch_assoc() : ['total' => 0];
+        return (int)($row['total'] ?? 0);
     }
 
     private function countNewUsers($days) {
@@ -558,8 +513,12 @@ class AdminDashboard {
         return (int)($result->fetch_assoc()['total'] ?? 0);
     }
 
-    private function countTable($tableWithWhere) {
-        $result = $this->db->query("SELECT COUNT(*) AS total FROM {$tableWithWhere}");
+    private function countTable($table) {
+        $allowed = ['Users', 'Books', 'UserMemberships'];
+        if (!in_array($table, $allowed)) {
+            return 0;
+        }
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM `{$table}`");
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
     }

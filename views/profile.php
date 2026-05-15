@@ -161,6 +161,7 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <label for="profileImagePickerSecondary" class="block w-full text-center py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-lg shadow-sm border border-outline-variant/50 cursor-pointer hover:bg-surface-container-high transition-colors">Choose File</label>
             </form>
 
+            <?php if (($profileUser['role'] ?? '') !== 'ADMIN'): ?>
             <div class="bg-primary text-on-primary rounded-xl p-8 relative overflow-hidden">
                 <div class="relative z-10">
                     <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-4">Membership Status</p>
@@ -174,6 +175,7 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
             <div class="bg-surface-container-low rounded-xl p-8 space-y-4">
                 <div class="flex items-center justify-between gap-3 pb-4 border-b border-outline-variant/20">
@@ -189,6 +191,7 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Quick Links</h4>
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=my-books"><span>My Books</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=books"><span>Browse Catalog</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                <?php if (($profileUser['role'] ?? '') !== 'ADMIN'): ?>
                 <a class="flex items-center justify-between text-sm font-medium p-2 hover:bg-surface-container-high rounded-lg transition-colors" href="<?php echo APP_ROUTE; ?>?page=membership"><span>Membership</span><i class="fa-solid fa-chevron-right text-xs"></i></a>
                 <form id="profileDeleteForm" class="pt-4 border-t border-outline-variant/20">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
@@ -196,6 +199,7 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                     <input class="profile-input mt-2" type="text" name="confirm_delete" placeholder="DELETE" />
                     <button class="mt-3 flex items-center justify-between text-sm font-medium p-2 hover:bg-error-container/20 rounded-lg transition-colors text-error w-full" type="submit"><span>Delete Account</span><i class="fa-solid fa-trash text-xs"></i></button>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>

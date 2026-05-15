@@ -137,10 +137,6 @@ class Membership {
 
                 $currentPlanId = (int)($active['plan_id'] ?? 0);
                 $currentPrice = (int)($active['price'] ?? 0);
-                if ($price < $currentPrice) {
-                    $this->db->rollback();
-                    return ['success' => false, 'message' => 'Downgrading membership is not allowed'];
-                }
             }
 
             // Wallet debit (inside same DB transaction).

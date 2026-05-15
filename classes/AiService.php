@@ -279,8 +279,8 @@ class AiService
         $catalogByIsbn = [];
         $catalogByTitle = [];
         foreach ($availableBooks as $book) {
-            $isbn = strtolower(trim((string)($book['isbn'] ?? '')));
-            $title = strtolower(trim((string)($book['title'] ?? '')));
+            $isbn = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)($book['isbn'] ?? ''))));
+            $title = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)($book['title'] ?? ''))));
             if ($isbn !== '') {
                 $catalogByIsbn[$isbn] = $book;
             }
@@ -292,8 +292,8 @@ class AiService
         $result = [];
         $seen = [];
         foreach ($recommendations as $item) {
-            $isbn = strtolower(trim((string)($item['isbn'] ?? '')));
-            $title = strtolower(trim((string)($item['title'] ?? '')));
+            $isbn = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)($item['isbn'] ?? ''))));
+            $title = preg_replace('/[^a-z0-9]/', '', strtolower(trim((string)($item['title'] ?? ''))));
             $matchedBook = null;
 
             if ($isbn !== '' && isset($catalogByIsbn[$isbn])) {

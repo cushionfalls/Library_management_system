@@ -259,7 +259,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
 
                     <div
                         class="flex items-center justify-between lg:justify-end gap-3 lg:pl-4 lg:border-l lg:border-outline-variant/30">
-                        <?php if ($session->isLoggedIn() && !$session->isAdmin() && !$session->isLibrarian()): ?>
+                        <?php if ($session->isLoggedIn() && ($session->getRole() ?? '') === 'USER'): ?>
                         <a href="<?php echo APP_ROUTE; ?>?page=my-books#wishlist" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center group" title="Wishlist">
                             <span class="material-symbols-outlined text-[26px]">bookmark</span>
                             <span id="navWishlistBadge" class="absolute top-1 right-1 bg-primary text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-surface-container-lowest shadow-sm <?php echo $wishlistCount > 0 ? '' : 'hidden'; ?>">

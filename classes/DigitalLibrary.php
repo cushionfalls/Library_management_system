@@ -10,7 +10,6 @@ class DigitalLibrary {
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
-        $this->ensureSchema();
     }
 
     public function purchaseOnlineBook($userId, $bookId) {
@@ -287,8 +286,9 @@ class DigitalLibrary {
         }
     }
 
-    private function ensureSchema() {
-        $this->db->query(
+    public static function ensureSchema() {
+        $db = Database::getInstance()->getConnection();
+        $db->query(
             "CREATE TABLE IF NOT EXISTS UserBookAccess (
                 id int PRIMARY KEY AUTO_INCREMENT,
                 user_id int NOT NULL,
@@ -304,7 +304,7 @@ class DigitalLibrary {
                 CONSTRAINT fk_uba_book FOREIGN KEY (book_id) REFERENCES Books(id) ON DELETE CASCADE
             )"
         );
-        $this->db->query(
+        $db->query(
             "CREATE TABLE IF NOT EXISTS UserBookProgress (
                 id int PRIMARY KEY AUTO_INCREMENT,
                 user_id int NOT NULL,
@@ -322,7 +322,7 @@ class DigitalLibrary {
             )"
         );
         // Allow storing richer reader markers (CFI + page metadata).
-        $this->db->query("ALTER TABLE UserBookProgress MODIFY current_location TEXT");
+        $db->query("ALTER TABLE UserBookProgress MODIFY current_location TEXT");
     }
 }
 

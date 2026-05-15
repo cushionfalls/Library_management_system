@@ -25,15 +25,23 @@ class AdminController {
             return ['error' => 'Forbidden'];
         }
 
+        // CSRF Protection for POST requests
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            if (!$this->session->validateCSRFToken($token)) {
+                return ['error' => 'Invalid CSRF token'];
+            }
+        }
+
         switch ($action) {
             case 'overview':
                 return ['success' => true, 'data' => $this->service->getOverview()];
             case 'books':
-                return ['success' => true, 'data' => $this->service->getBooks(200)];
+                return ['success' => true, 'data' => $this->service->getBooks($this->getLimit(200), $this->getOffset())];
             case 'recent-users':
-                return ['success' => true, 'data' => $this->service->getRecentUsers(200)];
+                return ['success' => true, 'data' => $this->service->getRecentUsers($this->getLimit(200), $this->getOffset())];
             case 'recent-transactions':
-                return ['success' => true, 'data' => $this->service->getRecentTransactions(200)];
+                return ['success' => true, 'data' => $this->service->getRecentTransactions($this->getLimit(200), $this->getOffset())];
             case 'create-book':
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     return ['error' => 'Invalid request method'];
@@ -363,6 +371,14 @@ class AdminController {
         }
 
         return @file_get_contents($url);
+    }
+
+    private function getLimit($default = 20) {
+        return (int)($_GET['limit'] ?? $_POST['limit'] ?? $default);
+    }
+
+    private function getOffset() {
+        return (int)($_GET['offset'] ?? $_POST['offset'] ?? 0);
     }
 }
 

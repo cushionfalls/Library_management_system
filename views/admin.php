@@ -63,6 +63,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreBooksBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Books</button>
+        </div>
     </section>
 
     <section id="adminSectionUsers" class="admin-tab-panel hidden bg-surface-container-lowest rounded-2xl shadow-xl shadow-primary/10 p-8 border border-outline-variant/20">
@@ -92,6 +95,9 @@
                     <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Loading users...</td></tr>
                 </tbody>
             </table>
+        </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreUsersBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Users</button>
         </div>
     </section>
 
@@ -128,6 +134,9 @@
                     <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Loading transactions...</td></tr>
                 </tbody>
             </table>
+        </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreTransactionsBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Transactions</button>
         </div>
     </section>
 
@@ -425,6 +434,7 @@ window.ADMIN_API_URL = '<?php echo APP_URL; ?>/controllers/admin.php';
 window.ADMIN_SEARCH_API_URL = '<?php echo APP_URL; ?>/controllers/adminsearchs.php';
 window.IS_LIBRARIAN = <?php echo $session->isLibrarian() ? 'true' : 'false'; ?>;
 window.IS_ADMIN = <?php echo $session->isAdmin() ? 'true' : 'false'; ?>;
+window.CSRF_TOKEN = '<?php echo $session->generateCSRFToken(); ?>';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/admin.js"></script>
 <script src="<?php echo APP_URL; ?>/public/js/adminsearch.js"></script>

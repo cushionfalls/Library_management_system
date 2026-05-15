@@ -206,7 +206,7 @@ window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
 window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
 window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
 window.BROWSE_IS_VERIFIED = <?php echo ($session->isLoggedIn() && $session->isVerified()) ? 'true' : 'false'; ?>;
-window.USER_ROLE = '<?php echo $_SESSION['role'] ?? 'GUEST'; ?>';
+window.USER_ROLE = '<?php echo $_SESSION['user_role'] ?? 'GUEST'; ?>';
 window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
 window.MY_BOOKS_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=my-books';
 window.WISHLIST_API_URL = '<?php echo APP_URL; ?>/controllers/wishlist.php';
