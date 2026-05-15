@@ -20,6 +20,8 @@ async function adminFetch(action, options = {}) {
     if (isPost && window.CSRF_TOKEN) {
         if (options.body instanceof FormData) {
             options.body.append('csrf_token', window.CSRF_TOKEN);
+        } else if (options.body instanceof URLSearchParams) {
+            options.body.append('csrf_token', window.CSRF_TOKEN);
         } else if (typeof options.body === 'string') {
             options.body += (options.body ? '&' : '') + 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
         } else if (!options.body) {
@@ -609,7 +611,7 @@ async function saveBook(event) {
     const pdfInput = document.getElementById('adminBookOnlinePdf');
     const existingPdfEl = document.getElementById('adminBookExistingOnlinePdf');
     if (!id && (!pdfInput.files || pdfInput.files.length === 0) && (!existingPdfEl || !existingPdfEl.value)) {
-        adminToast('Electronic copy (EPUB/PDF) is mandatory for new books', 'error');
+        adminToast('Electronic copy (EPUB) is mandatory for new books', 'error');
         return;
     }
 
@@ -823,6 +825,15 @@ function bindAdminEvents() {
     if (pdfInput) {
         pdfInput.addEventListener('change', () => {
             const file = pdfInput.files && pdfInput.files[0];
+            if (file) {
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (extension !== 'epub') {
+                    adminToast('Only .epub files are allowed', 'error');
+                    pdfInput.value = '';
+                    pdfFilename.textContent = 'No file selected';
+                    return;
+                }
+            }
             pdfFilename.textContent = file ? file.name : 'No file selected';
         });
     }

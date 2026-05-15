@@ -164,9 +164,12 @@ async function loadQuote() {
 
 async function loadDashboard() {
     try {
-        const wallet = await fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null);
-        if (wallet && wallet.success) {
-            document.getElementById('walletBalance').textContent = window.formatUsdFromCents(wallet.balance || 0);
+        if (window.USER_ROLE === 'USER') {
+            const wallet = await fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null);
+            if (wallet && wallet.success) {
+                const balanceEl = document.getElementById('walletBalance');
+                if (balanceEl) balanceEl.textContent = window.formatUsdFromCents(wallet.balance || 0);
+            }
         }
 
         const myBooks = await fetch('<?php echo APP_URL; ?>/controllers/books.php?action=my-books').then(r => r.json()).catch(() => null);
@@ -188,15 +191,19 @@ async function loadDashboard() {
             }
         }
 
-        const membership = await fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null);
-        const statusEl = document.getElementById('membershipStatus');
-        const untilEl = document.getElementById('membershipUntil');
-        if (membership && membership.success && membership.active) {
-            statusEl.textContent = membership.active.plan_name || 'Active';
-            untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
-        } else {
-            statusEl.textContent = 'Not Active';
-            untilEl.textContent = 'Activate membership to unlock more books.';
+        if (window.USER_ROLE === 'USER') {
+            const membership = await fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null);
+            const statusEl = document.getElementById('membershipStatus');
+            const untilEl = document.getElementById('membershipUntil');
+            if (statusEl && untilEl) {
+                if (membership && membership.success && membership.active) {
+                    statusEl.textContent = membership.active.plan_name || 'Active';
+                    untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
+                } else {
+                    statusEl.textContent = 'Not Active';
+                    untilEl.textContent = 'Activate membership to unlock more books.';
+                }
+            }
         }
     } catch (err) {
         console.error('Dashboard load error:', err);

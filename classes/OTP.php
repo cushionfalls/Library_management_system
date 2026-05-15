@@ -9,13 +9,27 @@ class OTP {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function generate($email) {
-        $cooldownTime = date('Y-m-d H:i:s', time() + OTP_VALIDITY - 60);
-        $stmt = $this->db->prepare("SELECT id FROM OTP WHERE email = ? AND expires_at > ? LIMIT 1");
-        $stmt->bind_param('ss', $email, $cooldownTime);
+    public function getRemainingCooldown($email) {
+        $stmt = $this->db->prepare("SELECT expires_at FROM OTP WHERE email = ? LIMIT 1");
+        $stmt->bind_param('s', $email);
         $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
-            return false;
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            $expiresAt = strtotime($row['expires_at']);
+            $generatedAt = $expiresAt - OTP_VALIDITY;
+            $now = time();
+            $elapsed = $now - $generatedAt;
+            $remaining = 60 - $elapsed;
+            return $remaining > 0 ? $remaining : 0;
+        }
+        return 0;
+    }
+
+    public function generate($email) {
+        $remaining = $this->getRemainingCooldown($email);
+        if ($remaining > 0) {
+            return ['on_cooldown' => true, 'remaining' => $remaining];
         }
 
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
