@@ -1,5 +1,4 @@
+cache
 .env
 public/uploads
 logs
-cache
-*.log
