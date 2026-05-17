@@ -73,8 +73,13 @@ class BrowseCatalog {
                 $selectAccess = ", 'OWNED' AS user_access_type";
                 $joinAccess = "";
             } else {
-                $selectAccess = ", uba.access_type AS user_access_type";
-                $joinAccess = "LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = " . (int)$userId;
+                $selectAccess = ", (CASE 
+                                      WHEN uba.access_type = 'OWNED' THEN 'OWNED'
+                                      WHEN uba.access_type = 'MEMBERSHIP' AND um.status = 'ACTIVE' AND um.ends_at > NOW() THEN 'MEMBERSHIP'
+                                      ELSE NULL
+                                    END) AS user_access_type";
+                $joinAccess = "LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = " . (int)$userId . "
+                               LEFT JOIN UserMemberships um ON um.id = uba.source_ref AND uba.access_type = 'MEMBERSHIP'";
             }
             
             $selectWishlist = ", (CASE WHEN w.id IS NOT NULL THEN 1 ELSE 0 END) AS is_wishlisted";

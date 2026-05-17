@@ -404,6 +404,14 @@
                         const code = event.keyCode || event.which;
                         if (code === 37) rendition.prev();
                         if (code === 39) rendition.next();
+                        if (code === 27) { // Escape key
+                            if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                                const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                                if (exitMethod) exitMethod.call(document);
+                            } else {
+                                document.getElementById('myBooksReaderModal')?.close();
+                            }
+                        }
                     });
 
                     epub.ready.then(() => {
@@ -570,7 +578,23 @@
         }
     });
 
+    document.getElementById('myBooksCloseReaderBtn')?.addEventListener('click', () => {
+        document.getElementById('myBooksReaderModal')?.close();
+    });
+
     document.getElementById('myBooksReaderModal')?.addEventListener('close', () => {
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+            const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exitMethod) {
+                try {
+                    exitMethod.call(document);
+                } catch(e) {}
+            }
+        }
+        if (currentRendition && currentRendition.destroy) {
+            try { currentRendition.destroy(); } catch (_) {}
+            currentRendition = null;
+        }
         if (currentBookId) loadMyBooks();
     });
 

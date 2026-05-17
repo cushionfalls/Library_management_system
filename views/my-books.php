@@ -100,7 +100,7 @@
                 <button id="myBooksFullscreenBtn" class="p-2 hover:bg-surface-container-high rounded-lg transition-colors" title="Toggle Fullscreen">
                     <span class="material-symbols-outlined block">fullscreen</span>
                 </button>
-                <form method="dialog"><button class="btn btn-sm btn-ghost">✕</button></form>
+                <button id="myBooksCloseReaderBtn" class="btn btn-sm btn-ghost" type="button">✕</button>
             </div>
         </div>
         <div id="myBooksReaderContainer" class="flex-1 relative bg-surface-dim shadow-inner"></div>

@@ -223,7 +223,7 @@
                            class="wallet-topup-amount-input w-full rounded-xl border-1.5 border-outline-variant/45 bg-surface-container-lowest py-3 pl-10 pr-4 text-2xl font-black text-on-surface shadow-sm transition-all
                                   placeholder:text-slate-400 placeholder:font-medium
                                   focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
-                           style="color: #1c1a25 !important;"
+                           style="color: #ffffff !important;"
                            placeholder="0.00" />
                 </div>
                 <p class="mt-2 text-xs text-on-surface-variant">
