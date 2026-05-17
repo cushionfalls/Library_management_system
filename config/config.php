@@ -73,6 +73,7 @@ define('PASSWORD_HASH_OPTIONS', ['cost' => 12]);
 define('MAX_UPLOAD_SIZE', 5 * 1024 * 1024);
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'image/pjpeg', 'image/x-png']);
 define('ALLOWED_PDF_TYPES', ['application/pdf', 'application/epub+zip', 'application/octet-stream', 'application/zip']);
+define('ALLOWED_EPUB_TYPES', ['application/epub+zip']);
 define('UPLOAD_DIR', __DIR__ . '/../public/uploads');
 define('ITEMS_PER_PAGE', 12);
 define('BASE_URL', APP_URL . '/index.php');

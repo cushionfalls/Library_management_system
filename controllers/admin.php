@@ -211,7 +211,7 @@ class AdminController {
                 $_FILES['online_copy_pdf'],
                 __DIR__ . '/../public/uploads/epubs',
                 'book-epub-',
-                ALLOWED_PDF_TYPES
+                ALLOWED_EPUB_TYPES
             );
             if (!$pdfUpload['success']) {
                 return $pdfUpload;

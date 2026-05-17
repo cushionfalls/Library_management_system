@@ -159,11 +159,13 @@ $forgotJsVersion = file_exists($forgotJsPath) ? (string) @filemtime($forgotJsPat
         </div>
 
         <input type="hidden" id="forgotAfterResetUrl" value="<?php echo htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8'); ?>" />
+        <input type="hidden" id="globalCsrfToken" value="<?php echo $session->generateCSRFToken(); ?>" />
 
         <!-- Step 1: Email -->
         <div id="forgotStepEmail">
             <div id="forgotMsgEmail" class="mb-6"></div>
             <form id="forgotFormEmail" class="space-y-6" method="post" autocomplete="on">
+                <input type="hidden" name="csrf_token" value="<?php echo $session->generateCSRFToken(); ?>">
                 <div>
                     <label class="block text-sm font-bold text-main mb-2">Email Address</label>
                     <input type="email" id="forgotEmail" name="email" required placeholder="you@example.com" class="input-lms" autocomplete="email" />
@@ -178,9 +180,10 @@ $forgotJsVersion = file_exists($forgotJsPath) ? (string) @filemtime($forgotJsPat
         <div id="forgotStepOtp" class="hidden">
             <div id="forgotMsgOtp" class="mb-6"></div>
             <form id="forgotFormOtp" class="space-y-6" method="post" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?php echo $session->generateCSRFToken(); ?>">
                 <div>
                     <label class="block text-sm font-bold text-main mb-2">Verification Code</label>
-                    <input type="text" id="forgotOtpInput" name="otp" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="w-full text-center text-4xl font-black tracking-[1rem] p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary" placeholder="000000" required />
+                    <input type="text" id="forgotOtpInput" name="otp" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="w-full text-center text-4xl font-black tracking-[1rem] p-4 bg-white text-slate-900 rounded-2xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="000000" required />
                     <input type="hidden" name="email" id="forgotOtpEmailHidden" value="" />
                 </div>
                 <div class="flex justify-between items-center text-sm font-bold">
@@ -197,6 +200,7 @@ $forgotJsVersion = file_exists($forgotJsPath) ? (string) @filemtime($forgotJsPat
         <div id="forgotStepPassword" class="hidden">
             <div id="forgotMsgPassword" class="mb-6"></div>
             <form id="forgotFormPassword" class="space-y-6" method="post" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?php echo $session->generateCSRFToken(); ?>">
                 <input type="hidden" name="email" id="forgotPasswordEmailHidden" value="" />
                 <div>
                     <label class="block text-sm font-bold text-main mb-2">New Password</label>

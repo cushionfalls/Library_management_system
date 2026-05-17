@@ -131,7 +131,6 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
     <script src="<?php echo APP_URL; ?>/public/js/tailwind-lumina-config.js"></script>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/css/lumina-theme.css" />
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
     <script src="<?php echo APP_URL; ?>/public/js/theme.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
@@ -200,6 +199,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
     <script src="<?php echo APP_URL; ?>/public/js/main.js"></script>
     <script>
         window.USER_ROLE = '<?php echo $_SESSION['user_role'] ?? 'GUEST'; ?>';
+        window.CSRF_TOKEN = '<?php echo $session->generateCSRFToken(); ?>';
     </script>
 </head>
 
@@ -390,7 +390,7 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
                     const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=resend-otp', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'email=' + encodeURIComponent(email)
+                        body: 'email=' + encodeURIComponent(email) + '&csrf_token=' + encodeURIComponent('<?php echo $session->generateCSRFToken(); ?>')
                     });
                     const result = await response.json();
                     if (result.success) {
@@ -399,6 +399,13 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
                         const modalMsg = document.getElementById('globalOtpMessage');
                         if (modalMsg) {
                             modalMsg.innerHTML = '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-info-circle"></i>' + result.message + '</div>';
+                        }
+                    } else if (result.on_cooldown) {
+                        const modalMsg = document.getElementById('globalOtpMessage');
+                        if (modalMsg) {
+                            window.startOtpCountdown(modalMsg, result.remaining);
+                        } else {
+                            alert(result.error);
                         }
                     } else {
                         alert(result.error || 'Failed to resend OTP');
@@ -515,11 +522,12 @@ $bodyShellClass .= ($current_page === 'home') ? ' home-landing-body' : '';
             <div id="globalOtpMessage" class="mb-8"></div>
 
             <form onsubmit="handleGlobalOtpSubmit(event)" class="space-y-8">
+                <input type="hidden" name="csrf_token" value="<?php echo $session->generateCSRFToken(); ?>">
                 <div>
                     <label class="block text-sm font-bold text-on-surface mb-3 text-center uppercase tracking-widest">OTP
                         Code</label>
                     <input type="text" placeholder="0 0 0 0 0 0"
-                        class="w-full bg-surface-container-low border border-outline-variant/40 rounded-2xl p-5 text-center text-4xl tracking-[1rem] font-black text-on-surface focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center text-4xl tracking-[1rem] font-black text-slate-900 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
                         name="otp" maxlength="6" required>
                 </div>
 

@@ -54,7 +54,9 @@ class DigitalLibrary {
             $walletTxId = (int)$this->db->insert_id;
 
             $accessType = 'OWNED';
-            $stmtA = $this->db->prepare("INSERT INTO UserBookAccess (user_id, book_id, access_type, source_ref, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
+            $stmtA = $this->db->prepare("INSERT INTO UserBookAccess (user_id, book_id, access_type, source_ref, created_at, updated_at) 
+                                         VALUES (?, ?, ?, ?, NOW(), NOW())
+                                         ON DUPLICATE KEY UPDATE access_type = VALUES(access_type), source_ref = VALUES(source_ref), updated_at = NOW()");
             $stmtA->bind_param('iisi', $userId, $bookId, $accessType, $walletTxId);
             if (!$stmtA->execute()) {
                 $this->db->rollback();
@@ -105,7 +107,9 @@ class DigitalLibrary {
 
         $accessType = 'MEMBERSHIP';
         $sourceRef = (int)($active['id'] ?? 0);
-        $stmt = $this->db->prepare("INSERT INTO UserBookAccess (user_id, book_id, access_type, source_ref, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
+        $stmt = $this->db->prepare("INSERT INTO UserBookAccess (user_id, book_id, access_type, source_ref, created_at, updated_at) 
+                                    VALUES (?, ?, ?, ?, NOW(), NOW())
+                                    ON DUPLICATE KEY UPDATE access_type = VALUES(access_type), source_ref = VALUES(source_ref), updated_at = NOW()");
         $stmt->bind_param('iisi', $userId, $bookId, $accessType, $sourceRef);
         if (!$stmt->execute()) {
             return ['success' => false, 'message' => 'Failed to add book to your library'];
@@ -129,10 +133,11 @@ class DigitalLibrary {
                        ubp.progress_percent, ubp.current_location, ubp.last_opened_at
                 FROM Books b
                 LEFT JOIN UserBookAccess uba ON uba.book_id = b.id AND uba.user_id = ?
+                LEFT JOIN UserMemberships um ON um.id = uba.source_ref AND uba.access_type = 'MEMBERSHIP'
                 LEFT JOIN UserBookProgress ubp ON ubp.user_id = ? AND ubp.book_id = b.id
                 LEFT JOIN BookAuthors ba ON ba.book_id = b.id
                 LEFT JOIN Authors a ON a.id = ba.author_id
-                WHERE (uba.user_id = ?" . ($isAdminOrLibrarian ? " OR 1=1" : "") . ")
+                WHERE (uba.user_id = ?" . ($isAdminOrLibrarian ? " OR 1=1" : " AND (uba.access_type = 'OWNED' OR (uba.access_type = 'MEMBERSHIP' AND um.status = 'ACTIVE' AND um.ends_at > NOW()))") . ")
                 GROUP BY b.id
                 ORDER BY COALESCE(ubp.last_opened_at, uba.created_at) DESC, b.id DESC";
         $stmt = $this->db->prepare($sql);
@@ -208,7 +213,12 @@ class DigitalLibrary {
         $userId = (int)$userId;
         $bookId = (int)$bookId;
         if ($userId <= 0 || $bookId <= 0) return null;
-        $stmt = $this->db->prepare("SELECT access_type, created_at FROM UserBookAccess WHERE user_id = ? AND book_id = ? LIMIT 1");
+        $stmt = $this->db->prepare("SELECT uba.access_type, uba.created_at 
+                                    FROM UserBookAccess uba
+                                    LEFT JOIN UserMemberships um ON um.id = uba.source_ref AND uba.access_type = 'MEMBERSHIP'
+                                    WHERE uba.user_id = ? AND uba.book_id = ? 
+                                    AND (uba.access_type = 'OWNED' OR (uba.access_type = 'MEMBERSHIP' AND um.status = 'ACTIVE' AND um.ends_at > NOW())) 
+                                    LIMIT 1");
         $stmt->bind_param('ii', $userId, $bookId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
@@ -231,7 +241,12 @@ class DigitalLibrary {
         $session = new Session();
         if ($session->isAdmin() || $session->isLibrarian()) return true;
         
-        $stmt = $this->db->prepare("SELECT id FROM UserBookAccess WHERE user_id = ? AND book_id = ? LIMIT 1");
+        $stmt = $this->db->prepare("SELECT uba.id 
+                                    FROM UserBookAccess uba
+                                    LEFT JOIN UserMemberships um ON um.id = uba.source_ref AND uba.access_type = 'MEMBERSHIP'
+                                    WHERE uba.user_id = ? AND uba.book_id = ? 
+                                    AND (uba.access_type = 'OWNED' OR (uba.access_type = 'MEMBERSHIP' AND um.status = 'ACTIVE' AND um.ends_at > NOW())) 
+                                    LIMIT 1");
         $stmt->bind_param('ii', $userId, $bookId);
         $stmt->execute();
         return (bool)$stmt->get_result()->fetch_assoc();

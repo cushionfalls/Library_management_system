@@ -248,7 +248,7 @@
                                 <span class="text-sm font-medium text-on-surface mb-4" id="adminBookPdfFilename">No file selected</span>
                                 <label class="w-full py-2.5 px-4 bg-surface-container-high text-primary font-semibold rounded-lg hover:bg-surface-container-highest transition-colors text-sm cursor-pointer">
                                     Choose File
-                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub,.pdf" />
+                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub" />
                                 </label>
                             </div>
                         </section>

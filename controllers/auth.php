@@ -85,9 +85,18 @@ class AuthController {
             $user_id = $result['user_id'];
 
             // Generate and send OTP
-            $otp_code = $this->otp->generate($email);
+            $otp_res = $this->otp->generate($email);
 
-            if ($otp_code) {
+            if (is_array($otp_res) && isset($otp_res['on_cooldown'])) {
+                return [
+                    'error' => "Please wait {$otp_res['remaining']} seconds before requesting another code.",
+                    'on_cooldown' => true,
+                    'remaining' => $otp_res['remaining']
+                ];
+            }
+
+            if ($otp_res) {
+                $otp_code = $otp_res;
                 $sent = $this->email->sendOTP($email, $otp_code, $first_name);
                 if (!$sent) {
                     return ['error' => 'Failed to send OTP email. Please try again in a minute.'];
@@ -199,9 +208,18 @@ class AuthController {
         }
 
         // Generate and send new OTP
-        $otp_code = $this->otp->generate($email);
+        $otp_res = $this->otp->generate($email);
 
-        if ($otp_code) {
+        if (is_array($otp_res) && isset($otp_res['on_cooldown'])) {
+            return [
+                'error' => "Please wait {$otp_res['remaining']} seconds before requesting another code.",
+                'on_cooldown' => true,
+                'remaining' => $otp_res['remaining']
+            ];
+        }
+
+        if ($otp_res) {
+            $otp_code = $otp_res;
             $sent = $this->email->sendOTP($email, $otp_code, '');
             if (!$sent) {
                 return ['error' => 'Failed to send OTP email. Please try again in a minute.'];
@@ -255,10 +273,18 @@ class AuthController {
         $userRow = $stmt->get_result()->fetch_assoc();
         $firstName = $userRow['first_name'] ?? '';
 
-        $otp_code = $this->otp->generate($email);
-        if (!$otp_code) {
+        $otp_res = $this->otp->generate($email);
+        if (is_array($otp_res) && isset($otp_res['on_cooldown'])) {
+            return [
+                'error' => "Please wait {$otp_res['remaining']} seconds before requesting another code.",
+                'on_cooldown' => true,
+                'remaining' => $otp_res['remaining']
+            ];
+        }
+        if (!$otp_res) {
             return ['error' => 'Failed to send OTP. Please try again'];
         }
+        $otp_code = $otp_res;
 
         $sent = $this->email->sendPasswordResetOTP($email, $otp_code, $firstName);
         if (!$sent) {

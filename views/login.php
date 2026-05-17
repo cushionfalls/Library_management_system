@@ -180,6 +180,7 @@ if ($session->isLoggedIn()) {
         </div>
 
         <form id="loginForm" class="space-y-6" autocomplete="on">
+            <input type="hidden" name="csrf_token" value="<?php echo $session->generateCSRFToken(); ?>">
             <div>
                 <label class="block text-sm font-bold text-main mb-2">Email Address</label>
                 <input type="email" placeholder="you@example.com" class="input-lms" id="loginEmail" name="email" required>
@@ -224,13 +225,15 @@ async function resendOTPFromLogin(email) {
         const response = await fetch('<?php echo APP_URL; ?>/controllers/auth.php?action=resend-otp', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'email=' + encodeURIComponent(email)
+            body: 'email=' + encodeURIComponent(email) + '&csrf_token=' + encodeURIComponent('<?php echo $session->generateCSRFToken(); ?>')
         });
         const result = await response.json();
         const messageDiv = document.getElementById('loginMessage');
         const verifyLink = '<?php echo APP_ROUTE; ?>?page=register&verify_email=' + encodeURIComponent(email);
         if (result.success) {
             messageDiv.innerHTML = '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-info-circle"></i>' + result.message + ' <a href="' + verifyLink + '" class="font-bold underline">Enter OTP now</a></div>';
+        } else if (result.on_cooldown) {
+            window.startOtpCountdown(messageDiv, result.remaining);
         } else {
             messageDiv.innerHTML = '<div class="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3"><i class="fas fa-exclamation-circle"></i>' + (result.error || 'Failed to resend OTP') + '</div>';
         }
