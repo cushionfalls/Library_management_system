@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/User.php';
+require_once __DIR__ . '/EmailService.php';
 
 class AdminDashboard {
     private $db;
@@ -296,6 +297,17 @@ class AdminDashboard {
         if ($firstName === '' || $lastName === '' || $email === '') {
             return ['success' => false, 'message' => 'First name, last name and email are required'];
         }
+        if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+            return ['success' => false, 'message' => 'First name and last name must be at most 20 characters'];
+        }
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return ['success' => false, 'message' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'message' => 'Date of birth cannot be in the future'];
+            }
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'Invalid email format'];
         }
@@ -321,6 +333,14 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'Email already used by another user'];
         }
 
+        // Query the previous is_active status and role of the user prior to executing the update
+        $prevCheck = $this->db->prepare("SELECT is_active, role FROM Users WHERE id = ? LIMIT 1");
+        $prevCheck->bind_param('i', $id);
+        $prevCheck->execute();
+        $prevUser = $prevCheck->get_result()->fetch_assoc();
+        $wasActive = $prevUser ? (int)$prevUser['is_active'] : 1;
+        $prevRole = $prevUser ? strtoupper(trim($prevUser['role'])) : 'USER';
+
         $stmt = $this->db->prepare(
             "UPDATE Users
              SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, phone_number = ?, dob = ?, profile_image = ?, updated_at = NOW()
@@ -335,6 +355,39 @@ class AdminDashboard {
 
         if ($stmt->affected_rows < 0) {
             return ['success' => false, 'message' => 'User not found'];
+        }
+
+        // Send deactivation alert if user was active and is now deactivated
+        if ($wasActive === 1 && $isActive === 0) {
+            try {
+                $emailSvc = new EmailService();
+                $emailSvc->sendAccountDeactivation($email, $firstName . ' ' . $lastName);
+            } catch (Exception $e) {
+                error_log("Failed to send deactivation email: " . $e->getMessage());
+            }
+        }
+        // Send reactivation alert if user was inactive and is now reactivated
+        elseif ($wasActive === 0 && $isActive === 1) {
+            try {
+                $emailSvc = new EmailService();
+                $emailSvc->sendAccountReactivation($email, $firstName . ' ' . $lastName);
+            } catch (Exception $e) {
+                error_log("Failed to send reactivation email: " . $e->getMessage());
+            }
+        }
+
+        // Send role transition email if role has changed
+        if ($prevRole !== $role) {
+            try {
+                $emailSvc = new EmailService();
+                if ($role === 'LIBRARIAN') {
+                    $emailSvc->sendRolePromotedToLibrarian($email, $firstName . ' ' . $lastName);
+                } elseif ($role === 'USER') {
+                    $emailSvc->sendRoleDemotedToUser($email, $firstName . ' ' . $lastName);
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send role change email: " . $e->getMessage());
+            }
         }
 
         return ['success' => true, 'message' => 'User updated successfully'];
@@ -353,6 +406,17 @@ class AdminDashboard {
 
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '') {
             return ['success' => false, 'message' => 'First name, last name, email and password are required'];
+        }
+        if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+            return ['success' => false, 'message' => 'First name and last name must be at most 20 characters'];
+        }
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return ['success' => false, 'message' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'message' => 'Date of birth cannot be in the future'];
+            }
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'Invalid email format'];

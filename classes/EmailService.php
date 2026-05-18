@@ -420,6 +420,167 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendAccountDeactivation($recipientEmail, $recipientName) {
+        $subject = 'Account Deactivated - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .warning-box { background: #fff5f5; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Account Deactivated</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>This email is to notify you that your account at <strong>" . APP_NAME . "</strong> has been deactivated by the administrator.</p>
+                    <div class='warning-box'>
+                        <p style='margin:0;'><strong>Status: Deactivated</strong></p>
+                        <p style='margin:10px 0 0 0;'>You will no longer be able to log in, browse your active books, or access any other digital paper library services.</p>
+                    </div>
+                    <p>If you believe this is a mistake or would like to request reactivation, please contact our support department.</p>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendAccountReactivation($recipientEmail, $recipientName) {
+        $subject = 'Account Reactivated - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .success-box { background: #f4fdf7; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #28a745; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Account Reactivated</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>Great news! Your account at <strong>" . APP_NAME . "</strong> has been successfully reactivated by the administrator.</p>
+                    <div class='success-box'>
+                        <p style='margin:0;'><strong>Status: Active</strong></p>
+                        <p style='margin:10px 0 0 0;'>You can now log in to your account, borrow physical books, read your active digital catalog, and access all services.</p>
+                    </div>
+                    <center><a href='" . APP_URL . "/public/index.php?page=login' class='button'>Log In Now</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendRolePromotedToLibrarian($recipientEmail, $recipientName) {
+        $subject = 'Congratulations! Promoted to Librarian - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .info-box { background: #eef2ff; border-left: 4px solid #6366f1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #4f46e5; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Promoted to Librarian!</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>Congratulations! You have been promoted to the role of <strong>Librarian</strong> at <strong>" . APP_NAME . "</strong> by the administrator.</p>
+                    <div class='info-box'>
+                        <p style='margin:0;'><strong>New Role: Librarian</strong></p>
+                        <p style='margin:10px 0 0 0;'>You now have access to administrative management dashboards where you can manage catalog inventories, update members, and handle library operations.</p>
+                    </div>
+                    <center><a href='" . APP_URL . "/public/index.php?page=admin' class='button'>Go to Admin Panel</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendRoleDemotedToUser($recipientEmail, $recipientName) {
+        $subject = 'Account Role Update - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: #4b5563; color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .warning-box { background: #f9fafb; border-left: 4px solid #4b5563; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Role Updated to User</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>Your role at <strong>" . APP_NAME . "</strong> has been updated to <strong>User</strong> by the administrator.</p>
+                    <div class='warning-box'>
+                        <p style='margin:0;'><strong>Role: User (Regular Member)</strong></p>
+                        <p style='margin:10px 0 0 0;'>You will no longer have access to administrative dashboards or management sections, but you can continue using all member services normally.</p>
+                    </div>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     private function send($recipientEmail, $subject, $message, $recipientName = '') {
         try {
             $transportHost = $this->host;

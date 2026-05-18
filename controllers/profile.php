@@ -57,6 +57,20 @@ class ProfileController {
             return ['success' => false, 'error' => 'First name and last name are required'];
         }
 
+        if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+            return ['success' => false, 'error' => 'First name and last name must be at most 20 characters'];
+        }
+
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return ['success' => false, 'error' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'error' => 'Date of birth cannot be in the future'];
+            }
+        }
+
         $ok = $this->profile->updateProfile(
             (int)$this->session->getUserId(),
             $firstName,
@@ -64,6 +78,10 @@ class ProfileController {
             $dob !== '' ? $dob : null,
             $phone !== '' ? $phone : null
         );
+
+        if ($ok) {
+            $this->session->set('user_name', $firstName);
+        }
 
         return $ok
             ? ['success' => true, 'message' => 'Profile updated successfully']
@@ -76,6 +94,25 @@ class ProfileController {
         }
         if ($auth = $this->requireAuth()) return $auth;
         if ($csrf = $this->verifyCsrf()) return $csrf;
+
+        $firstName = trim($_POST['first_name'] ?? '');
+        $lastName = trim($_POST['last_name'] ?? '');
+        $dob = trim($_POST['dob'] ?? '');
+
+        if ($firstName !== '' || $lastName !== '') {
+            if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+                return ['success' => false, 'error' => 'First name and last name must be at most 20 characters'];
+            }
+            if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+                return ['success' => false, 'error' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+            }
+        }
+
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'error' => 'Date of birth cannot be in the future'];
+            }
+        }
 
         if (!isset($_FILES['profile_image']) || (int)($_FILES['profile_image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             return ['success' => false, 'error' => 'Please choose an image file'];
@@ -113,10 +150,13 @@ class ProfileController {
             return ['success' => false, 'error' => 'Failed to upload image'];
         }
 
+        $firstNameVal = trim((string)($_POST['first_name'] ?? ($this->session->getUserData()['first_name'] ?? '')));
+        $lastNameVal = trim((string)($_POST['last_name'] ?? ($this->session->getUserData()['last_name'] ?? '')));
+
         $ok = $this->profile->updateProfile(
             $userId,
-            trim((string)($_POST['first_name'] ?? ($this->session->getUserData()['first_name'] ?? ''))),
-            trim((string)($_POST['last_name'] ?? ($this->session->getUserData()['last_name'] ?? ''))),
+            $firstNameVal,
+            $lastNameVal,
             trim((string)($_POST['dob'] ?? ($this->session->getUserData()['dob'] ?? ''))) ?: null,
             trim((string)($_POST['phone_number'] ?? ($this->session->getUserData()['phone_number'] ?? ''))) ?: null,
             $fileName
@@ -127,11 +167,37 @@ class ProfileController {
             return ['success' => false, 'error' => 'Image uploaded but profile update failed'];
         }
 
+        if ($firstNameVal !== '') {
+            $this->session->set('user_name', $firstNameVal);
+        }
+
         return [
             'success' => true,
             'message' => 'Profile image updated successfully',
             'image_url' => APP_URL . '/public/uploads/profiles/' . rawurlencode($fileName)
         ];
+    }
+
+    public function removeImage() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return ['success' => false, 'error' => 'Invalid request method'];
+        }
+        if ($auth = $this->requireAuth()) return $auth;
+        if ($csrf = $this->verifyCsrf()) return $csrf;
+
+        $userId = (int)$this->session->getUserId();
+        $user = $this->profile->getByUserId($userId);
+        if ($user && !empty($user['profile_image'])) {
+            $filePath = UPLOAD_DIR . '/profiles/' . basename($user['profile_image']);
+            if (is_file($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        $ok = $this->profile->removeProfileImage($userId);
+        return $ok
+            ? ['success' => true, 'message' => 'Profile image removed successfully']
+            : ['success' => false, 'error' => 'Unable to remove profile image'];
     }
 
     public function changePassword() {
@@ -196,6 +262,9 @@ try {
             break;
         case 'upload-image':
             $response = $controller->uploadImage();
+            break;
+        case 'remove-image':
+            $response = $controller->removeImage();
             break;
         case 'change-password':
             $response = $controller->changePassword();

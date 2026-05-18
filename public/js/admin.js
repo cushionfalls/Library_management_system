@@ -15,6 +15,18 @@ function adminAssetUrl(path) {
     return window.assetUrl ? window.assetUrl(path) : path;
 }
 
+function adminUserProfileAssetUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const filename = raw.split('/').pop().split('\\').pop().trim();
+    // Validate filename structure to ensure it is a valid file, not a directory or null string
+    if (!filename || filename === 'profiles' || filename === 'uploads' || filename === 'null' || !filename.includes('.')) {
+        return '';
+    }
+    return window.assetUrl ? window.assetUrl('public/uploads/profiles/' + filename) : '/public/uploads/profiles/' + filename;
+}
+
 async function adminFetch(action, options = {}) {
     const isPost = (options.method || 'GET').toUpperCase() === 'POST';
     if (isPost && window.CSRF_TOKEN) {
@@ -676,7 +688,7 @@ function openUserModal(user = null, preferredRole = 'USER') {
     const profilePlaceholderEl = document.getElementById('adminUserProfilePlaceholder');
     const adminRoleOption = roleEl ? roleEl.querySelector('option[value="ADMIN"]') : null;
     const setProfileImage = (url) => {
-        const finalUrl = adminAssetUrl(url);
+        const finalUrl = adminUserProfileAssetUrl(url);
         if (!profilePreviewEl || !profilePlaceholderEl) return;
         if (!finalUrl) {
             profilePreviewEl.removeAttribute('src');
@@ -700,6 +712,8 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
         if (existingProfileImageEl) existingProfileImageEl.value = user.profile_image || '';
         setProfileImage(user.profile_image || '');
+        if (titleEl) titleEl.textContent = 'Edit Member';
+        if (subtitleEl) subtitleEl.textContent = "Modify this user account's credentials, role, status or picture.";
         if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
         if (adminRoleOption) {
             // Disable ADMIN option if an admin already exists AND this user is not currently an admin
@@ -721,6 +735,7 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = '1';
         if (existingProfileImageEl) existingProfileImageEl.value = '';
         setProfileImage('');
+        if (titleEl) titleEl.textContent = 'Add New Member';
         if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
         if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
         if (adminRoleOption) {
@@ -761,7 +776,9 @@ async function saveUser(event) {
 
     document.getElementById('adminUserModal').close();
     adminToast(result.message || 'User saved successfully', 'success');
-    await loadAdminDashboard();
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 async function deleteUser(id) {
@@ -779,7 +796,9 @@ async function deleteUser(id) {
     }
 
     adminToast(result.message || 'User removed successfully', 'success');
-    await loadAdminDashboard();
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 function bindAdminEvents() {

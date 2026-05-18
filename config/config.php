@@ -66,7 +66,7 @@ define('STRIPE_CURRENCY', env('STRIPE_CURRENCY', 'usd'));
 define('OTP_VALIDITY', 300);
 define('OTP_LENGTH', 6);
 define('SESSION_TIMEOUT', 1800);
-define('SESSION_COOKIE_SECURE', true);
+define('SESSION_COOKIE_SECURE', APP_ENV !== 'development' && (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'));
 define('SESSION_COOKIE_HTTPONLY', true);
 define('PASSWORD_HASH_ALGO', PASSWORD_BCRYPT);
 define('PASSWORD_HASH_OPTIONS', ['cost' => 12]);
