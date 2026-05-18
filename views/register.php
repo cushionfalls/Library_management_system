@@ -215,7 +215,7 @@ if ($session->isLoggedIn()) {
             <div class="flex items-center gap-3">
                 <input type="checkbox" id="terms" class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" required>
                 <label for="terms" class="text-sm text-muted cursor-pointer font-medium">
-                    I agree to the <a href="#" class="text-primary font-bold hover:underline">Terms of Service</a>
+                    I agree to the <a href="<?php echo APP_ROUTE; ?>?page=terms-and-conditions" target="_blank" class="text-primary font-bold hover:underline">Terms of Service</a>
                 </label>
             </div>
 
