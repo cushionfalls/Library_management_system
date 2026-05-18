@@ -371,11 +371,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">First Name</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserFirstName" name="first_name" required />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserFirstName" name="first_name" pattern="[a-zA-Z]+" maxlength="20" title="First name must only contain letters (no spaces, numbers or special characters)" required />
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">Last Name</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserLastName" name="last_name" required />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserLastName" name="last_name" pattern="[a-zA-Z]+" maxlength="20" title="Last name must only contain letters (no spaces, numbers or special characters)" required />
                                 </div>
                             </div>
 
@@ -391,7 +391,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">Date of Birth</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserDob" name="dob" type="date" />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserDob" name="dob" type="date" max="<?php echo date('Y-m-d'); ?>" />
                                 </div>
                             </div>
 

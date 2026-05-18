@@ -1,0 +1,10 @@
+[18-May-2026 17:12:49 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php:20
+Stack trace:
+#0 C:\xampp\htdocs\Library_management_system\classes\Database.php(20): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'final', '3306')
+#1 C:\xampp\htdocs\Library_management_system\classes\Database.php(9): Database->connect()
+#2 C:\xampp\htdocs\Library_management_system\classes\Database.php(14): Database->__construct()
+#3 C:\xampp\htdocs\Library_management_system\classes\Session.php(9): Database::getInstance()
+#4 C:\xampp\htdocs\Library_management_system\public\index.php(6): Session->__construct()
+#5 C:\xampp\htdocs\Library_management_system\index.php(2): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20

@@ -8,15 +8,6 @@ if ($session->isLoggedIn()) {
     exit;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | <?php echo APP_NAME; ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     :root {
         --primary: #4c1d95;
@@ -188,11 +179,11 @@ if ($session->isLoggedIn()) {
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold text-main mb-2">First Name</label>
-                    <input type="text" placeholder="First Name" class="input-lms" name="first_name" required>
+                    <input type="text" placeholder="First Name" class="input-lms" name="first_name" pattern="[a-zA-Z]+" maxlength="20" title="First name must only contain letters (no spaces, numbers or special characters)" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-main mb-2">Last Name</label>
-                    <input type="text" placeholder="Last Name" class="input-lms" name="last_name" required>
+                    <input type="text" placeholder="Last Name" class="input-lms" name="last_name" pattern="[a-zA-Z]+" maxlength="20" title="Last name must only contain letters (no spaces, numbers or special characters)" required>
                 </div>
             </div>
 
@@ -357,5 +348,3 @@ if ($session->isLoggedIn()) {
         }
     }
     </script>
-</body>
-</html>

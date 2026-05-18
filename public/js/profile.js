@@ -24,6 +24,7 @@ function bindProfileForms() {
     const imageFallback = document.getElementById('profileImagePreviewFallback');
     const hiddenImageInput = document.getElementById('profileImagePicker');
     const hiddenImageInputSecondary = document.getElementById('profileImagePickerSecondary');
+    const removeBtn = document.getElementById('profileImageRemoveBtn');
 
     const attachImagePicker = (input) => {
         if (!input) return;
@@ -42,12 +43,46 @@ function bindProfileForms() {
                 imagePreview.classList.remove('hidden');
                 if (imageFallback) imageFallback.classList.add('hidden');
             }
+            if (removeBtn) {
+                removeBtn.classList.remove('hidden');
+            }
             profileToast(result.message || 'Image uploaded', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         });
     };
 
     attachImagePicker(hiddenImageInput);
     attachImagePicker(hiddenImageInputSecondary);
+
+    if (removeBtn) {
+        removeBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to remove your profile image?')) return;
+            const data = new FormData();
+            const tokenInput = imageForm ? imageForm.querySelector('input[name="csrf_token"]') : null;
+            if (tokenInput) {
+                data.append('csrf_token', tokenInput.value);
+            }
+            const result = await profileFetch('remove-image', { method: 'POST', body: data });
+            if (!result || !result.success) {
+                profileToast((result && result.error) || 'Failed to remove image', 'error');
+                return;
+            }
+            if (imagePreview) {
+                imagePreview.src = '';
+                imagePreview.classList.add('hidden');
+            }
+            if (imageFallback) {
+                imageFallback.classList.remove('hidden');
+            }
+            removeBtn.classList.add('hidden');
+            profileToast(result.message || 'Image removed successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+    }
 
     if (profileForm) {
         profileForm.addEventListener('submit', async (event) => {
@@ -61,6 +96,9 @@ function bindProfileForms() {
                 return;
             }
             profileToast(result.message || 'Profile updated successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         });
     }
 

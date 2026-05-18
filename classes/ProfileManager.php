@@ -17,6 +17,10 @@ class ProfileManager {
     }
 
     public function updateProfile($userId, $firstName, $lastName, $dob = null, $phone = null, $profileImage = null) {
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return false;
+        }
+
         if ($profileImage !== null && $profileImage !== '') {
             $stmt = $this->db->prepare("UPDATE Users SET first_name = ?, last_name = ?, dob = ?, phone_number = ?, profile_image = ?, updated_at = NOW() WHERE id = ?");
             $stmt->bind_param('sssssi', $firstName, $lastName, $dob, $phone, $profileImage, $userId);
@@ -89,6 +93,12 @@ class ProfileManager {
             $this->db->rollback();
             return false;
         }
+    }
+
+    public function removeProfileImage($userId) {
+        $stmt = $this->db->prepare("UPDATE Users SET profile_image = NULL, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param('i', $userId);
+        return $stmt->execute();
     }
 }
 ?>

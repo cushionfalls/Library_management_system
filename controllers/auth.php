@@ -47,6 +47,14 @@ class AuthController {
             return ['error' => 'All fields are required'];
         }
 
+        if (strlen($first_name) > 20 || strlen($last_name) > 20) {
+            return ['error' => 'First name and last name must be at most 20 characters'];
+        }
+
+        if (!preg_match('/^[a-zA-Z]+$/', $first_name) || !preg_match('/^[a-zA-Z]+$/', $last_name)) {
+            return ['error' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['error' => 'Invalid email format'];
         }

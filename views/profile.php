@@ -117,12 +117,12 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <form id="profileInfoForm" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>" />
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label class="profile-label">First Name</label><input class="profile-input" type="text" name="first_name" value="<?php echo htmlspecialchars((string)($profileUser['first_name'] ?? '')); ?>" required /></div>
-                        <div><label class="profile-label">Last Name</label><input class="profile-input" type="text" name="last_name" value="<?php echo htmlspecialchars((string)($profileUser['last_name'] ?? '')); ?>" required /></div>
+                        <div><label class="profile-label">First Name</label><input class="profile-input" type="text" name="first_name" value="<?php echo htmlspecialchars((string)($profileUser['first_name'] ?? '')); ?>" pattern="[a-zA-Z]+" maxlength="20" title="First name must only contain letters (maximum 20 characters)" required /></div>
+                        <div><label class="profile-label">Last Name</label><input class="profile-input" type="text" name="last_name" value="<?php echo htmlspecialchars((string)($profileUser['last_name'] ?? '')); ?>" pattern="[a-zA-Z]+" maxlength="20" title="Last name must only contain letters (maximum 20 characters)" required /></div>
                     </div>
                     <div><label class="profile-label">Email Address</label><input class="profile-input opacity-60 cursor-not-allowed" type="email" value="<?php echo htmlspecialchars((string)($profileUser['email'] ?? '')); ?>" readonly /></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label class="profile-label">Date of Birth</label><input class="profile-input" type="date" name="dob" value="<?php echo htmlspecialchars($dobValue); ?>" /></div>
+                        <div><label class="profile-label">Date of Birth</label><input class="profile-input" type="date" name="dob" value="<?php echo htmlspecialchars($dobValue); ?>" max="<?php echo date('Y-m-d'); ?>" /></div>
                         <div><label class="profile-label">Phone Number</label><input class="profile-input" type="text" name="phone_number" value="<?php echo htmlspecialchars($phoneValue); ?>" placeholder="+977 - 00000-00000" /></div>
                     </div>
                     <button class="bg-primary text-on-primary px-8 py-3 rounded-lg font-bold text-sm shadow-lg hover:opacity-90 transition-opacity" type="submit">Save Changes</button>
@@ -158,7 +158,10 @@ if ($activeMem && !empty($activeMem['ends_at'])) {
                 <div class="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-cloud-arrow-up text-2xl"></i></div>
                 <h3 class="font-['Manrope'] font-bold text-lg mb-2">Change Profile Image</h3>
                 <p class="text-xs text-on-surface-variant font-medium mb-6">JPG, PNG, or GIF. Max size of 5MB.</p>
-                <label for="profileImagePickerSecondary" class="block w-full text-center py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-lg shadow-sm border border-outline-variant/50 cursor-pointer hover:bg-surface-container-high transition-colors">Choose File</label>
+                <div class="flex flex-col gap-2">
+                    <label for="profileImagePickerSecondary" class="block w-full text-center py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-lg shadow-sm border border-outline-variant/50 cursor-pointer hover:bg-surface-container-high transition-colors">Choose File</label>
+                    <button type="button" id="profileImageRemoveBtn" class="block w-full text-center py-3 bg-error/10 text-error hover:bg-error/20 font-bold text-sm rounded-lg transition-colors <?php echo ($avatarPath === '') ? 'hidden' : ''; ?>">Remove Image</button>
+                </div>
             </form>
 
             <?php if (($profileUser['role'] ?? '') !== 'ADMIN'): ?>

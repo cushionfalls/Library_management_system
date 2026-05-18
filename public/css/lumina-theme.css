@@ -298,12 +298,63 @@ html.dark #walletTopUpModal code {
   border-color: rgb(var(--color-primary) / 0.35) !important;
 }
 
+/* Premium responsive Glassmorphic style for Guest Auth Pages theme toggle floating button */
 .lumina-theme-toggle-fab {
-  box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+  background: rgba(15, 13, 22, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html.dark .lumina-theme-toggle-fab {
-  box-shadow: 0 4px 24px rgb(0 0 0 / 0.45);
+.lumina-theme-toggle-fab .lumina-theme-icon {
+  color: #ffffff !important;
+}
+
+.lumina-theme-toggle-fab:hover {
+  background: rgba(15, 13, 22, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+.lumina-theme-toggle-fab:active {
+  transform: scale(0.95);
+}
+
+/* On mobile view where purple visual side is hidden, let it blend with light/dark surface */
+@media (max-width: 968px) {
+  .lumina-theme-toggle-fab {
+    background: rgb(var(--color-surface-container-high) / 0.85) !important;
+    border: 1px solid rgb(var(--color-outline-variant) / 0.45) !important;
+    color: rgb(var(--color-on-surface)) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  
+  .lumina-theme-toggle-fab .lumina-theme-icon {
+    color: rgb(var(--color-on-surface)) !important;
+  }
+  
+  html.dark .lumina-theme-toggle-fab {
+    background: rgb(var(--color-surface-container-high) / 0.85) !important;
+    border: 1px solid rgb(var(--color-outline-variant) / 0.45) !important;
+    color: rgb(var(--color-on-surface)) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+
+  .lumina-theme-toggle-fab:hover {
+    background: rgb(var(--color-primary) / 0.15) !important;
+    border-color: rgb(var(--color-primary) / 0.45) !important;
+    color: rgb(var(--color-primary)) !important;
+    transform: translateY(-2px) scale(1.05);
+  }
+  
+  .lumina-theme-toggle-fab:hover .lumina-theme-icon {
+    color: rgb(var(--color-primary)) !important;
+  }
 }
 
 /* Auth pages: login/register define --primary on :root in view; align dark */

@@ -465,15 +465,18 @@
                    </div>`
                 : '';
             return `
-                <article class="flex gap-4">
-                    <img class="w-10 h-10 rounded-full object-cover" src="${avatar}" alt="${esc(review.reviewer_name || 'Reader')}" />
+                <article class="review-card flex gap-4">
+                    <img class="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shadow-sm" src="${avatar}" alt="${esc(review.reviewer_name || 'Reader')}" />
                     <div class="flex-1">
-                        <div class="flex justify-between mb-1">
-                            <span class="font-bold text-sm">${esc(review.reviewer_name || 'Reader')}</span>
-                            <span class="text-xs text-outline">${esc(formatDate(review.created_at))}${editedBadge}</span>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-on-surface">${esc(review.reviewer_name || 'Reader')}</span>
+                            <span class="text-[11px] font-medium text-outline-variant bg-surface-container-high/40 px-2 py-0.5 rounded-full">${esc(formatDate(review.created_at))}${editedBadge}</span>
                         </div>
-                        <div class="flex mb-2">${stars}</div>
-                        <p class="text-sm text-on-surface-variant italic">"${esc(review.review || '')}"</p>
+                        <div class="flex gap-0.5 mb-2">${stars}</div>
+                        <div class="relative">
+                            <span class="absolute -left-2 -top-2 text-primary/10 text-3xl font-serif select-none pointer-events-none">“</span>
+                            <p class="text-sm text-on-surface-variant italic pl-2 pr-4 leading-relaxed">"${esc(review.review || '')}"</p>
+                        </div>
                         ${ownerActions}
                     </div>
                 </article>
