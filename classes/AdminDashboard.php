@@ -491,11 +491,11 @@ class AdminDashboard {
     }
 
     private function sumWalletCreditsToday() {
-        // Only sum credits created today
+        // Sum all-time TOP_UP transaction amounts
         $result = $this->db->query(
             "SELECT COALESCE(SUM(amount), 0) AS total
              FROM WalletTransactions
-             WHERE type = 'CREDIT' AND DATE(created_at) = CURDATE()"
+             WHERE reason = 'TOP_UP'"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
@@ -513,7 +513,7 @@ class AdminDashboard {
         $stmt = $this->db->prepare(
             "SELECT DATE(created_at) as date, COALESCE(SUM(amount), 0) as total
              FROM WalletTransactions
-             WHERE type = 'CREDIT' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             WHERE reason = 'TOP_UP' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
              GROUP BY DATE(created_at)
              ORDER BY date ASC"
         );
