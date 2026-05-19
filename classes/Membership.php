@@ -11,6 +11,20 @@ class Membership {
 
     public function __construct() {
         $this->db = Database::getInstance()->getConnection();
+        $this->ensureSchema();
+    }
+
+    private function ensureSchema() {
+        try {
+            $check = $this->db->query("SHOW COLUMNS FROM `UserMemberships` LIKE 'expiry_warning_sent'");
+            if ($check && $check->num_rows === 0) {
+                $this->db->query("ALTER TABLE `UserMemberships` ADD COLUMN `expiry_warning_sent` TINYINT NOT NULL DEFAULT 0");
+            } else {
+                $this->db->query("ALTER TABLE `UserMemberships` MODIFY COLUMN `expiry_warning_sent` TINYINT NOT NULL DEFAULT 0");
+            }
+        } catch (Exception $e) {
+            error_log("Failed to ensure schema in Membership constructor: " . $e->getMessage());
+        }
     }
 
     /**
@@ -179,7 +193,7 @@ class Membership {
 
             if ($extendExistingId !== null) {
                 $sql = "UPDATE UserMemberships
-                        SET plan_id = ?, starts_at = starts_at, ends_at = DATE_ADD($baseEndSql, INTERVAL ? DAY), updated_at = NOW()
+                        SET plan_id = ?, starts_at = starts_at, ends_at = DATE_ADD($baseEndSql, INTERVAL ? DAY), expiry_warning_sent = 0, updated_at = NOW()
                         WHERE id = ? AND user_id = ?";
                 $stmtU = $this->db->prepare($sql);
                 $stmtU->bind_param('iiii', $planId, $durationDays, $extendExistingId, $userId);
@@ -281,7 +295,7 @@ class Membership {
             $membershipId = (int)$active['id'];
             $stmtU = $this->db->prepare(
                 "UPDATE UserMemberships
-                 SET ends_at = NOW(), updated_at = NOW()
+                 SET status = 'CANCELLED', ends_at = NOW(), updated_at = NOW()
                  WHERE id = ? AND user_id = ?"
             );
             if (!$stmtU) {
@@ -292,6 +306,13 @@ class Membership {
             if (!$stmtU->execute() || $stmtU->affected_rows <= 0) {
                 $this->db->rollback();
                 return ['success' => false, 'message' => 'Failed to deactivate membership'];
+            }
+
+            // Immediately remove all membership-based book access for the user
+            $stmtAccess = $this->db->prepare("DELETE FROM UserBookAccess WHERE user_id = ? AND access_type = 'MEMBERSHIP'");
+            if ($stmtAccess) {
+                $stmtAccess->bind_param('i', $userId);
+                $stmtAccess->execute();
             }
 
             $this->db->commit();
@@ -361,23 +382,21 @@ class Membership {
      * Finds memberships expiring in exactly N days and sends notifications.
      * This should be called by a cron job once per day.
      */
-    public function notifyExpiringMemberships($daysLeft = 3) {
-        $daysLeft = (int)$daysLeft;
-        // Find memberships that expire between (NOW + N days) and (NOW + N+1 days)
-        // We look for status='ACTIVE' and ends_at specifically around that date.
-        // We also want to avoid double-notifying if possible, but for a simple script, 
-        // running it once a day at a fixed time is usually enough.
+    public function notifyExpiringMemberships($maxDays = 3) {
+        $maxDays = (int)$maxDays;
         
-        $sql = "SELECT um.user_id, um.ends_at, mp.name AS plan_name, u.email, u.first_name
+        // Find ACTIVE memberships expiring within N days
+        $sql = "SELECT um.id AS membership_id, um.user_id, um.ends_at, um.expiry_warning_sent, mp.name AS plan_name, u.email, u.first_name
                 FROM UserMemberships um
                 INNER JOIN MembershipPlans mp ON mp.id = um.plan_id
                 INNER JOIN Users u ON u.id = um.user_id
                 WHERE um.status = 'ACTIVE' 
-                AND DATE(um.ends_at) = DATE(DATE_ADD(NOW(), INTERVAL ? DAY))";
+                AND um.ends_at <= DATE_ADD(NOW(), INTERVAL ? DAY)
+                AND um.ends_at > NOW()";
         
         $stmt = $this->db->prepare($sql);
         if (!$stmt) return 0;
-        $stmt->bind_param('i', $daysLeft);
+        $stmt->bind_param('i', $maxDays);
         $stmt->execute();
         $res = $stmt->get_result();
         
@@ -385,17 +404,114 @@ class Membership {
         $count = 0;
         
         while ($row = $res->fetch_assoc()) {
-            $emailSvc->sendMembershipExpiryWarning(
-                $row['email'],
-                $row['first_name'],
-                $row['plan_name'],
-                $row['ends_at'],
-                $daysLeft
-            );
-            $count++;
+            $membershipId = (int)$row['membership_id'];
+            $currentWarningSent = (int)$row['expiry_warning_sent'];
+            
+            // Calculate days left using PHP DateTime
+            $endsAt = new DateTime($row['ends_at']);
+            $now = new DateTime();
+            $interval = $now->diff($endsAt);
+            $daysLeft = (int)$interval->format('%r%a');
+            if ($daysLeft < 0) $daysLeft = 0;
+            
+            $targetWarningSent = 0;
+            if ($daysLeft >= 3) {
+                // 3 days left warning
+                if ($currentWarningSent < 1) {
+                    $targetWarningSent = 1;
+                }
+            } elseif ($daysLeft == 2) {
+                // 2 days left warning
+                if ($currentWarningSent < 2) {
+                    $targetWarningSent = 2;
+                }
+            } else {
+                // 1 day (or 0 days) left warning
+                if ($currentWarningSent < 3) {
+                    $targetWarningSent = 3;
+                }
+            }
+            
+            if ($targetWarningSent > 0) {
+                // Send warning email
+                $sent = $emailSvc->sendMembershipExpiryWarning(
+                    $row['email'],
+                    $row['first_name'],
+                    $row['plan_name'],
+                    $row['ends_at'],
+                    $daysLeft
+                );
+                
+                if ($sent) {
+                    // Update the warning sent status level
+                    $stmtUpdate = $this->db->prepare("UPDATE UserMemberships SET expiry_warning_sent = ? WHERE id = ?");
+                    if ($stmtUpdate) {
+                        $stmtUpdate->bind_param('ii', $targetWarningSent, $membershipId);
+                        $stmtUpdate->execute();
+                    }
+                    $count++;
+                }
+            }
         }
         
         return $count;
+    }
+
+    /**
+     * Process memberships that have expired.
+     * Deactivates them (status = 'EXPIRED'), deletes related book access records,
+     * and sends email notifications.
+     */
+    public function processExpiredMemberships() {
+        // Find memberships that are ACTIVE but ends_at is in the past
+        $sql = "SELECT um.id AS membership_id, um.user_id, um.ends_at, mp.name AS plan_name, u.email, u.first_name
+                FROM UserMemberships um
+                INNER JOIN MembershipPlans mp ON mp.id = um.plan_id
+                INNER JOIN Users u ON u.id = um.user_id
+                WHERE um.status = 'ACTIVE' AND um.ends_at <= NOW()";
+        
+        $res = $this->db->query($sql);
+        if (!$res) return 0;
+        
+        $expiredCount = 0;
+        $emailSvc = new EmailService();
+        
+        while ($row = $res->fetch_assoc()) {
+            $membershipId = (int)$row['membership_id'];
+            $userId = (int)$row['user_id'];
+            $planName = (string)$row['plan_name'];
+            $email = (string)$row['email'];
+            $firstName = (string)$row['first_name'];
+            
+            $this->db->begin_transaction();
+            try {
+                // Update membership status to EXPIRED
+                $stmtUm = $this->db->prepare("UPDATE UserMemberships SET status = 'EXPIRED', updated_at = NOW() WHERE id = ?");
+                if ($stmtUm) {
+                    $stmtUm->bind_param('i', $membershipId);
+                    $stmtUm->execute();
+                }
+                
+                // Delete user book access records granted via membership
+                $stmtUba = $this->db->prepare("DELETE FROM UserBookAccess WHERE user_id = ? AND access_type = 'MEMBERSHIP'");
+                if ($stmtUba) {
+                    $stmtUba->bind_param('i', $userId);
+                    $stmtUba->execute();
+                }
+                
+                $this->db->commit();
+                $expiredCount++;
+                
+                // Send email
+                $emailSvc->sendMembershipExpired($email, $firstName, $planName);
+                
+            } catch (Exception $e) {
+                $this->db->rollback();
+                error_log("Failed to expire membership ID $membershipId: " . $e->getMessage());
+            }
+        }
+        
+        return $expiredCount;
     }
 }
 

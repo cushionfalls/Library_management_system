@@ -8,3 +8,38 @@ Stack trace:
 #5 C:\xampp\htdocs\Library_management_system\index.php(2): require('C:\\xampp\\htdocs...')
 #6 {main}
   thrown in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[19-May-2026 06:21:11 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:13 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:26 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:23:59 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
+Stack trace:
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93

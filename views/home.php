@@ -190,6 +190,17 @@
     .showcase-mockup { background: white; border-radius: 24px; padding: 24px; color: #1f2937; transform: perspective(1000px) rotateY(-5deg); transition: 0.6s; }
     .showcase-mockup:hover { transform: perspective(1000px) rotateY(0deg); }
 
+    /* ===== FAQ ===== */
+    .faq { padding: 100px 24px; background: var(--surface); }
+    .faq-item { background: white; border: 1px solid var(--border); border-radius: 20px; margin-bottom: 16px; transition: all 0.3s ease; }
+    .faq-item:hover { box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+    .faq-button { width: 100%; padding: 24px; text-align: left; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.1rem; color: var(--text-primary); cursor: pointer; border: none; background: transparent; }
+    .faq-content { padding: 0 24px 24px; color: var(--text-secondary); display: none; line-height: 1.6; }
+    .faq-icon { color: var(--primary); transition: transform 0.3s ease; }
+    .faq-item.active .faq-content { display: block; animation: fadeIn 0.4s ease; }
+    .faq-item.active .faq-icon { transform: rotate(180deg); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     /* ===== CTA & FOOTER ===== */
     .cta { padding: 100px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; text-align: center; }
     .footer { background: var(--footer-bg); color: white; padding: 60px 24px; }
@@ -221,6 +232,12 @@
         border-color: var(--border);
         color: var(--text-primary);
     }
+    html.dark .faq-item {
+        background: var(--surface-card);
+        border-color: var(--border);
+    }
+    html.dark .faq-button { color: var(--text-primary); }
+    html.dark .faq-content { color: var(--text-secondary); }
     html.dark .showcase-mockup {
         background: #1e1a26;
         color: var(--text-primary);
@@ -386,6 +403,55 @@
     </div>
 </section>
 
+<!-- FAQ -->
+<section class="faq" id="faq">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-16 reveal">
+            <div class="hero-badge"><i class="fas fa-question-circle"></i> FAQ</div>
+            <h2 class="text-4xl font-extrabold mb-4">Got Questions?</h2>
+            <p class="text-gray-500">Everything you need to know about Paper Library.</p>
+        </div>
+        <div class="space-y-4">
+            <div class="faq-item reveal">
+                <button class="faq-button">
+                    <span>How does the membership work?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </button>
+                <div class="faq-content">
+                    Our membership gives you unlimited access to our entire premium collection. You can read as many books as you want for a flat monthly fee. Enjoy uninterrupted reading anywhere, anytime.
+                </div>
+            </div>
+            <div class="faq-item reveal">
+                <button class="faq-button">
+                    <span>Can I purchase books individually?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </button>
+                <div class="faq-content">
+                    Yes! If you prefer not to subscribe, you can buy books individually. Once purchased, they will remain in your personal library forever, even without an active membership.
+                </div>
+            </div>
+            <div class="faq-item reveal">
+                <button class="faq-button">
+                    <span>What formats are available?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </button>
+                <div class="faq-content">
+                    We primarily offer books in EPUB format, which provides the best reading experience across all devices. Our built-in web reader ensures you can read comfortably without installing any extra software.
+                </div>
+            </div>
+            <div class="faq-item reveal">
+                <button class="faq-button">
+                    <span>Is my payment information secure?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </button>
+                <div class="faq-content">
+                    Absolutely. We use Stripe, a leading payment provider, to handle all transactions securely. We do not store your credit card details on our servers.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- CTA -->
 <section class="cta">
     <div class="max-w-2xl mx-auto reveal">
@@ -478,4 +544,23 @@
         });
     }, { threshold: 0.5 });
     counters.forEach(counter => counterObserver.observe(counter));
+
+    // FAQ Accordion
+    const faqButtons = document.querySelectorAll('.faq-button');
+    faqButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const faqItem = button.parentElement;
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Open clicked if it wasn't active
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        });
+    });
 </script>

@@ -8,6 +8,24 @@
 
 <div class="w-full space-y-12">
 
+    <!-- Expiry Warning Banner -->
+    <div id="expiryWarningBanner" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 rounded-2xl shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-500/25 flex items-center justify-center text-amber-500 animate-pulse">
+                <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-amber-600 dark:text-amber-400 font-headline">Action Required: Subscription Expiring</h4>
+                <p id="expiryWarningMessage" class="text-xs text-on-surface-variant font-medium mt-0.5"></p>
+            </div>
+        </div>
+        <div>
+            <a href="<?php echo APP_ROUTE; ?>?page=membership" class="inline-flex items-center gap-1.5 bg-amber-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:brightness-110 active:scale-95 transition-all shadow-md">
+                <span class="material-symbols-outlined text-sm">autorenew</span> Renew Now
+            </a>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section>
         <div class="relative overflow-hidden bg-primary rounded-[2rem] p-10 md:p-14 text-on-primary shadow-2xl flex flex-col md:flex-row justify-between items-center">
@@ -204,19 +222,37 @@ async function loadDashboard() {
             }
         }
 
-        if (window.USER_ROLE === 'USER') {
-            const membership = await fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null);
-            const statusEl = document.getElementById('membershipStatus');
-            const untilEl = document.getElementById('membershipUntil');
-            if (statusEl && untilEl) {
-                if (membership && membership.success && membership.active) {
-                    statusEl.textContent = membership.active.plan_name || 'Active';
-                    untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
-                } else {
-                    statusEl.textContent = 'Not Active';
-                    untilEl.textContent = 'Activate membership to unlock more books.';
-                }
+        const membership = await fetch('<?php echo APP_URL; ?>/controllers/membership.php?action=getStatus').then(r => r.json()).catch(() => null);
+        const statusEl = document.getElementById('membershipStatus');
+        const untilEl = document.getElementById('membershipUntil');
+        
+        // Get the warning banner elements
+        const bannerEl = document.getElementById('expiryWarningBanner');
+        const warningMsgEl = document.getElementById('expiryWarningMessage');
+        if (bannerEl) bannerEl.classList.add('hidden');
+
+        if (membership && membership.success && membership.active) {
+            statusEl.textContent = membership.active.plan_name || 'Active';
+            untilEl.textContent = 'Valid until: ' + window.formatDate(membership.active.ends_at);
+            
+            // Calculate remaining days until expiration
+            const endsAt = new Date(membership.active.ends_at);
+            const now = new Date();
+            const timeDiff = endsAt - now;
+            const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            
+            // If expiring in 3 days or fewer, show the banner
+            if (daysLeft >= 0 && daysLeft <= 3 && bannerEl && warningMsgEl) {
+                const daysText = daysLeft === 0 
+                    ? "today" 
+                    : (daysLeft === 1 ? "tomorrow" : `in ${daysLeft} days`);
+                
+                warningMsgEl.innerHTML = `Your <strong>${window.escapeHtml(membership.active.plan_name)}</strong> subscription is expiring <strong>${daysText}</strong> on ${window.formatDate(membership.active.ends_at)}. Renew today to keep uninterrupted access to your digital library.`;
+                bannerEl.classList.remove('hidden');
             }
+        } else {
+            statusEl.textContent = 'Not Active';
+            untilEl.textContent = 'Activate membership to unlock more books.';
         }
     } catch (err) {
         console.error('Dashboard load error:', err);

@@ -117,6 +117,34 @@ class Wallet {
             }
 
             $this->db->commit();
+
+            // Send top up confirmation email to the user
+            try {
+                $stmtUser = $this->db->prepare("SELECT first_name, last_name, email FROM Users WHERE id = ? LIMIT 1");
+                if ($stmtUser) {
+                    $stmtUser->bind_param('i', $userId);
+                    $stmtUser->execute();
+                    $userData = $stmtUser->get_result()->fetch_assoc();
+                    if ($userData && !empty($userData['email'])) {
+                        $recipientName = trim($userData['first_name'] . ' ' . $userData['last_name']);
+                        if ($recipientName === '') $recipientName = $userData['first_name'] ?: 'Reader';
+                        
+                        require_once __DIR__ . '/EmailService.php';
+                        $emailSvc = new EmailService();
+                        $newBalance = $this->getBalance($userId);
+                        $emailSvc->sendWalletTopUpConfirmation(
+                            $userData['email'],
+                            $recipientName,
+                            $amount,
+                            $newBalance,
+                            $method
+                        );
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send wallet top up email: " . $e->getMessage());
+            }
+
             return [
                 'success'        => true,
                 'message'        => 'Top up successful',

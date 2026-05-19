@@ -420,8 +420,8 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
-    public function sendAccountDeactivation($recipientEmail, $recipientName) {
-        $subject = 'Account Deactivated - ' . APP_NAME;
+    public function sendMembershipExpired($recipientEmail, $recipientName, $planName) {
+        $subject = 'Your Membership Has Expired - ' . APP_NAME;
 
         $message = "
         <html>
@@ -429,107 +429,26 @@ class EmailService {
             <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
                 .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-                .header { background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; padding: 40px 20px; text-align: center; }
+                .header { background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%); color: white; padding: 40px 20px; text-align: center; }
                 .content { padding: 30px; line-height: 1.6; color: #374151; }
-                .warning-box { background: #fff5f5; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .info-box { background: #f9fafb; border-left: 4px solid #4b5563; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
                 .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #6366f1; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
             </style>
         </head>
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1 style='margin:0;'>Account Deactivated</h1>
+                    <h1 style='margin:0;'>Membership Expired</h1>
                 </div>
                 <div class='content'>
                     <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
-                    <p>This email is to notify you that your account at <strong>" . APP_NAME . "</strong> has been deactivated by the administrator.</p>
-                    <div class='warning-box'>
-                        <p style='margin:0;'><strong>Status: Deactivated</strong></p>
-                        <p style='margin:10px 0 0 0;'>You will no longer be able to log in, browse your active books, or access any other digital paper library services.</p>
-                    </div>
-                    <p>If you believe this is a mistake or would like to request reactivation, please contact our support department.</p>
-                </div>
-                <div class='footer'>
-                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
-                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>";
-
-        return $this->send($recipientEmail, $subject, $message, $recipientName);
-    }
-
-    public function sendAccountReactivation($recipientEmail, $recipientName) {
-        $subject = 'Account Reactivated - ' . APP_NAME;
-
-        $message = "
-        <html>
-        <head>
-            <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-                .header { background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 40px 20px; text-align: center; }
-                .content { padding: 30px; line-height: 1.6; color: #374151; }
-                .success-box { background: #f4fdf7; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
-                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
-                .button { display: inline-block; padding: 12px 24px; background: #28a745; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1 style='margin:0;'>Account Reactivated</h1>
-                </div>
-                <div class='content'>
-                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
-                    <p>Great news! Your account at <strong>" . APP_NAME . "</strong> has been successfully reactivated by the administrator.</p>
-                    <div class='success-box'>
-                        <p style='margin:0;'><strong>Status: Active</strong></p>
-                        <p style='margin:10px 0 0 0;'>You can now log in to your account, borrow physical books, read your active digital catalog, and access all services.</p>
-                    </div>
-                    <center><a href='" . APP_URL . "/public/index.php?page=login' class='button'>Log In Now</a></center>
-                </div>
-                <div class='footer'>
-                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
-                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>";
-
-        return $this->send($recipientEmail, $subject, $message, $recipientName);
-    }
-
-    public function sendRolePromotedToLibrarian($recipientEmail, $recipientName) {
-        $subject = 'Congratulations! Promoted to Librarian - ' . APP_NAME;
-
-        $message = "
-        <html>
-        <head>
-            <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-                .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 40px 20px; text-align: center; }
-                .content { padding: 30px; line-height: 1.6; color: #374151; }
-                .info-box { background: #eef2ff; border-left: 4px solid #6366f1; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
-                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
-                .button { display: inline-block; padding: 12px 24px; background: #4f46e5; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1 style='margin:0;'>Promoted to Librarian!</h1>
-                </div>
-                <div class='content'>
-                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
-                    <p>Congratulations! You have been promoted to the role of <strong>Librarian</strong> at <strong>" . APP_NAME . "</strong> by the administrator.</p>
+                    <p>This is to inform you that your <strong>" . htmlspecialchars($planName) . "</strong> membership has expired, and your premium access has ended.</p>
                     <div class='info-box'>
-                        <p style='margin:0;'><strong>New Role: Librarian</strong></p>
-                        <p style='margin:10px 0 0 0;'>You now have access to administrative management dashboards where you can manage catalog inventories, update members, and handle library operations.</p>
+                        <p style='margin:0;'><strong>Access Restricted:</strong></p>
+                        <p style='margin:10px 0 0 0;'>Books and digital content unlocked via your membership have been removed from your digital library. To restore access and continue reading, simply renew your membership.</p>
                     </div>
-                    <center><a href='" . APP_URL . "/public/index.php?page=admin' class='button'>Go to Admin Panel</a></center>
+                    <center><a href='" . APP_URL . "/public/index.php?page=membership' class='button'>Renew Membership Now</a></center>
                 </div>
                 <div class='footer'>
                     <p>" . APP_NAME . " - The Future of Digital Reading</p>
@@ -542,33 +461,50 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
-    public function sendRoleDemotedToUser($recipientEmail, $recipientName) {
-        $subject = 'Account Role Update - ' . APP_NAME;
+    public function sendWalletTopUpConfirmation($recipientEmail, $recipientName, $amountCents, $newBalanceCents, $method) {
+        $subject = 'Wallet Top Up Confirmed - ' . APP_NAME;
+        $amountStr = '$' . number_format(((int)$amountCents) / 100, 2);
+        $balanceStr = '$' . number_format(((int)$newBalanceCents) / 100, 2);
 
         $message = "
         <html>
         <head>
             <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-                .header { background: #4b5563; color: white; padding: 40px 20px; text-align: center; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 20px; text-align: center; }
                 .content { padding: 30px; line-height: 1.6; color: #374151; }
-                .warning-box { background: #f9fafb; border-left: 4px solid #4b5563; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .amount-badge { display: inline-block; padding: 12px 24px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; font-weight: 800; font-size: 28px; color: #059669; margin: 15px 0; }
+                .details { background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; }
                 .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #10b981; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
             </style>
         </head>
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1 style='margin:0;'>Role Updated to User</h1>
+                    <h1 style='margin:0; font-size: 24px;'>Top Up Successful!</h1>
                 </div>
                 <div class='content'>
                     <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
-                    <p>Your role at <strong>" . APP_NAME . "</strong> has been updated to <strong>User</strong> by the administrator.</p>
-                    <div class='warning-box'>
-                        <p style='margin:0;'><strong>Role: User (Regular Member)</strong></p>
-                        <p style='margin:10px 0 0 0;'>You will no longer have access to administrative dashboards or management sections, but you can continue using all member services normally.</p>
+                    <p>We are pleased to confirm that your wallet top up request has been completed successfully.</p>
+                    <center>
+                        <div class='amount-badge'>$amountStr</div>
+                    </center>
+                    <div class='details'>
+                        <table style='width:100%; border-collapse:collapse;'>
+                            <tr style='border-bottom:1px solid #e5e7eb;'>
+                                <td style='padding:10px 0; font-weight:bold; color:#6b7280;'>Payment Method:</td>
+                                <td style='padding:10px 0; text-align:right; font-weight:bold; color:#374151;'>" . htmlspecialchars($method) . "</td>
+                            </tr>
+                            <tr>
+                                <td style='padding:10px 0; font-weight:bold; color:#6b7280;'>New Wallet Balance:</td>
+                                <td style='padding:10px 0; text-align:right; font-weight:bold; color:#059669; font-size:16px;'>$balanceStr</td>
+                            </tr>
+                        </table>
                     </div>
+                    <p>You can now use your updated balance to purchase books, rent digital materials, or upgrade your membership!</p>
+                    <center><a href='" . APP_URL . "/public/index.php?page=dashboard' class='button'>Go to Dashboard</a></center>
                 </div>
                 <div class='footer'>
                     <p>" . APP_NAME . " - The Future of Digital Reading</p>
