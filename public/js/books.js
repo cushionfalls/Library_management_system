@@ -232,7 +232,7 @@
                         
                         <div class="mt-auto flex gap-1.5">
                             ${(book.user_access_type || window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? `
-                                <button class="flex-1 py-2 text-[9px] font-black bg-success-container text-on-success-container rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" onclick="window.location.href='${window.MY_BOOKS_PAGE_URL}${ (window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? '&open_reader=' + book.id : '' }'">${ (window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? 'Read Now' : 'Already Owned' }</button>
+                                <button class="flex-1 py-2 text-[9px] font-black bg-success-container text-on-success-container rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" onclick="window.location.href='${window.MY_BOOKS_PAGE_URL}&open_reader=${book.id}'">Read Now</button>
                             ` : `
                                 <button class="flex-1 py-2 text-[9px] font-black bg-primary text-white rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" data-action="buy" data-book-id="${book.id}">Buy Now</button>
                             `}
@@ -277,7 +277,7 @@
                     </div>
                     <div class="sm:self-center flex flex-col gap-2 min-w-[120px]">
                         ${(book.user_access_type || window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? `
-                            <button class="w-full py-2 text-[10px] font-black bg-success-container text-on-success-container rounded-lg hover:opacity-90 transition-all uppercase tracking-widest" onclick="window.location.href='${window.MY_BOOKS_PAGE_URL}${ (window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? '&open_reader=' + book.id : '' }'">${ (window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') ? 'Read Now' : 'Already Owned' }</button>
+                            <button class="w-full py-2 text-[10px] font-black bg-success-container text-on-success-container rounded-lg hover:opacity-90 transition-all uppercase tracking-widest" onclick="window.location.href='${window.MY_BOOKS_PAGE_URL}&open_reader=${book.id}'">Read Now</button>
                         ` : `
                             <button class="w-full py-2 text-[10px] font-black bg-primary text-white rounded-lg hover:opacity-90 transition-all uppercase tracking-widest" data-action="buy" data-book-id="${book.id}">Buy Now</button>
                         `}
@@ -405,14 +405,8 @@
                             : 'This book is unlocked via your active membership.';
                     }
                     if (goToMyBooksBtn) {
-                        const isAdminOrLibrarian = window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN';
-                        if (isAdminOrLibrarian) {
-                            goToMyBooksBtn.textContent = 'Read Now';
-                            goToMyBooksBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL + '&open_reader=' + book.id; };
-                        } else {
-                            goToMyBooksBtn.textContent = 'Go to My Books';
-                            goToMyBooksBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL; };
-                        }
+                        goToMyBooksBtn.textContent = 'Read Now';
+                        goToMyBooksBtn.onclick = () => { window.location.href = window.MY_BOOKS_PAGE_URL + '&open_reader=' + book.id; };
                     }
                 }
             } else {
