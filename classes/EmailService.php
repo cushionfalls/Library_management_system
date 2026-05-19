@@ -420,6 +420,103 @@ class EmailService {
         return $this->send($recipientEmail, $subject, $message, $recipientName);
     }
 
+    public function sendMembershipExpired($recipientEmail, $recipientName, $planName) {
+        $subject = 'Your Membership Has Expired - ' . APP_NAME;
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                .header { background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .info-box { background: #f9fafb; border-left: 4px solid #4b5563; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #6366f1; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0;'>Membership Expired</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>This is to inform you that your <strong>" . htmlspecialchars($planName) . "</strong> membership has expired, and your premium access has ended.</p>
+                    <div class='info-box'>
+                        <p style='margin:0;'><strong>Access Restricted:</strong></p>
+                        <p style='margin:10px 0 0 0;'>Books and digital content unlocked via your membership have been removed from your digital library. To restore access and continue reading, simply renew your membership.</p>
+                    </div>
+                    <center><a href='" . APP_URL . "/public/index.php?page=membership' class='button'>Renew Membership Now</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
+    public function sendWalletTopUpConfirmation($recipientEmail, $recipientName, $amountCents, $newBalanceCents, $method) {
+        $subject = 'Wallet Top Up Confirmed - ' . APP_NAME;
+        $amountStr = '$' . number_format(((int)$amountCents) / 100, 2);
+        $balanceStr = '$' . number_format(((int)$newBalanceCents) / 100, 2);
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 20px; text-align: center; }
+                .content { padding: 30px; line-height: 1.6; color: #374151; }
+                .amount-badge { display: inline-block; padding: 12px 24px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; font-weight: 800; font-size: 28px; color: #059669; margin: 15px 0; }
+                .details { background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3af; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #10b981; color: white !important; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1 style='margin:0; font-size: 24px;'>Top Up Successful!</h1>
+                </div>
+                <div class='content'>
+                    <p>Hello <strong>" . htmlspecialchars($recipientName) . "</strong>,</p>
+                    <p>We are pleased to confirm that your wallet top up request has been completed successfully.</p>
+                    <center>
+                        <div class='amount-badge'>$amountStr</div>
+                    </center>
+                    <div class='details'>
+                        <table style='width:100%; border-collapse:collapse;'>
+                            <tr style='border-bottom:1px solid #e5e7eb;'>
+                                <td style='padding:10px 0; font-weight:bold; color:#6b7280;'>Payment Method:</td>
+                                <td style='padding:10px 0; text-align:right; font-weight:bold; color:#374151;'>" . htmlspecialchars($method) . "</td>
+                            </tr>
+                            <tr>
+                                <td style='padding:10px 0; font-weight:bold; color:#6b7280;'>New Wallet Balance:</td>
+                                <td style='padding:10px 0; text-align:right; font-weight:bold; color:#059669; font-size:16px;'>$balanceStr</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <p>You can now use your updated balance to purchase books, rent digital materials, or upgrade your membership!</p>
+                    <center><a href='" . APP_URL . "/public/index.php?page=dashboard' class='button'>Go to Dashboard</a></center>
+                </div>
+                <div class='footer'>
+                    <p>" . APP_NAME . " - The Future of Digital Reading</p>
+                    <p>&copy; 2026 " . APP_NAME . ". All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($recipientEmail, $subject, $message, $recipientName);
+    }
+
     private function send($recipientEmail, $subject, $message, $recipientName = '') {
         try {
             $transportHost = $this->host;

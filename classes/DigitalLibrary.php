@@ -113,6 +113,15 @@ class DigitalLibrary {
         $session = new Session();
         $isAdminOrLibrarian = $session->isAdmin() || $session->isLibrarian();
         
+        if (!$isAdminOrLibrarian) {
+            $membership = new Membership();
+            $active = $membership->getActiveMembership($userId);
+            if (!$active) {
+                // Instantly remove expired membership book access
+                $this->db->query("DELETE FROM UserBookAccess WHERE user_id = " . (int)$userId . " AND access_type = 'MEMBERSHIP'");
+            }
+        }
+        
         $sql = "SELECT uba.id, uba.book_id, uba.access_type, uba.created_at,
                        b.name, b.description, b.genre, b.cover_image, b.online_copy_pdf,
                        COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors,
@@ -203,6 +212,17 @@ class DigitalLibrary {
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         if (!$row) return null;
+
+        if ($row['access_type'] === 'MEMBERSHIP') {
+            $membership = new Membership();
+            $active = $membership->getActiveMembership($userId);
+            if (!$active) {
+                // Instantly remove expired membership book access
+                $this->db->query("DELETE FROM UserBookAccess WHERE user_id = $userId AND access_type = 'MEMBERSHIP'");
+                return null;
+            }
+        }
+
         return [
             'access_type' => (string)($row['access_type'] ?? ''),
             'created_at' => (string)($row['created_at'] ?? '')
@@ -221,10 +241,23 @@ class DigitalLibrary {
         $session = new Session();
         if ($session->isAdmin() || $session->isLibrarian()) return true;
         
-        $stmt = $this->db->prepare("SELECT id FROM UserBookAccess WHERE user_id = ? AND book_id = ? LIMIT 1");
+        $stmt = $this->db->prepare("SELECT access_type FROM UserBookAccess WHERE user_id = ? AND book_id = ? LIMIT 1");
         $stmt->bind_param('ii', $userId, $bookId);
         $stmt->execute();
-        return (bool)$stmt->get_result()->fetch_assoc();
+        $row = $stmt->get_result()->fetch_assoc();
+        if (!$row) return false;
+
+        if ($row['access_type'] === 'MEMBERSHIP') {
+            $membership = new Membership();
+            $active = $membership->getActiveMembership($userId);
+            if (!$active) {
+                // Instantly remove expired membership book access
+                $this->db->query("DELETE FROM UserBookAccess WHERE user_id = $userId AND access_type = 'MEMBERSHIP'");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function getBookForDigitalAccess($bookId) {
