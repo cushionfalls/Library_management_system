@@ -1,36 +1,45 @@
-hey[13-May-2026 03:41:49 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+[18-May-2026 17:12:49 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: No connection could be made because the target machine actively refused it in C:\xampp\htdocs\Library_management_system\classes\Database.php:20
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2028-05-09 00:0...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\xampp\htdocs\Library_management_system\classes\Database.php(20): mysqli->__construct('localhost', 'root', Object(SensitiveParameterValue), 'final', '3306')
+#1 C:\xampp\htdocs\Library_management_system\classes\Database.php(9): Database->connect()
+#2 C:\xampp\htdocs\Library_management_system\classes\Database.php(14): Database->__construct()
+#3 C:\xampp\htdocs\Library_management_system\classes\Session.php(9): Database::getInstance()
+#4 C:\xampp\htdocs\Library_management_system\public\index.php(6): Session->__construct()
+#5 C:\xampp\htdocs\Library_management_system\index.php(2): require('C:\\xampp\\htdocs...')
+#6 {main}
+  thrown in C:\xampp\htdocs\Library_management_system\classes\Database.php on line 20
+[19-May-2026 06:21:11 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Premium', '2027-05-13 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 3)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:31 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:13 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-06-12 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:32 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-07-12 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:21:26 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-08-11 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
-[13-May-2026 03:49:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant "SITE_URL" in C:\yoo\htdocs\Library_management_system\classes\EmailService.php:334
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:23:59 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'final.wishlist' doesn't exist in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php:93
 Stack trace:
-#0 C:\yoo\htdocs\Library_management_system\classes\Membership.php(215): EmailService->sendMembershipActivation('kaflesamip9845@...', 'Samip', 'Basic', '2027-09-10 07:3...')
-#1 C:\yoo\htdocs\Library_management_system\controllers\membership.php(65): Membership->purchaseWithWallet(3, 1)
-#2 {main}
-  thrown in C:\yoo\htdocs\Library_management_system\classes\EmailService.php on line 334
+#0 C:\yoo\htdocs\Library_management_system\classes\Wishlist.php(93): mysqli->prepare('SELECT COUNT(*)...')
+#1 C:\yoo\htdocs\Library_management_system\public\index.php(62): Wishlist->getCount(3)
+#2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
+#3 {main}
+  thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93

@@ -52,12 +52,15 @@ class RecommendationController
         $genrePriority = array_column($profile['genre_signals_from_history'] ?? [], 'genre');
         $available = $this->fetchAvailableBooksForUser($excludedBookIds, $genrePriority, 120);
         
-        if (!$available && !empty($excludedBookIds)) {
-            // If the user literally has access to EVERY book in the library, only then do we relax.
-            $available = $this->fetchAvailableBooksForUser([], $genrePriority, 120);
-        }
-
-        if (!$available) {
+        if (empty($available)) {
+            if (!empty($excludedBookIds)) {
+                return [
+                    'success' => true,
+                    'data' => ['source' => 'all_owned', 'recommendations' => []],
+                    'meta' => ['user_id' => $userId, 'history_count' => count($history), 'catalog_count' => 0],
+                    'message' => 'You already own or have active access to every book in our collection!'
+                ];
+            }
             return [
                 'success' => true,
                 'data' => ['source' => 'no_catalog', 'recommendations' => []],
@@ -83,6 +86,11 @@ class RecommendationController
                 'source' => 'genre_based',
                 'recommendations' => $this->buildGenreBasedRecommendations($available, $history, 6)
             ];
+        }
+        if (!empty($ai['recommendations']) && is_array($ai['recommendations'])) {
+            $ai['recommendations'] = array_values(array_filter($ai['recommendations'], function ($rec) use ($excludedBookIds) {
+                return !in_array((int)($rec['book_id'] ?? 0), $excludedBookIds, true);
+            }));
         }
         $ai = $this->attachBecauseYouReadHints($ai, $history);
 
@@ -115,8 +123,15 @@ class RecommendationController
             return ['success' => false, 'message' => 'Book not found'];
         }
 
-        $available = $this->fetchAvailableBooksForUser([], [$book['genre']], 40);
+        $userId = $this->session->getUserId();
+        $excludedBookIds = $this->fetchUserExcludedBookIds($userId);
+        $available = $this->fetchAvailableBooksForUser($excludedBookIds, [$book['genre']], 40);
         $ai = $this->ai->getSimilarBooks($book['title'], $book['genre'], $available);
+        if (!empty($ai['recommendations']) && is_array($ai['recommendations'])) {
+            $ai['recommendations'] = array_values(array_filter($ai['recommendations'], function ($rec) use ($excludedBookIds) {
+                return !in_array((int)($rec['book_id'] ?? 0), $excludedBookIds, true);
+            }));
+        }
 
         return ['success' => true, 'data' => $ai, 'book' => $book];
     }
@@ -295,8 +310,13 @@ class RecommendationController
 
     private function fetchUserExcludedBookIds($userId): array
     {
-        // Exclude books the user already has digital access to.
-        $stmt = $this->pdo->prepare("SELECT DISTINCT book_id FROM UserBookAccess WHERE user_id = :user_id");
+        // Exclude books the user already has active digital access to (owned or active membership).
+        $sql = "SELECT DISTINCT uba.book_id 
+                FROM UserBookAccess uba
+                LEFT JOIN UserMemberships um ON um.id = uba.source_ref AND uba.access_type = 'MEMBERSHIP'
+                WHERE uba.user_id = :user_id
+                AND (uba.access_type = 'OWNED' OR (uba.access_type = 'MEMBERSHIP' AND um.status = 'ACTIVE' AND um.ends_at > NOW()))";
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $ids = [];

@@ -11,23 +11,46 @@ function adminApiUrl(action) {
     return (window.ADMIN_API_URL || '') + '?action=' + encodeURIComponent(action);
 }
 
-function adminBaseUrl() {
-    const api = window.ADMIN_API_URL || '';
-    return api.replace(/\/controllers\/admin\.php.*$/, '');
+function adminAssetUrl(path) {
+    return window.assetUrl ? window.assetUrl(path) : path;
 }
 
-function adminAssetUrl(path) {
+function adminUserProfileAssetUrl(path) {
     const raw = String(path || '').trim();
     if (!raw) return '';
     if (/^https?:\/\//i.test(raw)) return raw;
-    if (raw.startsWith('/')) return adminBaseUrl() + raw;
-    return adminBaseUrl() + '/' + raw.replace(/^\/+/, '');
+    const filename = raw.split('/').pop().split('\\').pop().trim();
+    // Validate filename structure to ensure it is a valid file, not a directory or null string
+    if (!filename || filename === 'profiles' || filename === 'uploads' || filename === 'null' || !filename.includes('.')) {
+        return '';
+    }
+    return window.assetUrl ? window.assetUrl('public/uploads/profiles/' + filename) : '/public/uploads/profiles/' + filename;
 }
 
 async function adminFetch(action, options = {}) {
+    const isPost = (options.method || 'GET').toUpperCase() === 'POST';
+    if (isPost && window.CSRF_TOKEN) {
+        if (options.body instanceof FormData) {
+            options.body.append('csrf_token', window.CSRF_TOKEN);
+        } else if (options.body instanceof URLSearchParams) {
+            options.body.append('csrf_token', window.CSRF_TOKEN);
+        } else if (typeof options.body === 'string') {
+            options.body += (options.body ? '&' : '') + 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+        } else if (!options.body) {
+            options.body = 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+            options.headers = { ...options.headers, 'Content-Type': 'application/x-www-form-urlencoded', ...options.headers };
+        }
+    }
     const response = await fetch(adminApiUrl(action), options);
     return response.json();
 }
+
+let adminOffsets = {
+    books: 0,
+    users: 0,
+    transactions: 0
+};
+const adminLimit = 20;
 
 
 function renderOverview(overview) {
@@ -40,16 +63,16 @@ function renderOverview(overview) {
     function fallbackCover() {
         return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=700&q=80';
     }
-function renderBooks(books) {
+function renderBooks(books, append = false) {
     const body = document.getElementById('adminBooksBody');
     if (!body) return;
-    if (!books || books.length === 0) {
+    if (!append && (!books || books.length === 0)) {
         body.innerHTML = '<tr><td colspan="7" class="px-8 py-6 text-center text-on-surface-variant">No books found.</td></tr>';
+        document.getElementById('adminLoadMoreBooksBtn')?.classList.add('hidden');
         return;
     }
 
-
-    body.innerHTML = books.map((book) => {
+    const html = books.map((book) => {
         return `
             <tr class="hover:bg-surface-variant/30 transition-colors">
                 <td class="px-8 py-6 text-sm font-medium text-on-surface">${escapeHtml(book.isbn)}</td>
@@ -65,17 +88,29 @@ function renderBooks(books) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreBooksBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', books.length < adminLimit);
+    }
 }
 
-function renderUsers(users) {
+function renderUsers(users, append = false) {
     const body = document.getElementById('adminUsersBody');
     if (!body) return;
-    if (!users || users.length === 0) {
+    if (!append && (!users || users.length === 0)) {
         body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No users found.</td></tr>';
+        document.getElementById('adminLoadMoreUsersBtn')?.classList.add('hidden');
         return;
     }
 
-    body.innerHTML = users.map((u) => {
+    const html = users.map((u) => {
         const actionButtons = window.IS_ADMIN 
             ? `<button class="text-primary hover:bg-primary-fixed/30 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="edit" data-id="${u.id}">Edit</button>
                <button class="text-error hover:bg-error-container/40 px-3 py-1.5 rounded-md text-sm font-semibold transition-all" data-user-action="delete" data-id="${u.id}">Remove</button>`
@@ -94,17 +129,29 @@ function renderUsers(users) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreUsersBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', users.length < adminLimit);
+    }
 }
 
-function renderTransactions(transactions) {
+function renderTransactions(transactions, append = false) {
     const body = document.getElementById('adminTransactionsBody');
     if (!body) return;
-    if (!transactions || transactions.length === 0) {
+    if (!append && (!transactions || transactions.length === 0)) {
         body.innerHTML = '<tr><td colspan="6" class="px-8 py-6 text-center text-on-surface-variant">No transactions found.</td></tr>';
+        document.getElementById('adminLoadMoreTransactionsBtn')?.classList.add('hidden');
         return;
     }
 
-    body.innerHTML = transactions.map((tx) => {
+    const html = transactions.map((tx) => {
         const displayType = tx.type.replace('_', ' ');
         return `
             <tr class="hover:bg-surface-variant/30 transition-colors">
@@ -115,12 +162,23 @@ function renderTransactions(transactions) {
             </tr>
         `;
     }).join('');
+
+    if (append) {
+        body.insertAdjacentHTML('beforeend', html);
+    } else {
+        body.innerHTML = html;
+    }
+
+    const loadMoreBtn = document.getElementById('adminLoadMoreTransactionsBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', transactions.length < adminLimit);
+    }
 }
 
 
 function setActiveTab(tabName) {
     window.__adminActiveTab = tabName;
-    const tabs = ['books', 'users', 'transactions'];
+    const tabs = ['books', 'users', 'transactions', 'analytics'];
     tabs.forEach((tab) => {
         const panel = document.getElementById('adminSection' + tab.charAt(0).toUpperCase() + tab.slice(1));
         const btn = document.querySelector('.admin-tab-btn[data-tab="' + tab + '"]');
@@ -135,10 +193,22 @@ function setActiveTab(tabName) {
             }
         }
     });
+
+    if (tabName === 'analytics') {
+        loadAnalytics();
+    }
 }
 
 async function loadAdminDashboard() {
-    const result = await adminFetch('dashboard', { cache: 'no-store' });
+    adminOffsets = { books: 0, users: 0, transactions: 0 };
+    
+    // Use POST to send limits and offsets for initial load
+    const result = await adminFetch('dashboard', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `limit=${adminLimit}&offset=0`
+    });
+
     if (!result.success || !result.data) {
         adminToast(result.error || 'Failed to load dashboard', 'error');
         return;
@@ -150,6 +220,261 @@ async function loadAdminDashboard() {
     window.__adminBooks = result.data.books || [];
     window.__adminUsers = result.data.recent_users || [];
     window.__adminTransactions = result.data.recent_transactions || [];
+}
+
+async function loadMoreSection(type) {
+    const btn = document.getElementById('adminLoadMore' + type.charAt(0).toUpperCase() + type.slice(1) + 'Btn');
+    if (btn) btn.disabled = true;
+
+    adminOffsets[type] += adminLimit;
+    const action = type === 'books' ? 'books' : (type === 'users' ? 'recent-users' : 'recent-transactions');
+    
+    try {
+        const result = await adminFetch(action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `limit=${adminLimit}&offset=${adminOffsets[type]}`
+        });
+
+        if (result.success && result.data) {
+            if (type === 'books') {
+                renderBooks(result.data, true);
+                window.__adminBooks = [...(window.__adminBooks || []), ...result.data];
+            } else if (type === 'users') {
+                renderUsers(result.data, true);
+                window.__adminUsers = [...(window.__adminUsers || []), ...result.data];
+            } else if (type === 'transactions') {
+                renderTransactions(result.data, true);
+                window.__adminTransactions = [...(window.__adminTransactions || []), ...result.data];
+            }
+        }
+    } catch (e) {
+        adminToast('Failed to load more ' + type, 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function loadAnalytics() {
+    const result = await adminFetch('analytics', { cache: 'no-store' });
+    if (!result.success || !result.data) {
+        adminToast(result.error || 'Failed to load analytics', 'error');
+        return;
+    }
+
+    const { stats, revenue, top_books, genres } = result.data;
+
+    // Update Stats
+    document.getElementById('statActiveMemberships').textContent = stats.active_memberships ?? 0;
+    document.getElementById('statNewUsers').textContent = stats.new_users_7d ?? 0;
+    document.getElementById('statMonthlyPurchases').textContent = stats.monthly_books_purchased ?? 0;
+
+    renderRevenueChart(revenue);
+    renderTopBooksChart(top_books);
+    renderGenreChart(genres);
+}
+
+let charts = {};
+
+function renderRevenueChart(data) {
+    const options = {
+        series: [{
+            name: 'Revenue',
+            data: data.map(d => Number((d.total / 100).toFixed(2)))
+        }],
+        chart: {
+            type: 'area',
+            height: 350,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            foreColor: 'rgb(var(--color-on-surface-variant))'
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        colors: ['rgb(var(--color-primary))'],
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [20, 100]
+            }
+        },
+        xaxis: {
+            categories: data.map(d => {
+                const date = new Date(d.date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }),
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: (val) => '$' + val
+            }
+        },
+        grid: {
+            borderColor: 'rgb(var(--color-outline-variant) / 0.1)',
+            strokeDashArray: 4
+        },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            y: { formatter: (val) => '$' + val }
+        }
+    };
+
+    if (charts.revenue) charts.revenue.destroy();
+    charts.revenue = new ApexCharts(document.querySelector("#revenueChart"), options);
+    charts.revenue.render();
+}
+
+function renderTopBooksChart(data) {
+    const options = {
+        series: [{
+            name: 'Sales',
+            data: data.map(d => Number(d.sales || 0))
+        }],
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: { show: false },
+            foreColor: 'rgb(var(--color-on-surface-variant))'
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 8,
+                columnWidth: '40%',
+                distributed: true
+            }
+        },
+        dataLabels: { enabled: false },
+        colors: ['rgb(var(--color-primary))', 'rgb(var(--color-secondary))', 'rgb(var(--color-tertiary))', 'rgb(var(--color-error))', 'rgb(var(--color-primary-container))'],
+        xaxis: {
+            categories: data.map(d => {
+                const words = d.name.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(w => {
+                    if (currentLine.length + w.length > 12) {
+                        lines.push(currentLine.trim());
+                        currentLine = w + ' ';
+                    } else {
+                        currentLine += w + ' ';
+                    }
+                });
+                if (currentLine) lines.push(currentLine.trim());
+                return lines;
+            }),
+            labels: {
+                rotate: 0,
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'Manrope',
+                    lineHeight: '1.2'
+                }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: (val) => Math.floor(val)
+            },
+            tickAmount: Math.max(1, ...data.map(d => Number(d.sales || 0))),
+            min: 0
+        },
+        grid: {
+            borderColor: 'rgb(var(--color-outline-variant) / 0.1)',
+            strokeDashArray: 4
+        },
+        legend: { show: false },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    if (charts.topBooks) charts.topBooks.destroy();
+    charts.topBooks = new ApexCharts(document.querySelector("#topBooksChart"), options);
+    charts.topBooks.render();
+}
+
+function renderGenreChart(data) {
+    const options = {
+        series: data.map(d => Number(d.count || 0)),
+        labels: data.map(d => d.genre.replace('_', ' ')),
+        dataLabels: {
+            formatter: (val) => Math.round(val) + '%',
+            style: {
+                fontSize: '13px',
+                fontFamily: 'Manrope',
+                fontWeight: '800',
+                colors: ['#111827']
+            },
+            dropShadow: {
+                enabled: true,
+                top: 0,
+                left: 0,
+                blur: 3,
+                color: '#fff',
+                opacity: 1
+            }
+        },
+        chart: {
+            type: 'donut',
+            height: 350,
+            foreColor: 'rgb(var(--color-on-surface-variant))',
+            fontFamily: 'Manrope'
+        },
+        colors: ['#4F1BF1', '#7C52FF', '#A384FF', '#C9B6FF', '#EFEDFF'],
+        stroke: { show: false },
+        legend: {
+            position: 'bottom',
+            fontFamily: 'Manrope'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '75%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total Books',
+                            color: 'rgb(var(--color-on-surface-variant))',
+                            fontSize: '14px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 600,
+                            formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                        },
+                        value: {
+                            show: true,
+                            fontSize: '24px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 900,
+                            color: 'rgb(var(--color-on-surface))',
+                            offsetY: 10
+                        },
+                        name: {
+                            show: true,
+                            fontSize: '14px',
+                            fontFamily: 'Manrope',
+                            fontWeight: 600,
+                            color: 'rgb(var(--color-on-surface-variant))',
+                            offsetY: -10
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+        }
+    };
+
+    if (charts.genre) charts.genre.destroy();
+    charts.genre = new ApexCharts(document.querySelector("#genreChart"), options);
+    charts.genre.render();
 }
 
 function openBookModal(book = null) {
@@ -298,7 +623,7 @@ async function saveBook(event) {
     const pdfInput = document.getElementById('adminBookOnlinePdf');
     const existingPdfEl = document.getElementById('adminBookExistingOnlinePdf');
     if (!id && (!pdfInput.files || pdfInput.files.length === 0) && (!existingPdfEl || !existingPdfEl.value)) {
-        adminToast('Electronic copy (EPUB/PDF) is mandatory for new books', 'error');
+        adminToast('Electronic copy (EPUB) is mandatory for new books', 'error');
         return;
     }
 
@@ -363,7 +688,7 @@ function openUserModal(user = null, preferredRole = 'USER') {
     const profilePlaceholderEl = document.getElementById('adminUserProfilePlaceholder');
     const adminRoleOption = roleEl ? roleEl.querySelector('option[value="ADMIN"]') : null;
     const setProfileImage = (url) => {
-        const finalUrl = adminAssetUrl(url);
+        const finalUrl = adminUserProfileAssetUrl(url);
         if (!profilePreviewEl || !profilePlaceholderEl) return;
         if (!finalUrl) {
             profilePreviewEl.removeAttribute('src');
@@ -387,6 +712,8 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = Number(user.is_active) === 1 ? '1' : '0';
         if (existingProfileImageEl) existingProfileImageEl.value = user.profile_image || '';
         setProfileImage(user.profile_image || '');
+        if (titleEl) titleEl.textContent = 'Edit Member';
+        if (subtitleEl) subtitleEl.textContent = "Modify this user account's credentials, role, status or picture.";
         if (saveBtnEl) saveBtnEl.textContent = 'Save Changes';
         if (adminRoleOption) {
             // Disable ADMIN option if an admin already exists AND this user is not currently an admin
@@ -408,6 +735,7 @@ function openUserModal(user = null, preferredRole = 'USER') {
         document.getElementById('adminUserStatus').value = '1';
         if (existingProfileImageEl) existingProfileImageEl.value = '';
         setProfileImage('');
+        if (titleEl) titleEl.textContent = 'Add New Member';
         if (subtitleEl) subtitleEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create a librarian account for this branch.' : 'Create a user account for this branch.';
         if (saveBtnEl) saveBtnEl.textContent = preferredRole === 'LIBRARIAN' ? 'Create Librarian' : 'Create User';
         if (adminRoleOption) {
@@ -448,7 +776,9 @@ async function saveUser(event) {
 
     document.getElementById('adminUserModal').close();
     adminToast(result.message || 'User saved successfully', 'success');
-    await loadAdminDashboard();
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 async function deleteUser(id) {
@@ -466,7 +796,9 @@ async function deleteUser(id) {
     }
 
     adminToast(result.message || 'User removed successfully', 'success');
-    await loadAdminDashboard();
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 function bindAdminEvents() {
@@ -512,6 +844,15 @@ function bindAdminEvents() {
     if (pdfInput) {
         pdfInput.addEventListener('change', () => {
             const file = pdfInput.files && pdfInput.files[0];
+            if (file) {
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (extension !== 'epub') {
+                    adminToast('Only .epub files are allowed', 'error');
+                    pdfInput.value = '';
+                    pdfFilename.textContent = 'No file selected';
+                    return;
+                }
+            }
             pdfFilename.textContent = file ? file.name : 'No file selected';
         });
     }
@@ -621,6 +962,11 @@ function bindAdminEvents() {
             }
         });
     });
+
+    // Pagination Listeners
+    document.getElementById('adminLoadMoreBooksBtn')?.addEventListener('click', () => loadMoreSection('books'));
+    document.getElementById('adminLoadMoreUsersBtn')?.addEventListener('click', () => loadMoreSection('users'));
+    document.getElementById('adminLoadMoreTransactionsBtn')?.addEventListener('click', () => loadMoreSection('transactions'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

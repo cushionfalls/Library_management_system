@@ -7,6 +7,16 @@ function appBaseUrl() {
     return '';
 }
 
+// Asset URL helper
+function assetUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const base = appBaseUrl();
+    if (raw.startsWith('/')) return base + raw;
+    return base + '/' + raw;
+}
+
 // Global functions
 function openLogoutModal() {
     const modal = document.getElementById('logoutConfirmModal');
@@ -24,11 +34,14 @@ async function confirmLogout(event = null) {
     }
 
     try {
-        const response = await fetch(appBaseUrl() + '/controllers/auth.php?action=logout', {
+        const options = {
             method: 'POST',
             credentials: 'same-origin',
-            cache: 'no-store'
-        });
+            cache: 'no-store',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN || '')
+        };
+        const response = await fetch(appBaseUrl() + '/controllers/auth.php?action=logout', options);
 
         const result = await response.json().catch(() => ({}));
 
@@ -128,12 +141,29 @@ function debounce(func, wait) {
 // API call with error handling
 async function apiCall(url, options = {}) {
     try {
+        const isPost = (options.method || 'GET').toUpperCase() === 'POST';
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            ...options.headers
+        };
+
+        let body = options.body;
+        if (isPost && window.CSRF_TOKEN) {
+            if (body instanceof FormData) {
+                body.append('csrf_token', window.CSRF_TOKEN);
+            } else if (body instanceof URLSearchParams) {
+                body.append('csrf_token', window.CSRF_TOKEN);
+            } else if (typeof body === 'string') {
+                body += (body ? '&' : '') + 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+            } else if (!body) {
+                body = 'csrf_token=' + encodeURIComponent(window.CSRF_TOKEN);
+            }
+        }
+
         const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                ...options.headers
-            },
-            ...options
+            ...options,
+            headers,
+            body
         });
 
         return await response.json();
@@ -161,19 +191,9 @@ function validateForm(formElement) {
     return isValid;
 }
 
-// Initialize tooltips and popovers
+// Initialize tooltips and popovers (REMOVED: Bootstrap tooltips/popovers not used)
 document.addEventListener('DOMContentLoaded', function () {
-    // Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // Bootstrap popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+    // DaisyUI or other vanilla logic can go here
 });
 
 // Check authentication status
@@ -257,12 +277,38 @@ document.addEventListener('DOMContentLoaded', function () {
     images.forEach(img => imageObserver.observe(img));
 });
 
+/**
+ * Helper to handle OTP countdowns
+ * @param {HTMLElement} displayEl - Element to show the message
+ * @param {number} seconds - Remaining seconds
+ * @param {string} baseMessage - Message to show before the timer
+ */
+function startOtpCountdown(displayEl, seconds, baseMessage = 'Please wait') {
+    if (!displayEl) return;
+    let remaining = seconds;
+    
+    const update = () => {
+        if (remaining <= 0) {
+            displayEl.innerHTML = '';
+            return;
+        }
+        displayEl.innerHTML = `<div class="p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 flex items-center gap-3">
+            <i class="fas fa-clock"></i>
+            ${baseMessage} ${remaining}s before requesting again.
+        </div>`;
+        remaining--;
+        setTimeout(update, 1000);
+    };
+    update();
+}
+
 // Export functions for use in other scripts
 window.formatDate = formatDate;
 window.formatCurrency = formatCurrency;
 window.formatUsdFromCents = formatUsdFromCents;
 window.escapeHtml = escapeHtml;
 window.showToast = showToast;
+window.assetUrl = assetUrl;
 window.apiCall = apiCall;
 window.validateForm = validateForm;
 window.openLogoutModal = openLogoutModal;
@@ -271,5 +317,6 @@ window.logout = confirmLogout;
 window.redirect = redirect;
 window.Storage = Storage;
 window.SessionStorage = SessionStorage;
+window.startOtpCountdown = startOtpCountdown;
 
 

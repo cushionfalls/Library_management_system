@@ -70,6 +70,18 @@ class Membership {
      */
     public function getActiveMembership($userId) {
         $userId = (int)$userId;
+
+        // Auto-expiration sweep: mark memberships as EXPIRED if ends_at <= NOW()
+        $sweep = $this->db->prepare(
+            "UPDATE UserMemberships 
+             SET status = 'EXPIRED', updated_at = NOW() 
+             WHERE user_id = ? AND status = 'ACTIVE' AND ends_at <= NOW()"
+        );
+        if ($sweep) {
+            $sweep->bind_param('i', $userId);
+            $sweep->execute();
+        }
+
         $stmt = $this->db->prepare(
             "SELECT um.id, um.user_id, um.plan_id, um.starts_at, um.ends_at, um.status,
                     mp.slug AS plan_slug, mp.name AS plan_name, mp.duration_days, mp.price
@@ -151,10 +163,6 @@ class Membership {
 
                 $currentPlanId = (int)($active['plan_id'] ?? 0);
                 $currentPrice = (int)($active['price'] ?? 0);
-                if ($price < $currentPrice) {
-                    $this->db->rollback();
-                    return ['success' => false, 'message' => 'Downgrading membership is not allowed'];
-                }
             }
 
             // Wallet debit (inside same DB transaction).

@@ -94,6 +94,53 @@
         }
     }
 
+    async function toggleWishlist(bookId, buttonEl) {
+        if (!bookId) return;
+        if (!window.BROWSE_IS_LOGGED_IN) {
+            window.showToast?.('Login to save this book to your wishlist', 'info');
+            return;
+        }
+
+        const body = new URLSearchParams();
+        body.set('book_id', String(bookId));
+
+        try {
+            const response = await fetch((window.WISHLIST_API_URL || '') + '?action=toggle', { method: 'POST', body });
+            const result = await response.json();
+
+            if (!result || !result.success) {
+                window.showToast?.(result.message || 'Unable to update wishlist', 'error');
+                return;
+            }
+
+            // Update UI
+            const isAdded = result.action === 'added';
+            const icon = buttonEl.querySelector('.material-symbols-outlined');
+            if (icon) {
+                icon.style.fontVariationSettings = isAdded ? "'FILL' 1" : "'FILL' 0";
+                icon.classList.toggle('text-primary', isAdded);
+            }
+            
+            window.showToast?.(result.message, 'success');
+            updateWishlistBadge();
+        } catch (error) {
+            window.showToast?.('An error occurred', 'error');
+        }
+    }
+
+    async function updateWishlistBadge() {
+        if (!window.BROWSE_IS_LOGGED_IN) return;
+        try {
+            const response = await fetch((window.WISHLIST_API_URL || '') + '?action=count');
+            const result = await response.json();
+            const badge = document.getElementById('navWishlistBadge');
+            if (badge && result.success) {
+                badge.textContent = result.count;
+                badge.classList.toggle('hidden', result.count <= 0);
+            }
+        } catch (e) {}
+    }
+
     async function loadCatalog() {
         const grid = document.getElementById('browseCatalogGrid');
         const list = document.getElementById('browseCatalogList');
@@ -159,15 +206,22 @@
 
             return `
                 <article class="group flex flex-col" data-book-id="${book.id}">
-                    <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_12px_24px_-8px_rgba(56,0,191,0.2)] cursor-pointer" data-book-id="${book.id}" data-action="details">
+                    <div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-xl cursor-pointer" data-book-id="${book.id}" data-action="details">
                         <img class="w-full h-full object-cover" alt="${esc(book.name)}" src="${cover}" loading="lazy" />
                         <div class="absolute top-2 left-2 flex flex-col gap-1">
                             <span class="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-sm">${esc(book.genre_label)}</span>
                         </div>
+                        ${(!book.user_access_type && window.USER_ROLE !== 'ADMIN' && window.USER_ROLE !== 'LIBRARIAN') ? `
+                        <div class="absolute top-2 right-2">
+                             <button type="button" class="w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-surface-container-low/90 backdrop-blur-md rounded-full shadow-md text-on-surface-variant hover:text-primary hover:scale-110 transition-all active:scale-95 group/wishlist" data-action="wishlist" data-book-id="${book.id}">
+                                <span class="material-symbols-outlined text-[20px] transition-transform group-hover/wishlist:scale-110" style="font-variation-settings:'FILL' ${book.is_wishlisted ? 1 : 0};">bookmark</span>
+                            </button>
+                        </div>
+                        ` : ''}
                         <div class="absolute bottom-2 right-2">
                              <div class="bg-surface-container-lowest/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
                                 <span class="material-symbols-outlined text-amber-500 text-[10px]" style="font-variation-settings:'FILL' 1;">star</span>
-                                <span class="text-[10px] font-black text-[#1c1a25]">${esc(Number(book.rating || 0).toFixed(1))}</span>
+                                <span class="text-[10px] font-black text-on-surface">${esc(Number(book.rating || 0).toFixed(1))}</span>
                             </div>
                         </div>
                     </div>
@@ -182,7 +236,7 @@
                             ` : `
                                 <button class="flex-1 py-2 text-[9px] font-black bg-primary text-white rounded-md hover:opacity-90 transition-opacity uppercase tracking-tighter" data-action="buy" data-book-id="${book.id}">Buy Now</button>
                             `}
-                            <button class="flex-1 py-2 text-[9px] font-black bg-[#f0ecf8] text-[#3800bf] rounded-md hover:bg-[#e4dff3] transition-colors uppercase tracking-tighter" data-action="details" data-book-id="${book.id}">Details</button>
+                            <button class="flex-1 py-2 text-[9px] font-black bg-surface-container-high text-primary rounded-md hover:opacity-80 transition-colors uppercase tracking-tighter" data-action="details" data-book-id="${book.id}">Details</button>
                         </div>
                     </div>
                 </article>
@@ -213,6 +267,12 @@
                         <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">${esc(book.description || 'No description available.')}</p>
                         <div class="flex items-center gap-4 mt-3 text-xs text-on-surface-variant">
                             <span>Rating: ${esc(Number(book.rating || 0).toFixed(1))}</span>
+                            ${(!book.user_access_type && window.USER_ROLE !== 'ADMIN' && window.USER_ROLE !== 'LIBRARIAN') ? `
+                            <button type="button" class="flex items-center gap-1 hover:text-primary transition-colors" data-action="wishlist" data-book-id="${book.id}">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' ${book.is_wishlisted ? 1 : 0};">bookmark</span>
+                                <span>${book.is_wishlisted ? 'Saved' : 'Save for later'}</span>
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                     <div class="sm:self-center flex flex-col gap-2 min-w-[120px]">
@@ -405,15 +465,18 @@
                    </div>`
                 : '';
             return `
-                <article class="flex gap-4">
-                    <img class="w-10 h-10 rounded-full object-cover" src="${avatar}" alt="${esc(review.reviewer_name || 'Reader')}" />
+                <article class="review-card flex gap-4">
+                    <img class="w-10 h-10 rounded-full object-cover border-2 border-primary/20 shadow-sm" src="${avatar}" alt="${esc(review.reviewer_name || 'Reader')}" />
                     <div class="flex-1">
-                        <div class="flex justify-between mb-1">
-                            <span class="font-bold text-sm">${esc(review.reviewer_name || 'Reader')}</span>
-                            <span class="text-xs text-outline">${esc(formatDate(review.created_at))}${editedBadge}</span>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-on-surface">${esc(review.reviewer_name || 'Reader')}</span>
+                            <span class="text-[11px] font-medium text-outline-variant bg-surface-container-high/40 px-2 py-0.5 rounded-full">${esc(formatDate(review.created_at))}${editedBadge}</span>
                         </div>
-                        <div class="flex mb-2">${stars}</div>
-                        <p class="text-sm text-on-surface-variant italic">"${esc(review.review || '')}"</p>
+                        <div class="flex gap-0.5 mb-2">${stars}</div>
+                        <div class="relative">
+                            <span class="absolute -left-2 -top-2 text-primary/10 text-3xl font-serif select-none pointer-events-none">“</span>
+                            <p class="text-sm text-on-surface-variant italic pl-2 pr-4 leading-relaxed">"${esc(review.review || '')}"</p>
+                        </div>
                         ${ownerActions}
                     </div>
                 </article>
@@ -431,6 +494,12 @@
         if (!window.BROWSE_IS_LOGGED_IN) {
             textarea.disabled = true;
             textarea.placeholder = 'Please login to submit a review.';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+        } else if (window.USER_ROLE === 'ADMIN' || window.USER_ROLE === 'LIBRARIAN') {
+            textarea.disabled = true;
+            textarea.placeholder = 'Administrators and librarians are not permitted to review books.';
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
             if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
@@ -648,6 +717,8 @@
             if (action === 'buy') {
                 state.currentBookId = bookId;
                 handleBuyNow(bookId, trigger.querySelector('button[data-action="buy"]') || trigger);
+            } else if (action === 'wishlist') {
+                toggleWishlist(bookId, trigger);
             } else {
                 openBookDetail(bookId);
             }

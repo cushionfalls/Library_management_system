@@ -200,30 +200,80 @@ $tables = [
         CONSTRAINT `membershippurchases_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
         CONSTRAINT `membershippurchases_ibfk_2` FOREIGN KEY (`membership_id`) REFERENCES `UserMemberships` (`id`) ON DELETE CASCADE,
         CONSTRAINT `membershippurchases_ibfk_3` FOREIGN KEY (`plan_id`) REFERENCES `MembershipPlans` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "Wishlist" => "CREATE TABLE IF NOT EXISTS `Wishlist` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `book_id` int(11) NOT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_user_book` (`user_id`,`book_id`),
+        KEY `user_id` (`user_id`),
+        KEY `book_id` (`book_id`),
+        CONSTRAINT `wishlist_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `wishlist_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "UserBookAccess" => "CREATE TABLE IF NOT EXISTS `UserBookAccess` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `book_id` int(11) NOT NULL,
+        `access_type` ENUM('OWNED', 'MEMBERSHIP') NOT NULL,
+        `source_ref` int(11) DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_user_book_access` (`user_id`,`book_id`),
+        KEY `user_id` (`user_id`),
+        KEY `book_id` (`book_id`),
+        CONSTRAINT `userbookaccess_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `userbookaccess_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "UserBookProgress" => "CREATE TABLE IF NOT EXISTS `UserBookProgress` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `book_id` int(11) NOT NULL,
+        `progress_percent` int(11) NOT NULL DEFAULT 0,
+        `current_location` text,
+        `last_opened_at` datetime DEFAULT NULL,
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_user_book_progress` (`user_id`,`book_id`),
+        KEY `user_id` (`user_id`),
+        KEY `book_id` (`book_id`),
+        CONSTRAINT `userbookprogress_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `Users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `userbookprogress_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `Books` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
 ];
 
+echo "<div style='background: #fdf8ff; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: \"Manrope\", sans-serif; padding: 20px;'>";
+echo "<div style='background: white; padding: 50px; border-radius: 32px; box-shadow: 0 25px 80px -12px rgba(56, 0, 191, 0.12); max-width: 650px; width: 100%; border: 1px solid rgba(56, 0, 191, 0.08);'>";
+echo "<div style='text-align: center; margin-bottom: 40px;'>";
+echo "<div style='width: 80px; height: 80px; background: #3800bf; border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 12px 30px rgba(56, 0, 191, 0.3);'>";
+echo "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 24 24\" fill=\"white\"><path d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z\"/></svg>";
+echo "</div>";
+echo "<h1 style='color: #1c1a25; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.02em;'>Lumina Setup Utility</h1>";
+echo "<p style='color: #474557; margin: 12px 0 0; font-size: 16px;'>Initializing your premium library experience</p>";
+echo "</div>";
+
+echo "<div style='background: #f8f7ff; padding: 32px; border-radius: 24px; margin-bottom: 40px; border: 1px solid rgba(56, 0, 191, 0.05);'>";
+echo "<h3 style='margin: 0 0 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: #5a30fb; font-weight: 800;'>Schema Initialization</h3>";
+echo "<div style='display: grid; grid-template-cols: 1fr 1fr; gap: 8px;'>";
 foreach ($tables as $name => $sql) {
     if ($conn->query($sql)) {
-        echo "<p style='color:green'>Table `$name` checked/created.</p>";
+        echo "<div style='color: #2e7d32; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;'><span style='font-size: 10px;'>●</span> $name</div>";
     } else {
-        echo "<p style='color:red'>Error creating table `$name`: " . $conn->error . "</p>";
+        echo "<div style='color: #d32f2f; font-size: 13px; font-weight: 600;'>✗ $name: error</div>";
     }
 }
+echo "</div>";
+echo "</div>";
 
-// 5. Ensure missing columns (Migrations)
-echo "<h3>Running migrations...</h3>";
-
-// Add external_ref if it was missed in WalletTransactions
-$check = $conn->query("SHOW COLUMNS FROM `WalletTransactions` LIKE 'external_ref'");
-if ($check->num_rows === 0) {
-    if ($conn->query("ALTER TABLE `WalletTransactions` ADD COLUMN `external_ref` varchar(255) DEFAULT NULL AFTER `reason`")) {
-        echo "<p style='color:green'>Added `external_ref` to `WalletTransactions`.</p>";
-    }
-}
-
-// Seed default MembershipPlans if table is empty
-$checkPlans = $conn->query("SELECT COUNT(*) AS cnt FROM `MembershipPlans`");
+// Migrations & Seeding
+$checkPlans = $conn->query("SELECT COUNT(*) AS cnt FROM `MembershipPlans` ");
 $planCount = $checkPlans ? (int)$checkPlans->fetch_assoc()['cnt'] : 0;
 if ($planCount === 0) {
     $defaultPlans = [
@@ -231,32 +281,26 @@ if ($planCount === 0) {
         "('standard','Standard', 90,  1200, 1)",
         "('premium', 'Premium',  365, 3500, 1)",
     ];
-    $insertPlans = "INSERT INTO `MembershipPlans` (slug, name, duration_days, price, is_active) VALUES " . implode(',', $defaultPlans);
-    if ($conn->query($insertPlans)) {
-        echo "<p style='color:green'>Default membership plans seeded.</p>";
-    } else {
-        echo "<p style='color:red'>Error seeding membership plans: " . $conn->error . "</p>";
-    }
-} else {
-    echo "<p>Membership plans already exist ($planCount found).</p>";
+    $conn->query("INSERT INTO `MembershipPlans` (slug, name, duration_days, price, is_active) VALUES " . implode(',', $defaultPlans));
 }
 
-// 6. Seed Admin User
-echo "<h3>Seeding data...</h3>";
 $adminEmail = 'admin@lms.com';
 $checkAdmin = $conn->query("SELECT id FROM Users WHERE email = '$adminEmail'");
 if ($checkAdmin->num_rows === 0) {
     $pass = password_hash('Admin@123', PASSWORD_BCRYPT, ['cost' => 12]);
-    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at, wallet) 
-            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW(), 5000)";
-    if ($conn->query($sql)) {
-        echo "<p style='color:green'>Admin user created (admin@lms.com / Admin@123).</p>";
-    }
-} else {
-    echo "<p>Admin user already exists.</p>";
+    $sql = "INSERT INTO Users (first_name, last_name, email, password, role, is_active, is_verified, verified_at) 
+            VALUES ('System', 'Admin', '" . $conn->real_escape_string($adminEmail) . "', '" . $conn->real_escape_string($pass) . "', 'ADMIN', 1, 1, NOW())";
+    $conn->query($sql);
 }
 
-echo "<h2>Setup Complete!</h2>";
-echo "<p><a href='index.php' style='display:inline-block; padding:10px 20px; background:#3800bf; color:white; text-decoration:none; border-radius:5px;'>Go to Homepage</a></p>";
+echo "<div style='text-align: center;'>";
+echo "<h2 style='color: #2e7d32; font-size: 24px; font-weight: 800; margin: 0 0 12px;'>Setup Successful!</h2>";
+echo "<p style='color: #474557; font-size: 15px; margin-bottom: 32px; line-height: 1.6;'>Database tables and core features (Wishlist, Digital Access, Reviews) have been successfully initialized.</p>";
+echo "<a href='index.php' style='display: inline-block; background: #3800bf; color: white; padding: 16px 48px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; transition: all 0.2s; box-shadow: 0 10px 25px rgba(56, 0, 191, 0.2);'>Go to Homepage</a>";
+echo "</div>";
+
+echo "</div>";
+echo "</div>";
 
 $conn->close();
+exit;

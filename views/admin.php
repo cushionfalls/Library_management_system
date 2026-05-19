@@ -1,6 +1,8 @@
 <div id="adminDashboardRoot" class="space-y-10">
     <section class="mb-2">
-        <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']">Admin Dashboard</h1>
+        <h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-['Manrope']" id="adminDashboardTitle">
+            <?php echo $session->isAdmin() ? 'Admin' : 'Librarian'; ?> Dashboard
+        </h1>
         <p class="text-on-surface-variant text-lg">Manage catalog, members, transactions, and library operations.</p>
     </section>
 
@@ -27,6 +29,7 @@
         <button class="admin-tab-btn px-8 py-2.5 rounded-full bg-primary text-on-primary text-sm font-semibold shadow-lg shadow-primary/25" data-tab="books">Books</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="users">Users</button>
         <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="transactions">Transactions</button>
+        <button class="admin-tab-btn px-8 py-2.5 rounded-full text-on-surface-variant text-sm font-semibold hover:bg-surface-container-highest transition-colors" data-tab="analytics">Analytics</button>
     </section>
 
     <?php require __DIR__ . '/partials/admin_search_bar.php'; ?>
@@ -60,6 +63,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreBooksBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Books</button>
+        </div>
     </section>
 
     <section id="adminSectionUsers" class="admin-tab-panel hidden bg-surface-container-lowest rounded-2xl shadow-xl shadow-primary/10 p-8 border border-outline-variant/20">
@@ -89,6 +95,9 @@
                     <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Loading users...</td></tr>
                 </tbody>
             </table>
+        </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreUsersBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Users</button>
         </div>
     </section>
 
@@ -125,6 +134,75 @@
                     <tr><td colspan="6" class="px-4 py-6 text-center text-on-surface-variant">Loading transactions...</td></tr>
                 </tbody>
             </table>
+        </div>
+        <div class="mt-8 flex justify-center">
+            <button id="adminLoadMoreTransactionsBtn" class="px-8 py-3 bg-surface-container-high hover:bg-surface-container-highest text-primary font-bold rounded-xl transition-all hidden">Load More Transactions</button>
+        </div>
+    </section>
+
+    <section id="adminSectionAnalytics" class="admin-tab-panel hidden space-y-8">
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">card_membership</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Active Memberships</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statActiveMemberships">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">New Registrations (7d)</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statNewUsers">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Books Purchased (Month)</p>
+                        <h3 class="text-3xl font-black text-on-surface" id="statMonthlyPurchases">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl lg:col-span-2">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">insights</span>
+                    Revenue Trend (Last 30 Days)
+                </h3>
+                <div id="revenueChart" class="w-full h-[350px]"></div>
+            </div>
+            
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary">trending_up</span>
+                    Top 5 Best Sellers
+                </h3>
+                <div id="topBooksChart" class="w-full h-[350px]"></div>
+            </div>
+
+            <div class="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 shadow-xl">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary">pie_chart</span>
+                    Genre Distribution
+                </h3>
+                <div id="genreChart" class="w-full h-[350px]"></div>
+            </div>
         </div>
     </section>
 
@@ -170,7 +248,7 @@
                                 <span class="text-sm font-medium text-on-surface mb-4" id="adminBookPdfFilename">No file selected</span>
                                 <label class="w-full py-2.5 px-4 bg-surface-container-high text-primary font-semibold rounded-lg hover:bg-surface-container-highest transition-colors text-sm cursor-pointer">
                                     Choose File
-                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub,.pdf" />
+                                    <input class="hidden" id="adminBookOnlinePdf" name="online_copy_pdf" type="file" accept=".epub" />
                                 </label>
                             </div>
                         </section>
@@ -293,11 +371,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">First Name</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserFirstName" name="first_name" required />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserFirstName" name="first_name" pattern="[a-zA-Z]+" maxlength="20" title="First name must only contain letters (no spaces, numbers or special characters)" required />
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">Last Name</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserLastName" name="last_name" required />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserLastName" name="last_name" pattern="[a-zA-Z]+" maxlength="20" title="Last name must only contain letters (no spaces, numbers or special characters)" required />
                                 </div>
                             </div>
 
@@ -313,7 +391,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-sm font-bold text-on-surface">Date of Birth</label>
-                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserDob" name="dob" type="date" />
+                                    <input class="w-full bg-surface-container-high border-none rounded-lg focus:ring-2 focus:ring-primary/40 text-sm py-3" id="adminUserDob" name="dob" type="date" max="<?php echo date('Y-m-d'); ?>" />
                                 </div>
                             </div>
 
@@ -356,6 +434,7 @@ window.ADMIN_API_URL = '<?php echo APP_URL; ?>/controllers/admin.php';
 window.ADMIN_SEARCH_API_URL = '<?php echo APP_URL; ?>/controllers/adminsearchs.php';
 window.IS_LIBRARIAN = <?php echo $session->isLibrarian() ? 'true' : 'false'; ?>;
 window.IS_ADMIN = <?php echo $session->isAdmin() ? 'true' : 'false'; ?>;
+window.CSRF_TOKEN = '<?php echo $session->generateCSRFToken(); ?>';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/admin.js"></script>
 <script src="<?php echo APP_URL; ?>/public/js/adminsearch.js"></script>

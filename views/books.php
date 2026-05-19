@@ -42,6 +42,78 @@
         transform: none !important;
         box-shadow: none !important;
     }
+    
+    /* Premium Review form and list styling to make it "POP" */
+    #bookReviewForm {
+        background: rgb(var(--color-surface-container) / 0.45);
+        border: 1px solid rgb(var(--color-outline-variant) / 0.3);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    html.dark #bookReviewForm {
+        background: rgb(var(--color-surface-container) / 0.15);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    }
+    #bookReviewForm:focus-within {
+        border-color: rgb(var(--color-primary) / 0.5);
+        box-shadow: 0 8px 32px 0 rgb(var(--color-primary) / 0.08);
+    }
+    #bookReviewStars {
+        padding: 4px 8px;
+        background: rgb(var(--color-surface-container-high) / 0.6);
+        border-radius: 999px;
+        transition: all 0.2s ease;
+        border: 1px solid rgb(var(--color-outline-variant) / 0.2);
+    }
+    #bookReviewStars:hover {
+        background: rgb(var(--color-surface-container-high) / 0.95);
+        transform: scale(1.03);
+    }
+    #bookReviewStars span {
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #bookReviewStars span:hover {
+        transform: scale(1.35);
+        text-shadow: 0 0 8px rgb(var(--color-primary) / 0.4);
+    }
+    #bookReviewText {
+        background: rgb(var(--color-surface-container) / 0.7);
+        border: 1px solid rgb(var(--color-outline-variant) / 0.4);
+        color: rgb(var(--color-on-surface));
+        transition: all 0.25s ease;
+    }
+    #bookReviewText:focus {
+        background: rgb(var(--color-surface-container-high));
+        border-color: rgb(var(--color-primary));
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.15);
+    }
+    
+    /* Elegant modern cards for each review */
+    .review-card {
+        background: rgb(var(--color-surface-container) / 0.3);
+        border: 1px solid rgb(var(--color-outline-variant) / 0.2);
+        border-left: 4px solid rgb(var(--color-primary) / 0.4);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html.dark .review-card {
+        background: rgb(var(--color-surface-container) / 0.08);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+    .review-card:hover {
+        transform: translateX(4px);
+        border-left-color: rgb(var(--color-primary));
+        background: rgb(var(--color-surface-container) / 0.55);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+    html.dark .review-card:hover {
+        background: rgb(var(--color-surface-container) / 0.15);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
 </style>
 
 <div class="browse-shell">
@@ -206,22 +278,9 @@ window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
 window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
 window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
 window.BROWSE_IS_VERIFIED = <?php echo ($session->isLoggedIn() && $session->isVerified()) ? 'true' : 'false'; ?>;
+window.USER_ROLE = '<?php echo $_SESSION['user_role'] ?? 'GUEST'; ?>';
 window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
 window.MY_BOOKS_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=my-books';
-</script>
-<script src="<?php echo APP_URL; ?>/public/js/books.js"></script>
-                </section>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-window.BROWSE_API_URL = '<?php echo APP_URL; ?>/controllers/books.php';
-window.BROWSE_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=books';
-window.BROWSE_IS_LOGGED_IN = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-window.BROWSE_IS_VERIFIED = <?php echo ($session->isLoggedIn() && $session->isVerified()) ? 'true' : 'false'; ?>;
-window.BROWSE_CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; ?>;
-window.MY_BOOKS_PAGE_URL = '<?php echo APP_ROUTE; ?>?page=my-books';
+window.WISHLIST_API_URL = '<?php echo APP_URL; ?>/controllers/wishlist.php';
 </script>
 <script src="<?php echo APP_URL; ?>/public/js/books.js"></script>

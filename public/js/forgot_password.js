@@ -68,7 +68,7 @@
         const email = (fd.get("email") || "").toString().trim();
         if (!email) return;
 
-        msg("forgotMsgEmail", "");
+        msg("forgotMsgEmail", '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-spinner fa-spin"></i>Please wait, sending code...</div>');
         try {
             const res = await fetch(base + "/controllers/auth.php?action=request-password-reset", {
                 method: "POST",
@@ -107,6 +107,8 @@
         msg("forgotMsgOtp", "");
         const body = new URLSearchParams();
         body.set("email", email);
+        const csrfEl = el("globalCsrfToken");
+        if (csrfEl) body.set("csrf_token", csrfEl.value);
         try {
             const res = await fetch(base + "/controllers/auth.php?action=request-password-reset", {
                 method: "POST",
@@ -120,6 +122,12 @@
                     "forgotMsgOtp",
                     '<div class="alert alert-info"><i class="fas fa-check mr-2"></i>' + (out.message || "OTP sent.") + "</div>"
                 );
+            } else if (out.on_cooldown) {
+                if (window.startOtpCountdown) {
+                    window.startOtpCountdown(el("forgotMsgOtp"), out.remaining);
+                } else {
+                    msg("forgotMsgOtp", '<div class="alert alert-warning">' + out.error + '</div>');
+                }
             } else {
                 msg(
                     "forgotMsgOtp",
@@ -143,8 +151,10 @@
         const fd = new FormData();
         fd.set("email", email);
         fd.set("otp", otp);
+        const csrfEl = el("globalCsrfToken");
+        if (csrfEl) fd.set("csrf_token", csrfEl.value);
 
-        msg("forgotMsgOtp", "");
+        msg("forgotMsgOtp", '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-spinner fa-spin"></i>Verifying code...</div>');
         try {
             const res = await fetch(base + "/controllers/auth.php?action=verify-password-reset-otp", {
                 method: "POST",
@@ -186,7 +196,9 @@
         fd.set("email", email);
         fd.set("new_password", p1);
         fd.set("confirm_password", p2);
-        msg("forgotMsgPassword", "");
+        const csrfEl = el("globalCsrfToken");
+        if (csrfEl) fd.set("csrf_token", csrfEl.value);
+        msg("forgotMsgPassword", '<div class="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 flex items-center gap-3"><i class="fas fa-spinner fa-spin"></i>Updating password...</div>');
         try {
             const res = await fetch(base + "/controllers/auth.php?action=reset-password", {
                 method: "POST",

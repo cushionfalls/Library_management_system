@@ -4,6 +4,8 @@
     h1, h2, h3, .brand-logo { font-family: 'Manrope', system-ui, sans-serif; }
 </style>
 
+<?php $userRole = $_SESSION['user_role'] ?? 'USER'; ?>
+
 <div class="w-full space-y-12">
 
     <!-- Expiry Warning Banner -->
@@ -76,6 +78,7 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </a>
+        <?php if ($userRole === 'USER'): ?>
         <a href="<?php echo APP_ROUTE; ?>?page=membership" class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-2xl p-6 flex items-center justify-between group border border-outline-variant/10">
             <div>
                 <p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 flex items-center gap-2">
@@ -88,6 +91,7 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </a>
+        <?php endif; ?>
     </section>
 
     <!-- Bottom Section -->
@@ -126,6 +130,7 @@
         </div>
     </section>
 
+    <?php if ($userRole === 'USER'): ?>
     <!-- AI Recommendation Section -->
     <section class="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-8 shadow-sm">
         <div id="recommendationsPlaceholder" class="py-12 flex flex-col items-center justify-center text-center">
@@ -149,6 +154,7 @@
 
         <div id="recommendationsGrid" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto"></div>
     </section>
+    <?php endif; ?>
 </div>
 
 <script>
@@ -176,9 +182,12 @@ async function loadQuote() {
 
 async function loadDashboard() {
     try {
-        const wallet = await fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null);
-        if (wallet && wallet.success) {
-            document.getElementById('walletBalance').textContent = window.formatUsdFromCents(wallet.balance || 0);
+        if (window.USER_ROLE === 'USER') {
+            const wallet = await fetch('<?php echo APP_URL; ?>/controllers/wallet.php?action=getBalance').then(r => r.json()).catch(() => null);
+            if (wallet && wallet.success) {
+                const balanceEl = document.getElementById('walletBalance');
+                if (balanceEl) balanceEl.textContent = window.formatUsdFromCents(wallet.balance || 0);
+            }
         }
 
         const myBooks = await fetch('<?php echo APP_URL; ?>/controllers/books.php?action=my-books').then(r => r.json()).catch(() => null);
@@ -187,8 +196,21 @@ async function loadDashboard() {
         const booksList = document.getElementById('dashboardBooksList');
         if (booksList) {
             if (!books.length) {
+                booksList.className = "grid grid-cols-2 md:grid-cols-3 gap-6";
                 booksList.innerHTML = '<div class="col-span-full py-8 text-center text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-3 text-outline/50">auto_stories</span><p class="font-medium">No books in your library yet.</p></div>';
+            } else if (books.length === 1) {
+                booksList.className = "flex justify-center w-full";
+                const b = books[0];
+                booksList.innerHTML = `
+                    <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group w-full max-w-[180px]">
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm border border-outline-variant/10 bg-surface-container">
+                            <img src="${window.escapeHtml(b.cover_image_url || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${window.escapeHtml(b.name || 'Book')}">
+                        </div>
+                        <p class="text-sm font-bold text-on-surface text-center truncate group-hover:text-primary transition-colors">${window.escapeHtml(b.name || 'Book')}</p>
+                    </a>
+                `;
             } else {
+                booksList.className = "grid grid-cols-2 md:grid-cols-3 gap-6";
                 booksList.innerHTML = books.slice(0, 6).map((b) => `
                     <a href="<?php echo APP_ROUTE; ?>?page=books&book=${b.book_id}" class="block group">
                         <div class="aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm border border-outline-variant/10 bg-surface-container">
@@ -329,17 +351,40 @@ async function loadRecommendations(forceRefresh = false) {
         const data = payload.data || {};
         const recs = Array.isArray(data.recommendations) ? data.recommendations.slice(0, 3) : [];
         if (!recs.length) {
-            grid.innerHTML = `
-                <div class="col-span-full py-10 text-center text-on-surface-variant">
-                    <span class="material-symbols-outlined text-5xl mb-3 text-outline/60">auto_stories</span>
-                    <p class="font-semibold">No personalized recommendations yet.</p>
-                    <p class="text-sm mt-1">Borrow or buy at least one book and we’ll tailor picks to your taste.</p>
-                </div>
-            `;
+            grid.className = "hidden grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto";
+            if (data.source === 'all_owned') {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-on-surface-variant">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
+                            <span class="material-symbols-outlined text-3xl">celebration</span>
+                        </div>
+                        <p class="font-bold text-lg text-on-surface">You've unlocked all our books!</p>
+                        <p class="text-sm mt-2 max-w-md mx-auto">Wow! You already own or have active access to every single book in our collection. Stay tuned for future catalog additions!</p>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = `
+                    <div class="col-span-full py-10 text-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-5xl mb-3 text-outline/60">auto_stories</span>
+                        <p class="font-semibold">No personalized recommendations yet.</p>
+                        <p class="text-sm mt-1">Borrow or buy at least one book and we’ll tailor picks to your taste.</p>
+                    </div>
+                `;
+            }
             return;
         }
 
-        grid.innerHTML = recs.map((item) => recommendationCard(item)).join('');
+        if (recs.length === 1 || recs.length === 2) {
+            grid.className = "hidden flex flex-wrap justify-center w-full gap-8 max-w-4xl mx-auto";
+            grid.innerHTML = recs.map((item) => `
+                <div class="w-full max-w-[240px] flex">
+                    ${recommendationCard(item)}
+                </div>
+            `).join('');
+        } else {
+            grid.className = "hidden grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto";
+            grid.innerHTML = recs.map((item) => recommendationCard(item)).join('');
+        }
     } catch (err) {
         if (err.message === 'Buy some book to use this feature') {
             grid.innerHTML = `

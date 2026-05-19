@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/User.php';
+require_once __DIR__ . '/EmailService.php';
 
 class AdminDashboard {
     private $db;
@@ -23,21 +25,23 @@ class AdminDashboard {
         return $res && $res->num_rows > 0;
     }
 
-    public function getRecentUsers($limit = 8) {
+    public function getRecentUsers($limit = 8, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
             "SELECT id, first_name, last_name, email, role, is_active, phone_number, dob, profile_image, created_at
              FROM Users
              ORDER BY created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getRecentTransactions($limit = 100) {
+    public function getRecentTransactions($limit = 100, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
                     "SELECT wt.id,
                     wt.reason AS type,
@@ -53,16 +57,17 @@ class AdminDashboard {
              INNER JOIN Users u ON u.id = wt.user_id
              WHERE wt.reason IN ('TOP_UP', 'MEMBERSHIP', 'BOOK_BUY')
              ORDER BY created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
 
-    public function getBooks($limit = 100) {
+    public function getBooks($limit = 100, $offset = 0) {
         $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
         $stmt = $this->db->prepare(
             "SELECT b.id, b.isbn, b.name, b.description, b.publisher, b.published_at, b.language, b.genre,
                     b.number_of_copies, b.price, b.online_buy_price,
@@ -73,9 +78,9 @@ class AdminDashboard {
              LEFT JOIN Authors a ON a.id = ba.author_id
              GROUP BY b.id
              ORDER BY b.created_at DESC
-             LIMIT ?"
+             LIMIT ? OFFSET ?"
         );
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $limit, $offset);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
@@ -292,6 +297,17 @@ class AdminDashboard {
         if ($firstName === '' || $lastName === '' || $email === '') {
             return ['success' => false, 'message' => 'First name, last name and email are required'];
         }
+        if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+            return ['success' => false, 'message' => 'First name and last name must be at most 20 characters'];
+        }
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return ['success' => false, 'message' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'message' => 'Date of birth cannot be in the future'];
+            }
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'Invalid email format'];
         }
@@ -317,6 +333,14 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'Email already used by another user'];
         }
 
+        // Query the previous is_active status and role of the user prior to executing the update
+        $prevCheck = $this->db->prepare("SELECT is_active, role FROM Users WHERE id = ? LIMIT 1");
+        $prevCheck->bind_param('i', $id);
+        $prevCheck->execute();
+        $prevUser = $prevCheck->get_result()->fetch_assoc();
+        $wasActive = $prevUser ? (int)$prevUser['is_active'] : 1;
+        $prevRole = $prevUser ? strtoupper(trim($prevUser['role'])) : 'USER';
+
         $stmt = $this->db->prepare(
             "UPDATE Users
              SET first_name = ?, last_name = ?, email = ?, role = ?, is_active = ?, phone_number = ?, dob = ?, profile_image = ?, updated_at = NOW()
@@ -331,6 +355,39 @@ class AdminDashboard {
 
         if ($stmt->affected_rows < 0) {
             return ['success' => false, 'message' => 'User not found'];
+        }
+
+        // Send deactivation alert if user was active and is now deactivated
+        if ($wasActive === 1 && $isActive === 0) {
+            try {
+                $emailSvc = new EmailService();
+                $emailSvc->sendAccountDeactivation($email, $firstName . ' ' . $lastName);
+            } catch (Exception $e) {
+                error_log("Failed to send deactivation email: " . $e->getMessage());
+            }
+        }
+        // Send reactivation alert if user was inactive and is now reactivated
+        elseif ($wasActive === 0 && $isActive === 1) {
+            try {
+                $emailSvc = new EmailService();
+                $emailSvc->sendAccountReactivation($email, $firstName . ' ' . $lastName);
+            } catch (Exception $e) {
+                error_log("Failed to send reactivation email: " . $e->getMessage());
+            }
+        }
+
+        // Send role transition email if role has changed
+        if ($prevRole !== $role) {
+            try {
+                $emailSvc = new EmailService();
+                if ($role === 'LIBRARIAN') {
+                    $emailSvc->sendRolePromotedToLibrarian($email, $firstName . ' ' . $lastName);
+                } elseif ($role === 'USER') {
+                    $emailSvc->sendRoleDemotedToUser($email, $firstName . ' ' . $lastName);
+                }
+            } catch (Exception $e) {
+                error_log("Failed to send role change email: " . $e->getMessage());
+            }
         }
 
         return ['success' => true, 'message' => 'User updated successfully'];
@@ -349,6 +406,17 @@ class AdminDashboard {
 
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '') {
             return ['success' => false, 'message' => 'First name, last name, email and password are required'];
+        }
+        if (strlen($firstName) > 20 || strlen($lastName) > 20) {
+            return ['success' => false, 'message' => 'First name and last name must be at most 20 characters'];
+        }
+        if (!preg_match('/^[a-zA-Z]+$/', $firstName) || !preg_match('/^[a-zA-Z]+$/', $lastName)) {
+            return ['success' => false, 'message' => 'First name and last name must contain only letters (no spaces, numbers or special characters)'];
+        }
+        if ($dob !== '') {
+            if (strtotime($dob) > time()) {
+                return ['success' => false, 'message' => 'Date of birth cannot be in the future'];
+            }
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => 'Invalid email format'];
@@ -396,72 +464,20 @@ class AdminDashboard {
             return ['success' => false, 'message' => 'You cannot remove your own account'];
         }
 
-        $roleStmt = $this->db->prepare("SELECT role FROM Users WHERE id = ? LIMIT 1");
-        $roleStmt->bind_param('i', $id);
-        $roleStmt->execute();
-        $row = $roleStmt->get_result()->fetch_assoc();
-        if (!$row) {
+        $user = new User();
+        $userData = $user->getUserById($id);
+        if (!$userData) {
             return ['success' => false, 'message' => 'User not found'];
         }
-        if (($row['role'] ?? '') === 'ADMIN') {
+        if (($userData['role'] ?? '') === 'ADMIN') {
             return ['success' => false, 'message' => 'Admin user cannot be removed'];
         }
 
-        $this->db->begin_transaction();
-        try {
-            $emailStmt = $this->db->prepare("SELECT email FROM Users WHERE id = ? LIMIT 1");
-            $emailStmt->bind_param('i', $id);
-            $emailStmt->execute();
-            $user = $emailStmt->get_result()->fetch_assoc();
-            if (!$user) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'User not found'];
-            }
-
-            $email = $user['email'];
-
-            $stmt = $this->db->prepare("DELETE FROM WalletTransactions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM BookReviews WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM BookTransactions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Sessions WHERE user_id = ?");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM OTP WHERE email = ?");
-            $stmt->bind_param('s', $email);
-            $stmt->execute();
-
-            $stmt = $this->db->prepare("DELETE FROM Users WHERE id = ? LIMIT 1");
-            $stmt->bind_param('i', $id);
-            $stmt->execute();
-
-            if ($stmt->affected_rows <= 0) {
-                $this->db->rollback();
-                return ['success' => false, 'message' => 'User not found'];
-            }
-
-            $this->db->commit();
+        if ($user->deleteUser($id)) {
             return ['success' => true, 'message' => 'User removed successfully'];
-        } catch (Exception $e) {
-            $this->db->rollback();
+        } else {
             return ['success' => false, 'message' => 'Failed to remove user'];
         }
-    }
-
-    private function countTable($tableName) {
-        $safe = preg_replace('/[^A-Za-z0-9_]/', '', $tableName);
-        $result = $this->db->query("SELECT COUNT(*) AS total FROM {$safe}");
-        $row = $result ? $result->fetch_assoc() : ['total' => 0];
-        return (int)($row['total'] ?? 0);
     }
 
     private function countTotalMemberships() {
@@ -474,16 +490,103 @@ class AdminDashboard {
         return (int)($row['total'] ?? 0);
     }
 
-
     private function sumWalletCreditsToday() {
+        // Only sum credits created today
         $result = $this->db->query(
             "SELECT COALESCE(SUM(amount), 0) AS total
              FROM WalletTransactions
-             WHERE type = 'CREDIT'"
+             WHERE type = 'CREDIT' AND DATE(created_at) = CURDATE()"
         );
         $row = $result ? $result->fetch_assoc() : ['total' => 0];
         return (int)($row['total'] ?? 0);
     }
+
+    public function getAnalyticsStats() {
+        return [
+            'active_memberships' => $this->countActiveMemberships(),
+            'new_users_7d' => $this->countNewUsers(7),
+            'monthly_books_purchased' => $this->countMonthlyPurchases()
+        ];
+    }
+
+    public function getRevenueLast30Days() {
+        $stmt = $this->db->prepare(
+            "SELECT DATE(created_at) as date, COALESCE(SUM(amount), 0) as total
+             FROM WalletTransactions
+             WHERE type = 'CREDIT' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             GROUP BY DATE(created_at)
+             ORDER BY date ASC"
+        );
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        // Fill gaps in dates
+        $data = [];
+        $today = new DateTime();
+        for ($i = 29; $i >= 0; $i--) {
+            $d = (clone $today)->modify("-$i days")->format('Y-m-d');
+            $found = array_search($d, array_column($res, 'date'));
+            $data[] = [
+                'date' => $d,
+                'total' => $found !== false ? (int)$res[$found]['total'] : 0
+            ];
+        }
+        return $data;
+    }
+
+    public function getTop5PurchasedBooks() {
+        $stmt = $this->db->query(
+            "SELECT b.name, COUNT(uba.id) as sales
+             FROM UserBookAccess uba
+             JOIN Books b ON b.id = uba.book_id
+             WHERE uba.access_type = 'OWNED'
+             GROUP BY uba.book_id
+             ORDER BY sales DESC
+             LIMIT 5"
+        );
+        return $stmt->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getGenreBreakdown() {
+        $stmt = $this->db->query(
+            "SELECT genre, COUNT(*) as count
+             FROM Books
+             GROUP BY genre"
+        );
+        return $stmt->fetch_all(MYSQLI_ASSOC);
+    }
+
+    private function countActiveMemberships() {
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM UserMemberships WHERE ends_at > NOW()");
+        $row = $result ? $result->fetch_assoc() : ['total' => 0];
+        return (int)($row['total'] ?? 0);
+    }
+
+    private function countNewUsers($days) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM Users WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
+        $stmt->bind_param('i', $days);
+        $stmt->execute();
+        return (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+    }
+
+    private function countMonthlyPurchases() {
+        $result = $this->db->query(
+            "SELECT COUNT(*) as total FROM WalletTransactions 
+             WHERE reason = 'BOOK_BUY' AND created_at >= DATE_FORMAT(NOW() ,'%Y-%m-01')"
+        );
+        return (int)($result->fetch_assoc()['total'] ?? 0);
+    }
+
+    private function countTable($table) {
+        $allowed = ['Users', 'Books', 'UserMemberships'];
+        if (!in_array($table, $allowed)) {
+            return 0;
+        }
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM `{$table}`");
+        $row = $result ? $result->fetch_assoc() : ['total' => 0];
+        return (int)($row['total'] ?? 0);
+    }
+
 
     private function normalizeGenre($genre) {
         $genre = strtoupper(trim((string)$genre));
