@@ -136,7 +136,7 @@ class DigitalLibrary {
             }
         }
         
-        $sql = "SELECT uba.id, uba.book_id, uba.access_type, uba.created_at,
+        $sql = "SELECT uba.id AS access_id, b.id AS book_id, uba.access_type, uba.created_at,
                        b.name, b.description, b.genre, b.cover_image, b.online_copy_pdf,
                        COALESCE(GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', '), '') AS authors,
                        ubp.progress_percent, ubp.current_location, ubp.last_opened_at

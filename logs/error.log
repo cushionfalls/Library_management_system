@@ -43,3 +43,20 @@ Stack trace:
 #2 C:\yoo\htdocs\Library_management_system\index.php(2): require('C:\\yoo\\htdocs\\L...')
 #3 {main}
   thrown in C:\yoo\htdocs\Library_management_system\classes\Wishlist.php on line 93
+[19-May-2026 06:35:26 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 06:35:27 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 06:35:29 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 06:36:04 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 08:09:12 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 08:09:18 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 08:09:19 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 08:11:20 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:56:28 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:57:28 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:57:33 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:57:33 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:57:39 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:58:24 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:58:30 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:58:31 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
+[19-May-2026 11:58:34 Europe/Berlin] PHP Warning:  Undefined array key "access_id" in C:\xampp\htdocs\Library_management_system\classes\DigitalLibrary.php on line 163
