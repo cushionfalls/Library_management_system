@@ -53,7 +53,7 @@ Memberships can be purchased directly at `index.php?page=membership` (login requ
 | :---: | :---: | :---: |
 | **1 Month** | `$4.99` | Wallet Balance |
 | **6 Months** | `$15.99` | Wallet Balance |
-| **12 Months** | `$30.00` | Wallet Balance |
+| **12 Months** | `$35.00` | Wallet Balance |
 
 ### 🔄 Subscription Lifecycle
 1.  When a membership is purchased, the wallet balance is debited and a transaction log is entered into `WalletTransactions` with the reason **`MEMBERSHIP`**.
